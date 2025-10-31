@@ -1,12 +1,14 @@
 # Technický design
 
-Tento dokument popisuje softwarový návrh hry z hlediska architektury, použitých techonologií a návrhu komponent/subsystémů.
+Tento dokument popisuje softwarový návrh aplikace z hlediska architektury, použitých techonologií a návrhu komponent/subsystémů.
 
 ## High level architektura
 
-Hra je realizována jako standardní webová aplikace. Klientská část běží plně v desktopovém moderním prohlížeči s využitím WebGL, případně HTML5 canvasu, pro vykreslování herní grafiky. UI elementy jsou sestaveny z Single-Page Application komponentního frameworku a vkládány do DOM aplikace přes vrstvu nad herním plátnem.
+Hra je realizována jako standardní webová aplikace. Klientská část běží plně v desktopovém moderním prohlížeči s využitím WebGL, případně HTML5 canvasu, pro vykreslování herní grafiky.
+UI elementy jsou sestaveny z Single-Page Application komponentního frameworku a vkládány do DOM aplikace přes vrstvu nad herním plátnem.
 
-Komunikace mezi klienty a klasickým autoritativním serverem probihá přes WebSockets (případně pouze REST API s pravidelným pollingem z klienta, pokud by se ukázalo dostačující z hlediska latence). Serverová část zajišťuje vyhodnocování herní logiky, validaci akcí hráčů a správu herního stavu, včetně synchronizace mezi klienty a perzistencí do databáze.
+Komunikace mezi klienty a klasickým autoritativním serverem probihá přes WebSockets (případně pouze REST API s pravidelným pollingem z klienta, pokud by se ukázalo dostačující z hlediska latence).
+Serverová část zajišťuje vyhodnocování herní logiky, validaci akcí hráčů a správu herního stavu, včetně synchronizace mezi klienty a perzistencí do databáze.
 
 ![Architecture Diagram](./assets/architecture_diagram.svg)
 
