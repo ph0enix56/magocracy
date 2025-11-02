@@ -4,7 +4,7 @@ Magocracy je real-time webová strategická hra, vytvářená jako semestrální
 
 ## Dokumentace
 
-Stručný design dokument: [zde](docs/DESIGN.md)
+Game design document: [zde](docs/DESIGN.md)
 
 Technický design: [zde](docs/TECHNICAL.md)
 
