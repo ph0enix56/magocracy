@@ -28,26 +28,16 @@ Je tak možné hrát jak rychlé zápasy (dohratelné v jednom sezení), tak i d
 
 ## Aspekty práce (kartičky)
 
-Jisté:
+*předpokládaný rozvrh - subject to change do 13. týdnu*
 
 - Tým - Sólo: 5
-- Engine - Web framework (Phaser / pixi.js): 15
+- Engine - Web framework (Phaser / pixi.js): 10/15
 - Vizuál - Jednoduchá 2D grafika: 10
 - Audio - Přehrávání samplů: 5
 - Procedurální generování herní mapy: 15
-
-Pravděpodobné:
-
-- Základní hra po síti (pokud bude server-side v rámci VGA): 5
-- Fog of War: 5
+- AI protihráčů - stavový automat/behaviorální strom: 5/10
+- Přebarvování assetů karet/jednotek/budov: 5
 - Politická mapa: 5
-- Přebarvování assetů jednotek/budov: 5
-
-Možné:
-
-- ECS (podle potřeby použití v rámci frameworku): 10
-- AI se stavovým automatem pro logiku jednotek v soubojích: 5
-- Behaviorální stromy (to samé, pokud by bylo složitější): 10
 
 ## Herní mechaniky *(under construction)*
 
@@ -74,12 +64,10 @@ Cvičiště mají místo vylepšení districtu možnost tréninku oddílu.
 To probíhá v principu stejně jako vylepšení, ale výsledkem je zvýšení úrovně poskytovaného oddílu, což zlepší jeho bojové vlastnosti.
 Maximální úroveň oddílu (počet možných tréninků) obecně není omezena, narozdíl od vylepšení districtů.
 
-## 
-
 ### Přehled typů districtů
 
 | Typ districtu | Barva | Popis |
 |---------------|-------|-------|
-| 
+| | | |
 
 Hra disponuje variabilní časovou škálou - čas nutný pro výstavbu budov, přesuny armád a další akce je vázán na abstraktní časové jednotky (time units - TU), jejichž délku v reálném čase si hráči zvolí při tvorbě lobby.
