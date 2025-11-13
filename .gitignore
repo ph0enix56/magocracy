@@ -1,0 +1,44 @@
+# Node / Bun dependencies
+node_modules/
+
+# Build outputs
+dist/
+.vite/
+
+# TypeScript incremental + diagnostic files
+*.tsbuildinfo
+
+# Logs & debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+logs/
+*.log
+
+# IDE/editor metadata
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Coverage / test artifacts
+coverage/
+.nyc_output/
+
+# Misc caches
+*.cache
+cache/
+
+# Optional: if you generate temporary scratch files
+*.swp
+*.tmp
+~*
+
