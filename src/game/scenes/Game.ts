@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import { eventBus } from '../../eventBus';
 
 export class Game extends Scene {
 	constructor() {
@@ -12,14 +13,39 @@ export class Game extends Scene {
 	
 	create() {
 		this.createHexGrid(7, 7, this.HEX_SIZE);
+
+		// notify UI when clicking off any tile
+		this.input.on('pointerdown', (objects: any[]) => {
+			if (!objects || objects.length === 0) {
+				eventBus.publishGameToUi({ type: 'tile-cleared' });
+			}
+		});
+
+		// listen for UI build/destroy commands
+		eventBus.subscribeUiToGame(event => {
+			if (event.type === 'build-requested') {
+				this.handleBuild(event.q, event.r);
+			} else if (event.type === 'destroy-requested') {
+				this.handleDestroy(event.q, event.r);
+			}
+		});
 	}
 
+	override update(_time: number, delta: number): void {
+		this.timer += delta;
+		if (this.timer < 1000) return;
+		this.timer = 0;
+		eventBus.publishGameToUi({
+			type: 'resource-updated',
+			key: 'mana',
+			value: Math.floor(Math.random() * 100) });
+	}
+
+	timer: number = 0;
 	HEX_SIZE: number = 64;
 
 	// doubled coordinate representation: 2D array
-	private tiles: Array<Array<{full: boolean, g?: Phaser.GameObjects.Image}>>;
-
-	private selectedTile: {q: number, r: number} | null = null;
+	private tiles: Array<Array<{full: boolean, g?: Phaser.GameObjects.Image, built?: Phaser.GameObjects.Arc}>>;
 
 	private getHexagon(hexSize: number, centerX: number, centerY: number): Phaser.Geom.Polygon {
 		const points = [];
@@ -46,22 +72,6 @@ export class Game extends Scene {
 			.destroy();
 	}
 
-	private getNeighbors(q: number, r: number): Array<{q: number, r: number}> {
-		const directions = [
-			{ dq: +2, dr: 0 }, { dq: +1, dr: -1 }, { dq: -1, dr: -1 },
-			{ dq: -2, dr: 0 }, { dq: -1, dr: +1 }, { dq: +1, dr: +1 }
-		];
-		const neighbors = [];
-		for (const dir of directions) {
-			const nq = q + dir.dq;
-			const nr = r + dir.dr;
-			// check bounds
-			if (nq >= 0 && nq < this.tiles.length && nr >= 0 && nr < this.tiles[0]!.length) {
-				neighbors.push({ q: nq, r: nr });
-			}
-		}
-		return neighbors;
-	}
 
 	private createHexGrid(rows: number, cols: number, hexSize: number) {
 		// center grid on screen
@@ -108,11 +118,33 @@ export class Game extends Scene {
 				tile.on('pointerout', () => {
 					tile.clearTint();
 				});
-				tile.on('pointerdown', () => {
-					this.selectedTile = {q, r};
+				tile.on('pointerdown', (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
+					// prevent global pointerdown from clearing selection
+					event.stopPropagation();
+					const built = !!this.tiles[q]?.[r]?.built;
+					eventBus.publishGameToUi({
+						type: 'tile-selected',
+						payload: { q, r, built }
+					});
 				});
 				this.tiles[q]![r]! = { full: false, g: tile };
 			}
 		}
+	}
+
+	private handleBuild(q: number, r: number) {
+		const tile = this.tiles[q]?.[r];
+		if (!tile || !tile.g || tile.built) return;
+		const circle = this.add.circle(tile.g.x, tile.g.y, this.HEX_SIZE * 0.35, 0x0000ff, 1);
+		tile.built = circle;
+		tile.full = true;
+	}
+
+	private handleDestroy(q: number, r: number) {
+		const tile = this.tiles[q]?.[r];
+		if (!tile || !tile.built) return;
+		tile.built.destroy();
+		tile.built = undefined;
+		tile.full = false;
 	}
 }

@@ -27,7 +27,6 @@
 		"noImplicitOverride": true,
 		"noUncheckedSideEffectImports": true
 	},
-	"include": [
-		"src"
-	]
+	"include": ["src/**/*.ts", "src/**/*.svelte"],
+	"exclude": ["node_modules", "dist"]
 }
