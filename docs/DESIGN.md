@@ -28,16 +28,15 @@ Je tak možné hrát jak rychlé zápasy (dohratelné v jednom sezení), tak i d
 
 ## Aspekty práce (kartičky)
 
-*předpokládaný rozvrh - subject to change do 13. týdnu*
-
 - Tým - Sólo: 5
-- Engine - Web framework (Phaser / pixi.js): 10/15
+- Engine - Web framework (Phaser): 15
 - Vizuál - Jednoduchá 2D grafika: 10
-- Audio - Přehrávání samplů: 5
+- Audio - Bez zvuku: 0
 - Procedurální generování herní mapy: 15
-- AI protihráčů - stavový automat/behaviorální strom: 5/10
+- ECS: 10
 - Přebarvování assetů karet/jednotek/budov: 5
-- Politická mapa: 5
+- AI protihráčů - stavový automat/behaviorální strom: 5/10
+- Politická mapa?: 5 (tady nevím, co přesně je tím myšleno)
 
 ## Herní mechaniky *(under construction)*
 

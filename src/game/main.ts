@@ -1,4 +1,4 @@
-import { Game as MainGame } from './scenes/Game';
+import { KingdomScene } from './scenes/Kingdom/KingdomScene';
 import { AUTO, Game, Scale, type Types } from 'phaser';
 
 const config: Types.Core.GameConfig = {
@@ -12,7 +12,7 @@ const config: Types.Core.GameConfig = {
 		autoCenter: Scale.CENTER_BOTH
 	},
 	scene: [
-		MainGame
+		KingdomScene
 	]
 };
 

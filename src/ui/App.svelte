@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Sidebar from './Sidebar.svelte';
 	import ResourceCounter from './ResourceCounter.svelte';
+	import BuildingSelector from './BuildingSelector.svelte';
 </script>
 
 <div class="ui-root">
@@ -9,9 +10,11 @@
 		<ResourceCounter keyName="wood" icon="🪵" />
 		<ResourceCounter keyName="food" icon="🍞" />
 		<ResourceCounter keyName="mana" icon="💧" />
+		<ResourceCounter keyName="gold" icon="💰" />
 	</div>
 
 	<Sidebar />
+	<BuildingSelector />
 </div>
 
 <style>

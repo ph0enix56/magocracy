@@ -1,0 +1,181 @@
+<script lang="ts">
+    import { BUILDINGS } from '../game/scenes/Kingdom/data/buildings';
+    import { eventBus } from '../eventBus';
+    import { buildingSelectorState } from './uiState';
+
+    // Subscribe to store
+    let state = { isOpen: false, q: 0, r: 0 };
+    buildingSelectorState.subscribe(v => state = v);
+
+    function close() {
+        buildingSelectorState.set({ ...state, isOpen: false });
+    }
+
+    function build(buildingId: string) {
+        eventBus.publishUiToGame({
+            type: 'build-requested',
+            q: state.q,
+            r: state.r,
+            buildingId
+        });
+        close();
+    }
+</script>
+
+{#if state.isOpen}
+    <div class="overlay">
+        <div class="modal">
+            <div class="header">
+                <h2>Select Building</h2>
+                <button class="close-btn" on:click={close}>X</button>
+            </div>
+            
+            <div class="list">
+                {#each Object.values(BUILDINGS) as building}
+                    <div class="building-card">
+                        <div class="icon-container">
+                            <img src={`assets/${building.assetPath}`} alt={building.name} />
+                        </div>
+                        <div class="info">
+                            <div class="name">{building.name}</div>
+                            <div class="description">{building.description}</div>
+                            <div class="stats">
+                                <div class="cost">
+                                    Cost: 
+                                    {#each Object.entries(building.cost) as [res, amount]}
+                                        <span class="cost-item">{amount} {res}</span>
+                                    {/each}
+                                </div>
+                                <div class="time">Time: {building.buildTime}s</div>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button on:click={() => build(building.id)}>Confirm</button>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+        </div>
+    </div>
+{/if}
+
+<style>
+    .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+        z-index: 100;
+    }
+
+    .modal {
+        background: #2a2a2a;
+        color: #fff;
+        width: 600px;
+        max-height: 80vh;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        border: 1px solid #444;
+    }
+
+    .header {
+        padding: 16px;
+        border-bottom: 1px solid #444;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header h2 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: #aaa;
+        cursor: pointer;
+        font-size: 1.2rem;
+    }
+
+    .list {
+        padding: 16px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .building-card {
+        display: flex;
+        background: #333;
+        border-radius: 4px;
+        padding: 12px;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .icon-container {
+        width: 64px;
+        height: 64px;
+        background: #222;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .icon-container img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .info {
+        flex: 1;
+    }
+
+    .name {
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+    }
+
+    .description {
+        font-size: 0.9rem;
+        color: #ccc;
+        margin-bottom: 8px;
+    }
+
+    .stats {
+        font-size: 0.85rem;
+        color: #aaa;
+        display: flex;
+        gap: 16px;
+    }
+
+    .cost-item {
+        margin-right: 8px;
+        color: #ffd700;
+    }
+
+    .actions button {
+        padding: 8px 16px;
+        background: #4a9eff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .actions button:hover {
+        background: #3a8eef;
+    }
+</style>

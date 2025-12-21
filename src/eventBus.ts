@@ -1,7 +1,14 @@
-export type TileSelectedPayload = { q: number; r: number; built: boolean };
+export type TileSelectedPayload = { 
+	q: number; 
+	r: number; 
+	built: boolean;
+	buildingId?: string;
+	constructionProgress?: number;
+	productionMultiplier?: number;
+};
 
 export type UiToGameEvents =
-	| { type: 'build-requested'; q: number; r: number }
+	| { type: 'build-requested'; q: number; r: number; buildingId: string }
 	| { type: 'destroy-requested'; q: number; r: number };
 
 export type GameToUiEvents =
