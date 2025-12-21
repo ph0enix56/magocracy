@@ -10,13 +10,13 @@ export class Game extends Scene {
 		this.load.setPath('assets');
 		this.initHexTexture(this.HEX_SIZE, 3);
 	}
-	
+
 	create() {
 		this.createHexGrid(7, 7, this.HEX_SIZE);
 
 		// notify UI when clicking off any tile
-		this.input.on('pointerdown', (objects: any[]) => {
-			if (!objects || objects.length === 0) {
+		this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
+			if (currentlyOver.length === 0) {
 				eventBus.publishGameToUi({ type: 'tile-cleared' });
 			}
 		});
@@ -31,7 +31,9 @@ export class Game extends Scene {
 		});
 	}
 
-	override update(_time: number, delta: number): void {
+	// for debug only
+	timer: number = 0;
+	private testUpdateMana(delta: number): void {
 		this.timer += delta;
 		if (this.timer < 1000) return;
 		this.timer = 0;
@@ -41,7 +43,10 @@ export class Game extends Scene {
 			value: Math.floor(Math.random() * 100) });
 	}
 
-	timer: number = 0;
+	override update(_time: number, delta: number): void {
+		this.testUpdateMana(delta);
+	}
+
 	HEX_SIZE: number = 64;
 
 	// doubled coordinate representation: 2D array
@@ -71,7 +76,6 @@ export class Game extends Scene {
 			.generateTexture('hexTile', width, height)
 			.destroy();
 	}
-
 
 	private createHexGrid(rows: number, cols: number, hexSize: number) {
 		// center grid on screen

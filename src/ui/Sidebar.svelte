@@ -25,16 +25,17 @@
 	});
 
 	function onBuild() {
-		console.log('onBuild clicked'); // debug
-		console.log('selected:', selected); // debug
-		console.log('visible:', visible); // debug
 		if (!selected) return;
 		eventBus.publishUiToGame({ type: 'build-requested', q: selected.q, r: selected.r });
+		visible = false;
+		selected = null;
 	}
 
 	function onDestroyClick() {
 		if (!selected) return;
 		eventBus.publishUiToGame({ type: 'destroy-requested', q: selected.q, r: selected.r });
+		visible = false;
+		selected = null;
 	}
 </script>
 

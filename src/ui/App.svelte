@@ -7,7 +7,7 @@
 	<div class="top-bar">
 		<ResourceCounter keyName="stone" icon="🪨" />
 		<ResourceCounter keyName="wood" icon="🪵" />
-		<ResourceCounter keyName="gold" icon="💰" />
+		<ResourceCounter keyName="food" icon="🍞" />
 		<ResourceCounter keyName="mana" icon="💧" />
 	</div>
 
