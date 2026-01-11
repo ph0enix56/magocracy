@@ -2,7 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import type { TileSelectedPayload } from '../eventBus';
 	import { eventBus } from '../eventBus';
-	import { buildingSelectorState } from './uiState';
+	import { blueprintModalState } from './uiState';
 
 	let visible = false;
 	let selected: TileSelectedPayload | null = null;
@@ -27,11 +27,7 @@
 
 	function onBuild() {
 		if (!selected) return;
-		buildingSelectorState.set({
-			isOpen: true,
-			q: selected.q,
-			r: selected.r
-		});
+		blueprintModalState.set({ isOpen: true, mode: 'build', q: selected.q, r: selected.r });
 		visible = false;
 		selected = null;
 	}
@@ -41,6 +37,28 @@
 		eventBus.publishUiToGame({ type: 'destroy-requested', q: selected.q, r: selected.r });
 		visible = false;
 		selected = null;
+	}
+
+	function formatCost(cost: Record<string, number> | undefined): string {
+		if (!cost) return '';
+		return Object.entries(cost)
+			.map(([res, amount]) => `${amount} ${res}`)
+			.join(', ');
+	}
+
+	function onUpgradeClick() {
+		if (!selected?.nextUpgradeId) return;
+		const costStr = formatCost(selected.nextUpgradeCost);
+		const timeStr = selected.nextUpgradeTime !== undefined ? `${selected.nextUpgradeTime}s` : '';
+		const ok = confirm(`Upgrade to ${selected.nextUpgradeId}?\nCost: ${costStr}\nTime: ${timeStr}`);
+		if (!ok) return;
+
+		eventBus.publishUiToGame({
+			type: 'upgrade-requested',
+			q: selected.q,
+			r: selected.r,
+			upgradeBuildingId: selected.nextUpgradeId
+		});
 	}
 </script>
 
@@ -61,6 +79,29 @@
 
 		{#if selected.productionMultiplier !== undefined}
 			<p>Production Mult: x{selected.productionMultiplier.toFixed(2)}</p>
+		{/if}
+
+		{#if selected.upgradingToId}
+			<div class="upgrade-section">
+				<p><strong>Upgrading</strong> → {selected.upgradingToId}</p>
+				{#if selected.upgradeProgress !== undefined}
+					<div class="progress-container">
+						<div class="progress-bar" style="width: {selected.upgradeProgress}%"></div>
+					</div>
+					<p>Upgrade: {Math.round(selected.upgradeProgress)}%</p>
+				{/if}
+			</div>
+		{:else if selected.nextUpgradeId}
+			<div class="upgrade-section">
+				<p><strong>Next upgrade:</strong> {selected.nextUpgradeId}</p>
+				{#if selected.nextUpgradeCost}
+					<p>Cost: {formatCost(selected.nextUpgradeCost)}</p>
+				{/if}
+				{#if selected.nextUpgradeTime !== undefined}
+					<p>Time: {selected.nextUpgradeTime}s</p>
+				{/if}
+				<button on:click={onUpgradeClick}>Upgrade</button>
+			</div>
 		{/if}
 
 		{#if selected.built}
@@ -108,5 +149,10 @@
 		height: 100%;
 		background: #0f0;
 		transition: width 0.3s ease;
+	}
+	.upgrade-section {
+		margin-top: 12px;
+		padding-top: 8px;
+		border-top: 1px solid rgba(255, 255, 255, 0.15);
 	}
 </style>

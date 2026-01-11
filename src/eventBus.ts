@@ -3,18 +3,29 @@ export type TileSelectedPayload = {
 	r: number; 
 	built: boolean;
 	buildingId?: string;
+	buildingStatus?: 'constructing' | 'active';
 	constructionProgress?: number;
 	productionMultiplier?: number;
+	// Upgrade UI
+	nextUpgradeId?: string;
+	nextUpgradeCost?: Record<string, number>;
+	nextUpgradeTime?: number; // seconds
+	upgradingToId?: string;
+	upgradeProgress?: number; // percent
 };
 
 export type UiToGameEvents =
 	| { type: 'build-requested'; q: number; r: number; buildingId: string }
-	| { type: 'destroy-requested'; q: number; r: number };
+	| { type: 'destroy-requested'; q: number; r: number }
+	| { type: 'upgrade-requested'; q: number; r: number; upgradeBuildingId: string }
+	| { type: 'spend-gold'; amount: number; reason: 'shop-buy' | 'shop-fill' };
 
 export type GameToUiEvents =
 	| { type: 'tile-selected'; payload: TileSelectedPayload }
 	| { type: 'tile-cleared' }
-	| { type: 'resource-updated'; key: string; value: number };
+	| { type: 'resource-updated'; key: string; value: number }
+	| { type: 'build-result'; q: number; r: number; buildingId: string; ok: boolean; reason?: string }
+	| { type: 'spend-gold-result'; amount: number; ok: boolean; reason?: string; requestReason: 'shop-buy' | 'shop-fill' };
 
 type GameToUiListener = (event: GameToUiEvents) => void;
 type UiToGameListener = (event: UiToGameEvents) => void;

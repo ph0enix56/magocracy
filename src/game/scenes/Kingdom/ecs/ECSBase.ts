@@ -26,6 +26,7 @@ export class ECSManager {
         this.resources.set('wood', 100);
         this.resources.set('food', 100);
         this.resources.set('mana', 50);
+        this.resources.set('gold', 1000);
     }
 
     addEntity(entity: Entity) {
