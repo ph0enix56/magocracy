@@ -9,6 +9,11 @@ export interface BuildingComponent {
     buildingId: string; // Reference to BuildingDef
     status: 'constructing' | 'active';
     progress: number; // ms elapsed
+    // When set, an upgrade is in progress. Building remains functional.
+    upgrade?: {
+        targetBuildingId: string;
+        progress: number; // ms elapsed
+    };
 }
 
 export interface RenderComponent {

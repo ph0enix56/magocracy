@@ -2,6 +2,11 @@
 	import Sidebar from './Sidebar.svelte';
 	import ResourceCounter from './ResourceCounter.svelte';
 	import BuildingSelector from './BuildingSelector.svelte';
+	import { blueprintModalState } from './uiState';
+
+	function openBlueprints() {
+		blueprintModalState.set({ isOpen: true, mode: 'view', q: 0, r: 0 });
+	}
 </script>
 
 <div class="ui-root">
@@ -11,6 +16,7 @@
 		<ResourceCounter keyName="food" icon="🍞" />
 		<ResourceCounter keyName="mana" icon="💧" />
 		<ResourceCounter keyName="gold" icon="💰" />
+		<button class="blueprints-btn" on:click={openBlueprints}>Blueprints</button>
 	</div>
 
 	<Sidebar />
@@ -31,5 +37,17 @@
 		display: flex;
 		gap: 8px;
 		pointer-events: auto;
+	}
+	.blueprints-btn {
+		padding: 4px 8px;
+		border-radius: 4px;
+		background: rgba(0, 0, 0, 0.6);
+		color: #fff;
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		cursor: pointer;
+		font-family: system-ui, sans-serif;
+	}
+	.blueprints-btn:hover {
+		background: rgba(0, 0, 0, 0.75);
 	}
 </style>

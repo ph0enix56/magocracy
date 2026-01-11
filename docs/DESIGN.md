@@ -67,6 +67,6 @@ Maximální úroveň oddílu (počet možných tréninků) obecně není omezena
 
 | Typ districtu | Barva | Popis |
 |---------------|-------|-------|
-| | | |
+|  |  |  |
 
 Hra disponuje variabilní časovou škálou - čas nutný pro výstavbu budov, přesuny armád a další akce je vázán na abstraktní časové jednotky (time units - TU), jejichž délku v reálném čase si hráči zvolí při tvorbě lobby.
