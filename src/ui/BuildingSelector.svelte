@@ -2,6 +2,7 @@
     import { getBuildableBuildings } from '../game/scenes/Kingdom/data/buildings';
     import { eventBus } from '../eventBus';
     import { blueprintInventory, blueprintModalState } from './uiState';
+    import BuildingCard from './BuildingCard.svelte';
 
     // Subscribe to stores
     let state: { isOpen: boolean; mode: 'view' | 'build'; q: number; r: number } = { isOpen: false, mode: 'view', q: 0, r: 0 };
@@ -61,29 +62,12 @@
             
             <div class="list">
                 {#each ownedBlueprints() as item}
-                    <div class="building-card">
-                        <div class="icon-container">
-                            <img src={`assets/${item.def.assetPath}`} alt={item.def.name} />
-                        </div>
-                        <div class="info">
-                            <div class="name">{item.def.name} <span class="count">x{item.count}</span></div>
-                            <div class="description">{item.def.description}</div>
-                            <div class="stats">
-                                <div class="cost">
-                                    Cost:
-                                    {#each Object.entries(item.def.cost) as [res, amount]}
-                                        <span class="cost-item">{amount} {res}</span>
-                                    {/each}
-                                </div>
-                                <div class="time">Time: {item.def.buildTime}s</div>
-                            </div>
-                        </div>
-                        <div class="actions">
-                            {#if state.mode === 'build'}
-                                <button on:click={() => build(item.def.id)}>Use</button>
-                            {/if}
-                        </div>
-                    </div>
+                    <BuildingCard
+                        def={item.def}
+                        count={item.count}
+                        actionLabel={state.mode === 'build' ? 'Use' : null}
+                        on:action={() => build(item.def.id)}
+                    />
                 {/each}
 
                 {#if ownedBlueprints().length === 0}
@@ -147,85 +131,9 @@
         gap: 12px;
     }
 
-    .building-card {
-        display: flex;
-        background: #333;
-        border-radius: 4px;
-        padding: 12px;
-        gap: 16px;
-        align-items: center;
-    }
-
-    .icon-container {
-        width: 64px;
-        height: 64px;
-        background: #222;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .icon-container img {
-        max-width: 100%;
-        max-height: 100%;
-    }
-
-    .info {
-        flex: 1;
-    }
-
-    .name {
-        font-weight: bold;
-        font-size: 1.1rem;
-        margin-bottom: 4px;
-    }
-
-    .count {
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: #ffd700;
-        margin-left: 6px;
-    }
-
-    .description {
-        font-size: 0.9rem;
-        color: #ccc;
-        margin-bottom: 8px;
-    }
-
-    .stats {
-        font-size: 0.85rem;
-        color: #aaa;
-        display: flex;
-        gap: 16px;
-    }
-
-    .cost-item {
-        margin-right: 8px;
-        color: #ffd700;
-    }
-
-    .actions button {
-        padding: 8px 16px;
-        background: #4a9eff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .actions button:hover {
-        background: #3a8eef;
-    }
-
     .empty {
         padding: 12px;
         color: #ccc;
-        text-align: center;
-        border: 1px dashed #444;
-        border-radius: 4px;
+        margin-bottom: 8px;
     }
 </style>

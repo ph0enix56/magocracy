@@ -32,16 +32,16 @@ export class ProductionSystem implements System {
         const neighbors = this.getNeighbors(entity.position.q, entity.position.r);
         
         // 1. Self Modifier (based on neighbors)
-        if (def.calculateSelfModifier) {
-            multiplier += def.calculateSelfModifier(entity, neighbors);
+        if (def.getSelfProdModifier) {
+            multiplier += def.getSelfProdModifier(entity, neighbors);
         }
 
         // 2. Incoming Modifiers from Neighbors (buffs)
         for (const neighbor of neighbors) {
             if (neighbor.building && neighbor.building.status === 'active') {
                 const neighborDef = getBuildingDef(neighbor.building.buildingId);
-                if (neighborDef && neighborDef.getNeighborModifier) {
-                    multiplier += neighborDef.getNeighborModifier(neighbor, entity);
+                if (neighborDef && neighborDef.getOutgoingProdModifier) {
+                    multiplier += neighborDef.getOutgoingProdModifier(neighbor, entity);
                 }
             }
         }

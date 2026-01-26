@@ -36,3 +36,11 @@ export const blueprintInventory = writable<Record<string, number>>({
     farm: 1,
     house: 1
 });
+
+export interface ShopModalState {
+    isOpen: boolean;
+}
+
+export const shopModalState = writable<ShopModalState>({
+    isOpen: false
+});

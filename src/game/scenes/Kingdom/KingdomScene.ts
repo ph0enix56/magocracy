@@ -48,6 +48,7 @@ export class KingdomScene extends Scene {
 		this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
 			if (currentlyOver.length === 0) {
 				this.selectedTile = null;
+				this.selectedTile = null;
 				eventBus.publishGameToUi({ type: 'tile-cleared' });
 			}
 		});
@@ -60,6 +61,8 @@ export class KingdomScene extends Scene {
 				this.handleDestroy(event.q, event.r);
 			} else if (event.type === 'upgrade-requested') {
 				this.handleUpgrade(event.q, event.r, event.upgradeBuildingId);
+			} else if (event.type === 'spend-gold') {
+				this.handleSpendGold(event.amount, event.reason);
 			}
 		});
 	}
@@ -322,5 +325,34 @@ export class KingdomScene extends Scene {
 
 		// Remove building component
 		delete entity.building;
+	}
+
+	private handleSpendGold(amount: number, requestReason: 'shop-buy' | 'shop-fill') {
+		if (!Number.isFinite(amount) || amount <= 0) {
+			eventBus.publishGameToUi({
+				type: 'spend-gold-result',
+				amount,
+				ok: false,
+				reason: 'Invalid amount.',
+				requestReason
+			});
+			return;
+		}
+
+		const current = this.world.resources.get('gold') || 0;
+		if (current < amount) {
+			eventBus.publishGameToUi({
+				type: 'spend-gold-result',
+				amount,
+				ok: false,
+				reason: 'Not enough gold.',
+				requestReason
+			});
+			return;
+		}
+
+		this.world.resources.set('gold', current - amount);
+		eventBus.publishGameToUi({ type: 'resource-updated', key: 'gold', value: current - amount });
+		eventBus.publishGameToUi({ type: 'spend-gold-result', amount, ok: true, requestReason });
 	}
 }
