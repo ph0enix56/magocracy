@@ -5,22 +5,15 @@ import { getBuildingDef } from '../../data/buildings';
 
 export class ProductionSystem implements System {
     private world: ECSManager;
-    private timer: number = 0;
-    private readonly TICK_RATE = 1000; // Resources update every 1 second
 
     constructor(world: ECSManager) {
         this.world = world;
     }
 
-    update(delta: number, _time: number) {
-        this.timer += delta;
-        if (this.timer < this.TICK_RATE) return;
-        
-        // Process one tick
-        while (this.timer >= this.TICK_RATE) {
-            this.timer -= this.TICK_RATE;
-            this.produceResources();
-        }
+    update(_delta: number, _time: number) {}
+
+    advanceTick() {
+        this.produceResources();
     }
 
     public calculateMultiplier(entity: Entity): number {

@@ -1,7 +1,7 @@
-import type { Entity } from '../../ecs/components';
-import type { RawBuildingDef } from '../buildings';
+import type { Entity } from '../../ecs/ECSBase';
+import type { BuildingDef } from '../buildings';
 
-export const BUILDING_DEFS: RawBuildingDef[] = [
+export const BUILDING_DEFS: BuildingDef[] = [
 	{
 		id: 'mine',
 		type: 'production',
@@ -19,7 +19,6 @@ export const BUILDING_DEFS: RawBuildingDef[] = [
 	{
 		id: 'mine_2',
 		parentId: 'mine',
-		upgradeLevel: 2,
 		type: 'production',
 		name: 'Stone Mine II',
 		description: 'Upgraded mine with better tools and throughput.',
@@ -33,7 +32,6 @@ export const BUILDING_DEFS: RawBuildingDef[] = [
 	{
 		id: 'mine_3',
 		parentId: 'mine_2',
-		upgradeLevel: 3,
 		type: 'production',
 		name: 'Stone Mine III',
 		description: 'Deep shafts and reinforced supports.',
@@ -67,7 +65,6 @@ export const BUILDING_DEFS: RawBuildingDef[] = [
 	{
 		id: 'lumber_camp_2',
 		parentId: 'lumber_camp',
-		upgradeLevel: 2,
 		type: 'production',
 		name: 'Lumber Camp II',
 		description: 'Sharper saws and better logistics.',
@@ -112,7 +109,6 @@ export const BUILDING_DEFS: RawBuildingDef[] = [
 	{
 		id: 'farm_2',
 		parentId: 'farm',
-		upgradeLevel: 2,
 		type: 'production',
 		name: 'Farm II',
 		description: 'Crop rotation and irrigation improve yields.',

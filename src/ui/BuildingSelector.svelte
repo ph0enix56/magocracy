@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { getBuildableBuildings } from '../game/scenes/Kingdom/data/buildings';
     import { eventBus } from '../eventBus';
     import { blueprintInventory, blueprintModalState } from './uiState';
     import BuildingCard from './BuildingCard.svelte';
+    import { getPurchasableBuildings } from '../game/scenes/Kingdom/data/buildings';
 
     // Subscribe to stores
     let state: { isOpen: boolean; mode: 'view' | 'build'; q: number; r: number } = { isOpen: false, mode: 'view', q: 0, r: 0 };
@@ -45,7 +45,7 @@
     }
 
     function ownedBlueprints() {
-        const buildables = getBuildableBuildings();
+        const buildables = getPurchasableBuildings();
         return buildables
             .map(def => ({ def, count: inventory[def.id] || 0 }))
             .filter(x => x.count > 0);

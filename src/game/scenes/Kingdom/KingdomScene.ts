@@ -2,18 +2,22 @@ import { Scene } from 'phaser';
 import { eventBus } from '../../../eventBus';
 import { ECSManager } from './ecs/ECSBase';
 import { RenderSystem } from './ecs/systems/RenderSystem';
-import { ConstructionSystem } from './ecs/systems/ConstructionSystem';
-import { UpgradeSystem } from './ecs/systems/UpgradeSystem';
+import { BuildSystem } from './ecs/systems/BuildSystem';
 import { ProductionSystem } from './ecs/systems/ProductionSystem';
-import { BUILDINGS, getBuildingDef, getNextUpgradeDef } from './data/buildings';
+import { getAllBuildingDefs, getBuildingDef, getNextUpgradeDef } from './data/buildings';
 import type { Entity } from './ecs/ECSBase';
 
 export class KingdomScene extends Scene {
-	private world: ECSManager;
+	private world!: ECSManager;
 	private productionSystem!: ProductionSystem;
+	private buildSystem!: BuildSystem;
 	private selectedTile: { q: number; r: number } | null = null;
 	private selectedTileUiTimer = 0;
 	private readonly SELECTED_TILE_UI_TICK_MS = 250;
+	private readonly HEX_SIZE: number = 64;
+	private readonly HEX_STROKE: number = 3;
+	private readonly TICK_INTERVAL_MS: number = 1000;
+	private tickAccumulator = 0;
 
 	constructor() {
 		super('Kingdom');
@@ -22,18 +26,18 @@ export class KingdomScene extends Scene {
 
 	preload() {
 		this.load.setPath('assets');
-		this.initHexTexture(this.HEX_SIZE, 3);
+		this.initHexTexture(this.HEX_SIZE, this.HEX_STROKE);
 
-		// Load building assets
-		for (const def of Object.values(BUILDINGS)) {
+		// Load building icon assets
+		for (const def of getAllBuildingDefs()) {
 			this.load.image(def.textureId, def.assetPath);
 		}
 	}
 
 	create() {
 		// Initialize ECS systems
-		this.world.addSystem(new ConstructionSystem(this.world));
-		this.world.addSystem(new UpgradeSystem(this.world));
+		this.buildSystem = new BuildSystem(this.world);
+		this.world.addSystem(this.buildSystem);
 		this.productionSystem = new ProductionSystem(this.world);
 		this.world.addSystem(this.productionSystem);
 		this.world.addSystem(new RenderSystem(this.world, this));
@@ -47,7 +51,6 @@ export class KingdomScene extends Scene {
 		// notify UI when clicking off any tile
 		this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
 			if (currentlyOver.length === 0) {
-				this.selectedTile = null;
 				this.selectedTile = null;
 				eventBus.publishGameToUi({ type: 'tile-cleared' });
 			}
@@ -70,9 +73,13 @@ export class KingdomScene extends Scene {
 	override update(time: number, delta: number): void {
 		this.world.update(time, delta);
 		this.tickSelectedTileUi(delta);
+		this.tickAccumulator += delta;
+		if (this.tickAccumulator >= this.TICK_INTERVAL_MS) {
+			this.tickAccumulator -= this.TICK_INTERVAL_MS;
+			this.world.advanceTick();
+			this.publishResourceUpdates();
+		}
 	}
-
-	HEX_SIZE: number = 64;
 
 	private tickSelectedTileUi(delta: number) {
 		if (!this.selectedTile) return;
@@ -87,7 +94,7 @@ export class KingdomScene extends Scene {
 		const built = !!e?.building;
 
 		let buildingId: string | undefined;
-		let buildingStatus: 'constructing' | 'active' | undefined;
+		let buildingStatus: 'constructing' | 'active' | 'upgrading' | undefined;
 		let constructionProgress: number | undefined;
 		let productionMultiplier: number | undefined;
 		let nextUpgradeId: string | undefined;
@@ -102,27 +109,27 @@ export class KingdomScene extends Scene {
 			const def = getBuildingDef(buildingId);
 
 			if (e.building.status === 'constructing' && def) {
-				const totalTime = def.buildTime * 1000;
-				constructionProgress = totalTime > 0 ? (e.building.progress / totalTime) * 100 : 100;
+				const totalTicks = def.buildTime;
+				constructionProgress = totalTicks > 0 ? (e.building.progress / totalTicks) * 100 : 100;
+				constructionProgress = Math.min(100, Math.max(0, constructionProgress));
+			} else if (e.building.status === 'upgrading') {
+				upgradingToId = e.building.upgradeNextId;
+				const targetDef = upgradingToId ? getBuildingDef(upgradingToId) : undefined;
+				if (targetDef) {
+					const totalTicks = targetDef.buildTime;
+					upgradeProgress = totalTicks > 0 ? (e.building.progress / totalTicks) * 100 : 100;
+					upgradeProgress = Math.min(100, Math.max(0, upgradeProgress));
+				}
 			} else if (e.building.status === 'active') {
 				if (def?.type === 'production') {
 					productionMultiplier = this.productionSystem.calculateMultiplier(e);
 				}
 
-				if (e.building.upgrade) {
-					upgradingToId = e.building.upgrade.targetBuildingId;
-					const targetDef = getBuildingDef(upgradingToId);
-					if (targetDef) {
-						const totalTime = targetDef.buildTime * 1000;
-						upgradeProgress = totalTime > 0 ? (e.building.upgrade.progress / totalTime) * 100 : 100;
-					}
-				} else {
-					const next = getNextUpgradeDef(buildingId);
-					if (next) {
-						nextUpgradeId = next.id;
-						nextUpgradeCost = next.cost;
-						nextUpgradeTime = next.buildTime;
-					}
+				const next = buildingId ? getNextUpgradeDef(buildingId) : undefined;
+				if (next) {
+					nextUpgradeId = next.id;
+					nextUpgradeCost = next.cost;
+					nextUpgradeTime = next.buildTime;
 				}
 			}
 		}
@@ -237,94 +244,37 @@ export class KingdomScene extends Scene {
 
 	private handleBuild(q: number, r: number, buildingId: string) {
 		const entity = this.world.getEntity(`${q},${r}`);
-		if (!entity) {
-			eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId, ok: false, reason: 'Invalid tile.' });
+		try { this.buildSystem.startBuild(entity!, buildingId); }
+		catch (e: Error | any) {
+			console.log(e.message);
+			eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId, ok: false, reason: e.message });
 			return;
 		}
-		if (entity.building) {
-			eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId, ok: false, reason: 'Tile already has a building.' });
-			return;
-		}
-
-		const def = getBuildingDef(buildingId);
-		if (!def) {
-			eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId, ok: false, reason: 'Unknown building.' });
-			return;
-		}
-		if (def.parentId) {
-			console.log(`Cannot build upgrade-only building ${def.id} directly`);
-			eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId, ok: false, reason: 'Cannot build upgrade-only building directly.' });
-			return;
-		}
-
-		// Check cost
-		for (const [res, amount] of Object.entries(def.cost)) {
-			const current = this.world.resources.get(res) || 0;
-			if (current < amount) {
-				console.log(`Not enough ${res} to build ${def.name}`);
-				eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId, ok: false, reason: `Not enough ${res}.` });
-				return;
-			}
-		}
-
-		// Deduct cost
-		for (const [res, amount] of Object.entries(def.cost)) {
-			const current = this.world.resources.get(res) || 0;
-			this.world.resources.set(res, current - amount);
-			// Notify UI
-			eventBus.publishGameToUi({
-				type: 'resource-updated',
-				key: res,
-				value: current - amount
-			});
-		}
-
-		// Add building component
-		entity.building = {
-			buildingId: buildingId,
-			status: 'constructing',
-			progress: 0
-		};
-
 		eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId, ok: true });
+		this.publishResourceUpdates();
 	}
 
 	private handleUpgrade(q: number, r: number, upgradeBuildingId: string) {
 		const entity = this.world.getEntity(`${q},${r}`);
-		if (!entity?.building) return;
-		if (entity.building.status !== 'active') return;
-		if (entity.building.upgrade) return;
-
-		const currentId = entity.building.buildingId;
-		const next = getNextUpgradeDef(currentId);
-		if (!next || next.id !== upgradeBuildingId) return;
-
-		// Check cost
-		for (const [res, amount] of Object.entries(next.cost)) {
-			const current = this.world.resources.get(res) || 0;
-			if (current < amount) {
-				console.log(`Not enough ${res} to upgrade to ${next.name}`);
-				return;
-			}
+		try { this.buildSystem.startUpgrade(entity!, upgradeBuildingId); }
+		catch (e: Error | any) {
+			console.log(e.message);
+			eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId: upgradeBuildingId, ok: false, reason: e.message });
+			return;
 		}
-
-		// Deduct cost
-		for (const [res, amount] of Object.entries(next.cost)) {
-			const current = this.world.resources.get(res) || 0;
-			this.world.resources.set(res, current - amount);
-			eventBus.publishGameToUi({ type: 'resource-updated', key: res, value: current - amount });
-		}
-
-		entity.building.upgrade = { targetBuildingId: next.id, progress: 0 };
+		eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId: upgradeBuildingId, ok: true });
+		this.publishResourceUpdates();
 		this.publishTileSelected(q, r);
 	}
 
 	private handleDestroy(q: number, r: number) {
 		const entity = this.world.getEntity(`${q},${r}`);
-		if (!entity || !entity.building) return;
-
-		// Remove building component
-		delete entity.building;
+		try { this.buildSystem.destroyBuilding(entity!); }
+		catch (e: Error | any) {
+			console.log(e.message);
+			return;
+		}
+		this.publishResourceUpdates();
 	}
 
 	private handleSpendGold(amount: number, requestReason: 'shop-buy' | 'shop-fill') {
@@ -354,5 +304,11 @@ export class KingdomScene extends Scene {
 		this.world.resources.set('gold', current - amount);
 		eventBus.publishGameToUi({ type: 'resource-updated', key: 'gold', value: current - amount });
 		eventBus.publishGameToUi({ type: 'spend-gold-result', amount, ok: true, requestReason });
+	}
+
+	private publishResourceUpdates() {
+		for (const [key, value] of this.world.resources) {
+			eventBus.publishGameToUi({ type: 'resource-updated', key, value });
+		}
 	}
 }

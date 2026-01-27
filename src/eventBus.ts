@@ -3,7 +3,7 @@ export type TileSelectedPayload = {
 	r: number; 
 	built: boolean;
 	buildingId?: string;
-	buildingStatus?: 'constructing' | 'active';
+	buildingStatus?: 'constructing' | 'active' | 'upgrading';
 	constructionProgress?: number;
 	productionMultiplier?: number;
 	// Upgrade UI

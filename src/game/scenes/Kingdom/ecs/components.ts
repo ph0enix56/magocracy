@@ -7,13 +7,9 @@ export interface PositionComponent {
 
 export interface BuildingComponent {
     buildingId: string; // Reference to BuildingDef
-    status: 'constructing' | 'active';
-    progress: number; // ms elapsed
-    // When set, an upgrade is in progress. Building remains functional.
-    upgrade?: {
-        targetBuildingId: string;
-        progress: number; // ms elapsed
-    };
+    status: 'constructing' | 'active' | 'upgrading';
+    progress: number; // ticks elapsed during construction/upgrade
+    upgradeNextId?: string; // id of the next upgrade building, if any
 }
 
 export interface RenderComponent {
@@ -23,11 +19,4 @@ export interface RenderComponent {
     hex: Phaser.GameObjects.Image;
     building?: Phaser.GameObjects.Image; 
     constructionProgress?: Phaser.GameObjects.Graphics;
-}
-
-export interface Entity {
-    id: string;
-    position: PositionComponent;
-    building?: BuildingComponent;
-    render?: RenderComponent;
 }

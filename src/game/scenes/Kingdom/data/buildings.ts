@@ -1,44 +1,50 @@
-import type { Entity } from '../ecs/components';
+import type { Entity } from '../ecs/ECSBase';
 
 export interface BaseBuildingDef {
+	// Unique identifier for this building/upgrade.
 	id: string;
-	// If set, this building is an upgrade of `parentId`.
-	// This keeps upgrades flexible by letting them be full building defs.
+	// If set, this building cannot be obtained directly; it is an upgrade of the parent building.
 	parentId?: string;
-	// Whether this building can be purchased as a blueprint in the shop.
-	// This is derived automatically (true when no parentId).
-	purchasable: boolean;
-	// Optional ordering for multiple upgrades of the same parent.
-	upgradeLevel?: number;
+	// In-game display name.
 	name: string;
+	// In-game building card description.
 	description: string;
-	textureId: string; // Phaser texture key
-	assetPath: string; // Path relative to public/assets/
+	// Phaser texture key (can be the same as id)
+	textureId: string;
+	// Path relative to public/assets/ for the building icon, loaded into Phaser under textureId
+	assetPath: string;
+	// Resource cost to build/upgrade into this. For blockers, this is the cost to remove instead.
 	cost: Record<string, number>;
-	buildTime: number; // in seconds
-	// Returns an additive modifier to the target's production multiplier (e.g. 0.1 for +10%)
-	getOutgoingProdModifier?: (self: Entity, target: Entity) => number;
+	// Time required to build/upgrade this building, in game ticks. For blockers, this is the time to remove instead.
+	buildTime: number;
+	// An additive bonus to the target's production multiplier (e.g. 0.1 for +10%).
+	// TODO: for now evaluted only on neighboring production buildings; could be extended later.
+	getOutgoingProdModifier?: (self: Entity, neighbors: Entity) => number;
 }
 
+// Buildings that produce resources over time.
 export interface ProductionBuildingDef extends BaseBuildingDef {
 	type: 'production';
+	// Resource productions per game tick.
 	productions: Record<string, number>;
-	// Returns an additive modifier to self production multiplier based on neighbors
+	// Returns an additive bonus to self production multiplier.
+	// TODO: for now evaluted only on neighbors; could be extended later.
 	getSelfProdModifier?: (self: Entity, neighbors: Entity[]) => number;
 }
 
-export type BuildingDef = ProductionBuildingDef; // Add more types later
+// Pre-placed pseudo-buildings that block placement of other buildings until removed.
+export interface BlockingBuildingDef extends BaseBuildingDef {
+	type: 'blocking';
+}
 
-// Authoring type for building definition modules.
-// Modules should export `BUILDING_DEFS: RawBuildingDef[]` (recommended) or a default array.
-export type RawBuildingDef = Omit<BuildingDef, 'purchasable'>;
+export type BuildingDef = ProductionBuildingDef | BlockingBuildingDef;
 
-type BuildingDefsModule = { BUILDING_DEFS?: RawBuildingDef[]; default?: RawBuildingDef[] };
+type BuildingDefsModule = { BUILDING_DEFS?: BuildingDef[]; default?: BuildingDef[] };
 
 const buildingDefModules = import.meta.glob('./buildingDefs/*.ts', { eager: true }) as Record<string, BuildingDefsModule>;
 
-function loadRawBuildings(): Record<string, RawBuildingDef> {
-	const rawBuildings: Record<string, RawBuildingDef> = {};
+function loadAllBuildings(): Record<string, BuildingDef> {
+	const rawBuildings: Record<string, BuildingDef> = {};
 
 	for (const [modulePath, mod] of Object.entries(buildingDefModules)) {
 		const defs = mod.BUILDING_DEFS ?? mod.default;
@@ -59,35 +65,27 @@ function loadRawBuildings(): Record<string, RawBuildingDef> {
 	return rawBuildings;
 }
 
-const RAW_BUILDINGS = loadRawBuildings();
-
-export const BUILDINGS: Record<string, BuildingDef> = Object.fromEntries(
-	Object.entries(RAW_BUILDINGS).map(([id, def]) => [
-		id,
-		{
-			...def,
-			purchasable: !def.parentId
-		}
-	])
-) as Record<string, BuildingDef>;
+const BUILDINGS: Record<string, BuildingDef> = loadAllBuildings();
 
 export function getBuildingDef(id: string): BuildingDef | undefined {
 	return BUILDINGS[id];
 }
 
-export function getBuildableBuildings(): BuildingDef[] {
-	return Object.values(BUILDINGS).filter(b => !b.parentId);
-}
-
-export function getPurchasableBuildings(): BuildingDef[] {
-	return Object.values(BUILDINGS).filter(b => b.purchasable);
-}
-
+// currently, only one upgrade per building is defined
 export function getNextUpgradeDef(currentBuildingId: string): BuildingDef | undefined {
 	const candidates = Object.values(BUILDINGS).filter(b => b.parentId === currentBuildingId);
 	if (candidates.length === 0) return undefined;
-	// Prefer explicit ordering; otherwise keep deterministic by id.
-	return candidates
-		.slice()
-		.sort((a, b) => (a.upgradeLevel ?? Number.MAX_SAFE_INTEGER) - (b.upgradeLevel ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id))[0];
+	return candidates[0];
+}
+
+export function getAllBuildingDefs(): BuildingDef[] {
+	return Object.values(BUILDINGS);
+}
+
+export function getPurchasableBuildings(): BuildingDef[] {
+	return Object.values(BUILDINGS).filter(b => !b.parentId && b.type !== 'blocking');
+}
+
+export function getBlockingBuildings(): BuildingDef[] {
+	return Object.values(BUILDINGS).filter(b => b.type === 'blocking');
 }
