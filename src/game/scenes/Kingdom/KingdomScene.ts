@@ -5,7 +5,7 @@ import { RenderSystem } from './ecs/systems/RenderSystem';
 import { BuildSystem } from './ecs/systems/BuildSystem';
 import { ProductionSystem } from './ecs/systems/ProductionSystem';
 import { ShopSystem } from './ecs/systems/ShopSystem';
-import { getAllBuildingDefs, getBuildingDef, getNextUpgradeDef } from './data/buildings';
+import { getAllBuildingDefs, getBlockingBuildings, getBuildingDef, getNextUpgradeDef } from './data/buildings';
 import type { Entity } from './ecs/ECSBase';
 
 export class KingdomScene extends Scene {
@@ -17,9 +17,10 @@ export class KingdomScene extends Scene {
 	private selectedTileUiTimer = 0;
 	private readonly SELECTED_TILE_UI_TICK_MS = 250;
 	private readonly HEX_SIZE: number = 64;
-	private readonly HEX_STROKE: number = 3;
+	private readonly HEX_STROKE: number = 4;
 	private readonly TICK_INTERVAL_MS: number = 1000;
 	private tickAccumulator = 0;
+	private readonly GRID_ORIGIN_Y_OFFSET = -20;
 
 	constructor() {
 		super('Kingdom');
@@ -37,6 +38,8 @@ export class KingdomScene extends Scene {
 	}
 
 	create() {
+		this.cameras.main.setBackgroundColor(0xcacaca);
+
 		// Initialize ECS systems
 		this.buildSystem = new BuildSystem(this.world);
 		this.world.addSystem(this.buildSystem);
@@ -54,8 +57,8 @@ export class KingdomScene extends Scene {
 		this.world.broadcastBlueprintInventory();
 		this.publishShopState();
 
-		// Initialize hex grid
-		this.createHexGrid(7, 7, this.HEX_SIZE);
+		// Initialize dynamic visible hexes
+		this.initDynamicStartingArea();
 
 		// notify UI when clicking off any tile
 		this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
@@ -183,72 +186,137 @@ export class KingdomScene extends Scene {
 		this.add
 			.graphics()
 			.lineStyle(stroke, 0xffffff)
-			.fillStyle(0x00ff00, 0.1)
+			.fillStyle(0x33cc33, 1)
 			.strokePoints(this.getHexagon(hexSize, width / 2, height / 2).points, true)
 			.fillPoints(this.getHexagon(hexSize, width / 2, height / 2).points, true)
 			.generateTexture('hexTile', width, height)
 			.destroy();
 	}
 
-	private createHexGrid(rows: number, cols: number, hexSize: number) {
-		// center grid on screen
+	private neighborsOf(q: number, r: number): Array<{ q: number; r: number }> {
+		// Doubled-q coordinates (q is doubled column), derived from odd-r offset grid.
+		// Neighbor deltas: E/W = +/-2,0 ; diagonals = +/-1,+/-1
+		const deltas = [
+			{ dq: 2, dr: 0 },
+			{ dq: 1, dr: 1 },
+			{ dq: -1, dr: 1 },
+			{ dq: -2, dr: 0 },
+			{ dq: -1, dr: -1 },
+			{ dq: 1, dr: -1 }
+		];
+		return deltas.map(d => ({ q: q + d.dq, r: r + d.dr }));
+	}
+
+	private screenPosFor(q: number, r: number) {
 		const centerX = this.scale.width / 2;
-		const centerY = this.scale.height / 2 - 20;
+		const centerY = this.scale.height / 2 + this.GRID_ORIGIN_Y_OFFSET;
 
-		// hex dimensions
-		const hexWidth = Math.sqrt(3) * hexSize;
-		const hexHeight = 2 * hexSize;
+		const parity = (r & 1) === 0 ? 0 : 1;
+		const c = (q - parity) / 2;
 
-		// total grid dimensions
-		const totalWidth = hexWidth * (cols + 0.5);
-		const totalHeight = (3 / 2) * hexSize * (rows - 1) + hexHeight;
+		const x = centerX + this.HEX_SIZE * Math.sqrt(3) * (c + 0.5 * parity);
+		const y = centerY + (this.HEX_SIZE * 3) / 2 * r;
+		return { x, y };
+	}
 
-		// origin point (top-left)
-		const originX = centerX - totalWidth / 2 + hexWidth / 2;
-		const originY = centerY - totalHeight / 2 + hexHeight / 2;
+	private getRandomBlockerId(): string {
+		const blockers = getBlockingBuildings();
+		if (blockers.length === 0) {
+			throw new Error('No blocker building defs found.');
+		}
+		return blockers[Math.floor(Math.random() * blockers.length)]!.id;
+	}
 
-		// now, fill valid coordinates with a hex game object
-		for (let c = 0; c < cols; c++) {
-			for (let r = 0; r < rows; r++) {
-				// even row: q = 2 * c, odd row: q = 2 * c + 1
-				const q = r % 2 === 0 ? 2 * c : 2 * c + 1;
+	private ensureTileExists(q: number, r: number): Entity {
+		const id = `${q},${r}`;
+		const existing = this.world.getEntity(id);
+		if (existing) return existing;
 
-				// calculate screen position
-				const posX = hexSize * Math.sqrt(3) * (c + 0.5 * (r % 2));
-				const posY = (hexSize * 3) / 2 * r;
+		const { x, y } = this.screenPosFor(q, r);
+		const tile = this.add.image(x, y, 'hexTile');
+		tile.setInteractive(this.getHexagon(this.HEX_SIZE, tile.width / 2, tile.height / 2), Phaser.Geom.Polygon.Contains);
 
-				const tile = this.add.image(originX + posX, originY + posY, 'hexTile');
+		const entity: Entity = {
+			id,
+			position: { q, r },
+			render: { hex: tile }
+		};
+		this.world.addEntity(entity);
 
-				tile.setInteractive(this.getHexagon(hexSize, tile.width / 2, tile.height / 2), Phaser.Geom.Polygon.Contains);
+		tile.on('pointerover', () => {
+			tile.setTintFill(0x70db70);
+		});
+		tile.on('pointerout', () => {
+			tile.clearTint();
+		});
+		tile.on('pointerdown', (
+			_pointer: Phaser.Input.Pointer,
+			_localX: number,
+			_localY: number,
+			event: Phaser.Types.Input.EventData
+		) => {
+			// prevent global pointerdown from clearing selection
+			event.stopPropagation();
+			this.selectedTile = { q, r };
+			this.publishTileSelected(q, r);
+		});
 
-				// Create Entity
-				const entity: Entity = {
-					id: `${q},${r}`,
-					position: { q, r },
-					render: { hex: tile }
-				};
-				this.world.addEntity(entity);
+		return entity;
+	}
 
-				tile.on('pointerover', () => {
-					tile.setTintFill(0xffffff);
-				});
-				tile.on('pointerout', () => {
-					tile.clearTint();
-				});
-				tile.on(
-					'pointerdown',
-					(
-					_pointer: Phaser.Input.Pointer,
-					_localX: number,
-					_localY: number,
-					event: Phaser.Types.Input.EventData
-					) => {
-						// prevent global pointerdown from clearing selection
-						event.stopPropagation();
-						this.selectedTile = { q, r };
-						this.publishTileSelected(q, r);
-					}
-				);
+	private placeBlockerIfEmpty(q: number, r: number): void {
+		const entity = this.ensureTileExists(q, r);
+		if (entity.building) return;
+
+		const blockerId = this.getRandomBlockerId();
+		entity.building = {
+			buildingId: blockerId,
+			status: 'active',
+			progress: 0
+		};
+	}
+
+	private initDynamicStartingArea(): void {
+		const startCenter = { q: 0, r: 0 };
+		const free = new Set<string>();
+		const markFree = (q: number, r: number) => free.add(`${q},${r}`);
+
+		// Center + 6 neighbors are visible and free to build.
+		markFree(startCenter.q, startCenter.r);
+		for (const n of this.neighborsOf(startCenter.q, startCenter.r)) {
+			markFree(n.q, n.r);
+		}
+
+		// Spawn free tiles.
+		for (const key of free) {
+			const [qStr, rStr] = key.split(',');
+			this.ensureTileExists(Number(qStr), Number(rStr));
+		}
+
+		// All neighbors of the free region become visible but blocked.
+		const blocked = new Set<string>();
+		for (const key of free) {
+			const [qStr, rStr] = key.split(',');
+			const q = Number(qStr);
+			const r = Number(rStr);
+			for (const n of this.neighborsOf(q, r)) {
+				const nid = `${n.q},${n.r}`;
+				if (free.has(nid)) continue;
+				blocked.add(nid);
+			}
+		}
+
+		for (const key of blocked) {
+			const [qStr, rStr] = key.split(',');
+			this.placeBlockerIfEmpty(Number(qStr), Number(rStr));
+		}
+	}
+
+	private revealHiddenNeighbors(q: number, r: number): void {
+		for (const n of this.neighborsOf(q, r)) {
+			// If a tile doesn't exist yet, it was hidden; uncover as blocked.
+			if (!this.world.getEntity(`${n.q},${n.r}`)) {
+				this.placeBlockerIfEmpty(n.q, n.r);
 			}
 		}
 	}
@@ -281,12 +349,18 @@ export class KingdomScene extends Scene {
 
 	private handleDestroy(q: number, r: number) {
 		const entity = this.world.getEntity(`${q},${r}`);
+		const buildingId = entity?.building?.buildingId;
+		const wasBlocker = buildingId ? getBuildingDef(buildingId)?.type === 'blocking' : false;
+
 		try { this.buildSystem.destroyBuilding(entity!); }
 		catch (e: Error | any) {
 			console.log(e.message);
 			return;
 		}
 		this.publishResourceUpdates();
+		if (wasBlocker) {
+			this.revealHiddenNeighbors(q, r);
+		}
 	}
 
 	private publishShopState() {

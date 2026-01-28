@@ -116,6 +116,7 @@ export class BuildSystem implements System {
 		if (def.type === 'blocking') {
 			// blockers: player must pay their cost
 			this.deductCostWithThrow(def.cost);
+			delete entity.building;
 		} else {
 			delete entity.building;
 		}
