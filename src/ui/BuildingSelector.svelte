@@ -1,6 +1,7 @@
 <script lang="ts">
     import { eventBus } from '../eventBus';
-    import { blueprintInventory, blueprintModalState } from './uiState';
+    import { blueprintModalState } from './uiState';
+    import { blueprintInventory } from './gameState';
     import BuildingCard from './BuildingCard.svelte';
     import { getPurchasableBuildings } from '../game/scenes/Kingdom/data/buildings';
 
@@ -11,7 +12,7 @@
     let inventory: Record<string, number> = {};
     blueprintInventory.subscribe(v => inventory = v);
 
-    // Pending build: consume blueprint only when game confirms build.
+    // Pending build: used only for correlating build-result.
     let pendingBuild: { q: number; r: number; buildingId: string } | null = null;
 
     eventBus.subscribeGameToUi((event) => {
@@ -19,14 +20,7 @@
         if (!pendingBuild) return;
         if (event.q !== pendingBuild.q || event.r !== pendingBuild.r || event.buildingId !== pendingBuild.buildingId) return;
 
-        if (event.ok) {
-            const current = inventory[pendingBuild.buildingId] || 0;
-            const next = Math.max(0, current - 1);
-            const updated = { ...inventory };
-            if (next === 0) delete updated[pendingBuild.buildingId];
-            else updated[pendingBuild.buildingId] = next;
-            blueprintInventory.set(updated);
-        } else {
+        if (!event.ok) {
             if (event.reason) alert(event.reason);
         }
         pendingBuild = null;

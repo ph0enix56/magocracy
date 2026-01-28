@@ -28,15 +28,6 @@ export const blueprintModalState = writable<BlueprintModalState>({
     r: 0
 });
 
-// Blueprint inventory: buildingId -> count (each blueprint allows one build)
-export const blueprintInventory = writable<Record<string, number>>({
-    // Starter blueprints for testing
-    mine: 2,
-    lumber_camp: 1,
-    farm: 1,
-    house: 1
-});
-
 export interface ShopModalState {
     isOpen: boolean;
 }

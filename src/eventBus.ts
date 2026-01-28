@@ -18,14 +18,17 @@ export type UiToGameEvents =
 	| { type: 'build-requested'; q: number; r: number; buildingId: string }
 	| { type: 'destroy-requested'; q: number; r: number }
 	| { type: 'upgrade-requested'; q: number; r: number; upgradeBuildingId: string }
-	| { type: 'spend-gold'; amount: number; reason: 'shop-buy' | 'shop-fill' };
+	| { type: 'shop-buy-requested'; slotIndex: number }
+	| { type: 'shop-reroll-requested' };
 
 export type GameToUiEvents =
 	| { type: 'tile-selected'; payload: TileSelectedPayload }
 	| { type: 'tile-cleared' }
 	| { type: 'resource-updated'; key: string; value: number }
 	| { type: 'build-result'; q: number; r: number; buildingId: string; ok: boolean; reason?: string }
-	| { type: 'spend-gold-result'; amount: number; ok: boolean; reason?: string; requestReason: 'shop-buy' | 'shop-fill' };
+	| { type: 'blueprint-inventory-updated'; inventory: Record<string, number> }
+	| { type: 'shop-state-updated'; offers: Array<string | null>; buyCost: number; rerollCost: number }
+	| { type: 'shop-action-result'; action: 'buy' | 'reroll'; ok: boolean; reason?: string; slotIndex?: number };
 
 type GameToUiListener = (event: GameToUiEvents) => void;
 type UiToGameListener = (event: UiToGameEvents) => void;

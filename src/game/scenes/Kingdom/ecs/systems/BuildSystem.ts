@@ -49,6 +49,16 @@ export class BuildSystem implements System {
 		}
 	}
 
+	private consumeBlueprintWithThrow(buildingId: string): void {
+		const current = this.world.blueprintInventory.get(buildingId) || 0;
+		if (current <= 0) {
+			throw new Error('Missing blueprint.');
+		}
+		const next = current - 1;
+		if (next <= 0) this.world.blueprintInventory.delete(buildingId);
+		else this.world.blueprintInventory.set(buildingId, next);
+	}
+
 	startBuild(entity: Entity, buildingId: string) {
 		if (entity.building) {
 			throw new Error('Entity already has a building');
@@ -63,6 +73,7 @@ export class BuildSystem implements System {
 		}
 
 		this.deductCostWithThrow(def.cost);
+		this.consumeBlueprintWithThrow(buildingId);
 
 		entity.building = {
 			buildingId: buildingId,

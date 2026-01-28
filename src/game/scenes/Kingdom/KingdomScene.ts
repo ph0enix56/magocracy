@@ -4,6 +4,7 @@ import { ECSManager } from './ecs/ECSBase';
 import { RenderSystem } from './ecs/systems/RenderSystem';
 import { BuildSystem } from './ecs/systems/BuildSystem';
 import { ProductionSystem } from './ecs/systems/ProductionSystem';
+import { ShopSystem } from './ecs/systems/ShopSystem';
 import { getAllBuildingDefs, getBuildingDef, getNextUpgradeDef } from './data/buildings';
 import type { Entity } from './ecs/ECSBase';
 
@@ -11,6 +12,7 @@ export class KingdomScene extends Scene {
 	private world!: ECSManager;
 	private productionSystem!: ProductionSystem;
 	private buildSystem!: BuildSystem;
+	private shopSystem!: ShopSystem;
 	private selectedTile: { q: number; r: number } | null = null;
 	private selectedTileUiTimer = 0;
 	private readonly SELECTED_TILE_UI_TICK_MS = 250;
@@ -40,10 +42,17 @@ export class KingdomScene extends Scene {
 		this.world.addSystem(this.buildSystem);
 		this.productionSystem = new ProductionSystem(this.world);
 		this.world.addSystem(this.productionSystem);
+		this.shopSystem = new ShopSystem(this.world);
+		this.world.addSystem(this.shopSystem);
 		this.world.addSystem(new RenderSystem(this.world, this));
 
-		// Broadcast initial resources
+		// Ensure the shop has offers at game start
+		this.shopSystem.rerollFree();
+
+		// Broadcast initial game state snapshots
 		this.world.broadcastResources();
+		this.world.broadcastBlueprintInventory();
+		this.publishShopState();
 
 		// Initialize hex grid
 		this.createHexGrid(7, 7, this.HEX_SIZE);
@@ -64,8 +73,10 @@ export class KingdomScene extends Scene {
 				this.handleDestroy(event.q, event.r);
 			} else if (event.type === 'upgrade-requested') {
 				this.handleUpgrade(event.q, event.r, event.upgradeBuildingId);
-			} else if (event.type === 'spend-gold') {
-				this.handleSpendGold(event.amount, event.reason);
+			} else if (event.type === 'shop-buy-requested') {
+				this.handleShopBuy(event.slotIndex);
+			} else if (event.type === 'shop-reroll-requested') {
+				this.handleShopReroll();
 			}
 		});
 	}
@@ -252,6 +263,7 @@ export class KingdomScene extends Scene {
 		}
 		eventBus.publishGameToUi({ type: 'build-result', q, r, buildingId, ok: true });
 		this.publishResourceUpdates();
+		this.world.broadcastBlueprintInventory();
 	}
 
 	private handleUpgrade(q: number, r: number, upgradeBuildingId: string) {
@@ -277,33 +289,34 @@ export class KingdomScene extends Scene {
 		this.publishResourceUpdates();
 	}
 
-	private handleSpendGold(amount: number, requestReason: 'shop-buy' | 'shop-fill') {
-		if (!Number.isFinite(amount) || amount <= 0) {
-			eventBus.publishGameToUi({
-				type: 'spend-gold-result',
-				amount,
-				ok: false,
-				reason: 'Invalid amount.',
-				requestReason
-			});
+	private publishShopState() {
+		const { offers, buyCost, rerollCost } = this.shopSystem.getState();
+		eventBus.publishGameToUi({ type: 'shop-state-updated', offers, buyCost, rerollCost });
+	}
+
+	private handleShopBuy(slotIndex: number) {
+		try {
+			this.shopSystem.buyWithThrow(slotIndex);
+		} catch (e: Error | any) {
+			eventBus.publishGameToUi({ type: 'shop-action-result', action: 'buy', ok: false, reason: e.message, slotIndex });
 			return;
 		}
+		eventBus.publishGameToUi({ type: 'shop-action-result', action: 'buy', ok: true, slotIndex });
+		this.publishResourceUpdates();
+		this.world.broadcastBlueprintInventory();
+		this.publishShopState();
+	}
 
-		const current = this.world.resources.get('gold') || 0;
-		if (current < amount) {
-			eventBus.publishGameToUi({
-				type: 'spend-gold-result',
-				amount,
-				ok: false,
-				reason: 'Not enough gold.',
-				requestReason
-			});
+	private handleShopReroll() {
+		try {
+			this.shopSystem.rerollWithThrow();
+		} catch (e: Error | any) {
+			eventBus.publishGameToUi({ type: 'shop-action-result', action: 'reroll', ok: false, reason: e.message });
 			return;
 		}
-
-		this.world.resources.set('gold', current - amount);
-		eventBus.publishGameToUi({ type: 'resource-updated', key: 'gold', value: current - amount });
-		eventBus.publishGameToUi({ type: 'spend-gold-result', amount, ok: true, requestReason });
+		eventBus.publishGameToUi({ type: 'shop-action-result', action: 'reroll', ok: true });
+		this.publishResourceUpdates();
+		this.publishShopState();
 	}
 
 	private publishResourceUpdates() {

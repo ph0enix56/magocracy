@@ -2,94 +2,59 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { eventBus } from '../eventBus';
 	import { getPurchasableBuildings, type BuildingDef } from '../game/scenes/Kingdom/data/buildings';
-	import { blueprintInventory, shopModalState } from './uiState';
+	import { shopModalState } from './uiState';
+	import { shopState } from './gameState';
 	import BuildingCard from './BuildingCard.svelte';
-
-	const BUY_COST = 10;
-	const FILL_COST = 10;
-	const SHOP_SIZE = 4;
 
 	let state: { isOpen: boolean } = { isOpen: false };
 	shopModalState.subscribe(v => (state = v));
 
-	let inventory: Record<string, number> = {};
-	blueprintInventory.subscribe(v => (inventory = v));
+	let view: { offers: Array<string | null>; buyCost: number; rerollCost: number } = { offers: [], buyCost: 0, rerollCost: 0 };
+	shopState.subscribe(v => (view = v));
 
-	let slots: Array<string | null> = Array.from({ length: SHOP_SIZE }, () => null);
-
-	let pendingPurchase: { slotIndex: number; buildingId: string } | null = null;
-	let pendingFill = false;
+	let pendingBuySlot: number | null = null;
+	let pendingReroll = false;
 
 	function purchasablePool(): BuildingDef[] {
 		return getPurchasableBuildings();
 	}
 
-	function drawRandom(): string | null {
-		const pool = purchasablePool().map(b => b.id);
-		if (pool.length === 0) return null;
-		return pool[Math.floor(Math.random() * pool.length)]!;
-	}
-
-	function rerollOffers() {
-		slots = Array.from({ length: SHOP_SIZE }, () => drawRandom());
-	}
-
 	function close() {
 		shopModalState.set({ isOpen: false });
-		pendingPurchase = null;
-		pendingFill = false;
+		pendingBuySlot = null;
+		pendingReroll = false;
 	}
 
 	function canReroll(): boolean {
-		return !pendingPurchase && !pendingFill;
+		return pendingBuySlot === null && !pendingReroll;
 	}
 
 	function requestReroll() {
 		if (!canReroll()) return;
-		pendingFill = true;
-		eventBus.publishUiToGame({ type: 'spend-gold', amount: FILL_COST, reason: 'shop-fill' });
+		pendingReroll = true;
+		eventBus.publishUiToGame({ type: 'shop-reroll-requested' });
 	}
 
-	function buy(slotIndex: number, buildingId: string) {
-		if (pendingPurchase || pendingFill) return;
-		pendingPurchase = { slotIndex, buildingId };
-		eventBus.publishUiToGame({ type: 'spend-gold', amount: BUY_COST, reason: 'shop-buy' });
+	function buy(slotIndex: number) {
+		if (pendingBuySlot !== null || pendingReroll) return;
+		pendingBuySlot = slotIndex;
+		eventBus.publishUiToGame({ type: 'shop-buy-requested', slotIndex });
 	}
 
 	let unsubscribe: (() => void) | null = null;
 
 	onMount(() => {
 		unsubscribe = eventBus.subscribeGameToUi((event) => {
-			if (event.type !== 'spend-gold-result') return;
+			if (event.type !== 'shop-action-result') return;
 
-			if (event.requestReason === 'shop-buy' && pendingPurchase) {
-				if (event.amount !== BUY_COST) return;
-
-				if (!event.ok) {
-					if (event.reason) alert(event.reason);
-					pendingPurchase = null;
-					return;
-				}
-
-				const { slotIndex, buildingId } = pendingPurchase;
-				const current = inventory[buildingId] || 0;
-				blueprintInventory.set({ ...inventory, [buildingId]: current + 1 });
-				slots = slots.map((s, i) => (i === slotIndex ? null : s));
-				pendingPurchase = null;
-				return;
+			if (!event.ok) {
+				if (event.reason) alert(event.reason);
 			}
 
-			if (event.requestReason === 'shop-fill' && pendingFill) {
-				if (event.amount !== FILL_COST) return;
-
-				if (!event.ok) {
-					if (event.reason) alert(event.reason);
-					pendingFill = false;
-					return;
-				}
-
-				rerollOffers();
-				pendingFill = false;
+			if (event.action === 'buy') {
+				pendingBuySlot = null;
+			} else if (event.action === 'reroll') {
+				pendingReroll = false;
 			}
 		});
 	});
@@ -97,14 +62,6 @@
 	onDestroy(() => {
 		if (unsubscribe) unsubscribe();
 	});
-
-	let wasOpen = false;
-	$: if (state.isOpen && !wasOpen) {
-		rerollOffers();
-		wasOpen = true;
-	} else if (!state.isOpen && wasOpen) {
-		wasOpen = false;
-	}
 
 	function defFor(id: string | null): BuildingDef | null {
 		if (!id) return null;
@@ -119,23 +76,23 @@
 				<h2>Blueprint Shop</h2>
 				<div class="header-actions">
 					<button class="fill-btn" disabled={!canReroll()} on:click={requestReroll}>
-						Reroll ({FILL_COST} gold)
+						Reroll ({view.rerollCost} gold)
 					</button>
 					<button class="close-btn" on:click={close}>X</button>
 				</div>
 			</div>
 
 			<div class="grid">
-				{#each slots as slot, i}
+				{#each view.offers as slot, i}
 					{#if slot}
 						{@const def = defFor(slot)}
 						{#if def}
 							<BuildingCard
 								def={def}
 								count={null}
-								actionLabel={`Buy (${BUY_COST} gold)`}
-								actionDisabled={!!pendingPurchase || pendingFill}
-								on:action={() => buy(i, def.id)}
+								actionLabel={`Buy (${view.buyCost} gold)`}
+								actionDisabled={pendingBuySlot !== null || pendingReroll}
+								on:action={() => buy(i)}
 							/>
 						{:else}
 							<div class="empty-slot">Unknown blueprint.</div>

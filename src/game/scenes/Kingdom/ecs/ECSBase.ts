@@ -20,6 +20,8 @@ export class ECSManager {
 	
 	// [WIP] Remaining global state
 	resources: Map<string, number> = new Map();
+	blueprintInventory: Map<string, number> = new Map();
+	shopOffers: Array<string | null> = Array.from({ length: 4 }, () => null);
 
 	constructor() {
 		// [WIP] Global resource initialization
@@ -28,6 +30,12 @@ export class ECSManager {
 		this.resources.set('food', 100);
 		this.resources.set('mana', 50);
 		this.resources.set('gold', 1000);
+
+		// [WIP] Starter blueprints for testing
+		this.blueprintInventory.set('mine', 2);
+		this.blueprintInventory.set('lumber_camp', 1);
+		this.blueprintInventory.set('farm', 1);
+		this.blueprintInventory.set('house', 1);
 	}
 
 	addEntity(entity: Entity) {
@@ -69,5 +77,17 @@ export class ECSManager {
 				value: value
 			});
 		}
+	}
+
+	// [WIP] Broadcast blueprint inventory to UI
+	broadcastBlueprintInventory() {
+		const inventory: Record<string, number> = {};
+		for (const [buildingId, count] of this.blueprintInventory) {
+			if (count > 0) inventory[buildingId] = count;
+		}
+		eventBus.publishGameToUi({
+			type: 'blueprint-inventory-updated',
+			inventory
+		});
 	}
 }
