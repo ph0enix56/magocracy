@@ -1,7 +1,7 @@
 {
 	"name": "magocracy",
 	"description": "A real-time city building strategy game.",
-	"author": "Filip Cihak <cihakfil@fit.cvut.cz>",
+	"author": "Filip Cihak <filip.cihak@fit.cvut.cz>",
 	"license": "MIT",
 	"licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
 	"scripts": {
