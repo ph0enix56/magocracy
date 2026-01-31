@@ -37,7 +37,56 @@ export interface BlockingBuildingDef extends BaseBuildingDef {
 	type: 'blocking';
 }
 
-export type BuildingDef = ProductionBuildingDef | BlockingBuildingDef;
+export interface ArmyBuildingDef extends BaseBuildingDef {
+	type: 'army';
+	unit: UnitDef;
+	trainCostBase: Record<string, number>;
+	trainCostMult: number;
+	trainTime: number;
+	trainDef: UnitTrainDef;
+}
+
+export interface UnitDef {
+	// Unique identifier for this unit.
+	id: string;
+	// In-game display name.
+	name: string;
+	// Health points (damage capacity) before being defeated.
+	health: number;
+	// Flat damage reduction applied to each incoming attack.
+	drFlat: number;
+	// Percentual damage reduction applied to each incoming attack.
+	drPercent: number;
+	// Action queue/cycle of this unit.
+	actions: UnitAttackDef[];
+	// Actions taken per turn in combat.
+	actionsPerTurn: number;
+	// Phaser texture key (can be the same as id)
+	textureId: string;
+	// Path relative to public/assets/ for the unit icon, loaded into Phaser under textureId
+	assetPath: string;
+}
+
+export interface UnitTrainDef {
+	health: number;
+	attackDamage: number;
+	drFlat: number;
+}
+
+export interface UnitAttackDef {
+	// Attack damage dealt to target(s).
+	damage: number;
+	// Whether this attack's damage can be upgraded.
+	canUpgrade: boolean;
+	// How many units across can be targeted by this attack.
+	range: number;
+	// Targeting logic among possible targets.
+	targeting: 'first' | 'last' | 'weak' | 'all';
+	// Action point cost to perform this attack (for multiple attacks or one per x turns).
+	actionPointCost: number;
+}
+
+export type BuildingDef = ProductionBuildingDef | BlockingBuildingDef | ArmyBuildingDef;
 
 type BuildingDefsModule = { BUILDING_DEFS?: BuildingDef[]; default?: BuildingDef[] };
 
@@ -67,8 +116,28 @@ function loadAllBuildings(): Record<string, BuildingDef> {
 
 const BUILDINGS: Record<string, BuildingDef> = loadAllBuildings();
 
+function loadAllUnits(): Record<string, UnitDef> {
+	const units: Record<string, UnitDef> = {};
+	for (const b of Object.values(BUILDINGS)) {
+		if (b.type !== 'army') continue;
+		const u = b.unit;
+		if (!u?.id) continue;
+		if (units[u.id]) {
+			throw new Error(`Duplicate unit id '${u.id}' (from building '${b.id}')`);
+		}
+		units[u.id] = u;
+	}
+	return units;
+}
+
+const UNITS: Record<string, UnitDef> = loadAllUnits();
+
 export function getBuildingDef(id: string): BuildingDef | undefined {
 	return BUILDINGS[id];
+}
+
+export function getUnitDef(unitId: string): UnitDef | undefined {
+	return UNITS[unitId];
 }
 
 // currently, only one upgrade per building is defined

@@ -5,14 +5,20 @@ import { RenderSystem } from './ecs/systems/RenderSystem';
 import { BuildSystem } from './ecs/systems/BuildSystem';
 import { ProductionSystem } from './ecs/systems/ProductionSystem';
 import { ShopSystem } from './ecs/systems/ShopSystem';
+import { ArmySystem } from './ecs/systems/ArmySystem';
+import { CombatSystem } from './ecs/systems/CombatSystem';
 import { getAllBuildingDefs, getBlockingBuildings, getBuildingDef, getNextUpgradeDef } from './data/buildings';
 import type { Entity } from './ecs/ECSBase';
+import { getUnitDef } from './data/buildings';
+import type { ArmyUnitComponent } from './ecs/components';
 
 export class KingdomScene extends Scene {
 	private world!: ECSManager;
 	private productionSystem!: ProductionSystem;
 	private buildSystem!: BuildSystem;
 	private shopSystem!: ShopSystem;
+	private armySystem!: ArmySystem;
+	private combatSystem!: CombatSystem;
 	private selectedTile: { q: number; r: number } | null = null;
 	private selectedTileUiTimer = 0;
 	private readonly SELECTED_TILE_UI_TICK_MS = 250;
@@ -41,12 +47,45 @@ export class KingdomScene extends Scene {
 		this.cameras.main.setBackgroundColor(0xcacaca);
 
 		// Initialize ECS systems
-		this.buildSystem = new BuildSystem(this.world);
+		this.buildSystem = new BuildSystem(this.world, (evt) => {
+			if (evt.previousStatus !== 'constructing') return;
+			const def = getBuildingDef(evt.buildingId);
+			if (!def || def.type !== 'army') return;
+
+			this.world.spawnArmyUnit({
+				unitId: def.unit.id,
+				name: def.unit.name,
+				textureId: def.unit.textureId,
+				assetPath: def.unit.assetPath,
+				health: def.unit.health,
+				drFlat: def.unit.drFlat,
+				drPercent: def.unit.drPercent,
+				actionsPerTurn: def.unit.actionsPerTurn,
+				trainingLevel: 0,
+				training: {
+					status: 'idle',
+					progress: 0,
+					costBase: def.trainCostBase,
+					costMult: def.trainCostMult,
+					time: def.trainTime,
+					def: {
+						health: def.trainDef.health,
+						drFlat: def.trainDef.drFlat,
+						attackDamage: def.trainDef.attackDamage
+					}
+				}
+			});
+			this.world.broadcastArmyState();
+		});
 		this.world.addSystem(this.buildSystem);
 		this.productionSystem = new ProductionSystem(this.world);
 		this.world.addSystem(this.productionSystem);
 		this.shopSystem = new ShopSystem(this.world);
 		this.world.addSystem(this.shopSystem);
+		this.armySystem = new ArmySystem(this.world);
+		this.world.addSystem(this.armySystem);
+		this.combatSystem = new CombatSystem(this.world);
+		this.world.addSystem(this.combatSystem);
 		this.world.addSystem(new RenderSystem(this.world, this));
 
 		// Ensure the shop has offers at game start
@@ -55,6 +94,7 @@ export class KingdomScene extends Scene {
 		// Broadcast initial game state snapshots
 		this.world.broadcastResources();
 		this.world.broadcastBlueprintInventory();
+		this.world.broadcastArmyState();
 		this.publishShopState();
 
 		// Initialize dynamic visible hexes
@@ -80,8 +120,82 @@ export class KingdomScene extends Scene {
 				this.handleShopBuy(event.slotIndex);
 			} else if (event.type === 'shop-reroll-requested') {
 				this.handleShopReroll();
+			} else if (event.type === 'army-train-requested') {
+				this.handleTrain(event.unitEntityId);
+			} else if (event.type === 'combat-start-requested') {
+				this.handleCombatStart(event.enemyMode);
+			} else if (event.type === 'combat-step-requested') {
+				this.handleCombatStep(event.steps);
+			} else if (event.type === 'combat-reset-requested') {
+				this.handleCombatReset();
 			}
 		});
+	}
+
+	private getPlayerArmy(): ArmyUnitComponent[] {
+		return this.world
+			.getEntities()
+			.filter(e => !!e.armyUnit)
+			.map(e => e.armyUnit!);
+	}
+
+	private createMirrorEnemyArmy(from: ArmyUnitComponent[]): ArmyUnitComponent[] {
+		return from.map(u => {
+			const def = getUnitDef(u.unitId);
+			if (!def) throw new Error(`Missing unit def for unitId '${u.unitId}'`);
+			return {
+				unitId: def.id,
+				name: def.name,
+				textureId: def.textureId,
+				assetPath: def.assetPath,
+				health: def.health,
+				drFlat: def.drFlat,
+				drPercent: def.drPercent,
+				actionsPerTurn: def.actionsPerTurn,
+				trainingLevel: 0,
+				training: {
+					status: 'idle',
+					progress: 0,
+					costBase: {},
+					costMult: 1,
+					time: 0,
+					def: { health: 0, drFlat: 0, attackDamage: 0 }
+				}
+			};
+		});
+	}
+
+	private handleCombatStart(enemyMode?: 'mirror' | 'random'): void {
+		try {
+			const armyA = this.getPlayerArmy();
+			const mode = enemyMode ?? 'mirror';
+			const armyB = mode === 'mirror' ? this.createMirrorEnemyArmy(armyA) : this.createMirrorEnemyArmy(armyA);
+			this.combatSystem.startCombat(armyA, armyB);
+			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'start', ok: true });
+		} catch (e) {
+			const reason = e instanceof Error ? e.message : String(e);
+			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'start', ok: false, reason });
+		}
+	}
+
+	private handleCombatStep(steps?: number): void {
+		try {
+			this.combatSystem.stepCombat(steps ?? 1);
+			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'step', ok: true });
+		} catch (e) {
+			const reason = e instanceof Error ? e.message : String(e);
+			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'step', ok: false, reason });
+		}
+	}
+
+	private handleCombatReset(): void {
+		try {
+			this.combatSystem.resetCombat();
+			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'reset', ok: true });
+		} catch (e) {
+			const reason = e instanceof Error ? e.message : String(e);
+			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'reset', ok: false, reason });
+		}
 	}
 
 	override update(time: number, delta: number): void {
@@ -238,6 +352,7 @@ export class KingdomScene extends Scene {
 
 		const entity: Entity = {
 			id,
+			kind: 'tile',
 			position: { q, r },
 			render: { hex: tile }
 		};
@@ -391,6 +506,17 @@ export class KingdomScene extends Scene {
 		eventBus.publishGameToUi({ type: 'shop-action-result', action: 'reroll', ok: true });
 		this.publishResourceUpdates();
 		this.publishShopState();
+	}
+
+	private handleTrain(unitEntityId: string) {
+		try {
+			this.armySystem.startTrainingWithThrow(unitEntityId);
+		} catch (e: Error | any) {
+			eventBus.publishGameToUi({ type: 'army-action-result', action: 'train', ok: false, reason: e.message, unitEntityId });
+			return;
+		}
+		eventBus.publishGameToUi({ type: 'army-action-result', action: 'train', ok: true, unitEntityId });
+		this.publishResourceUpdates();
 	}
 
 	private publishResourceUpdates() {

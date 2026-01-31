@@ -35,3 +35,19 @@ export interface ShopModalState {
 export const shopModalState = writable<ShopModalState>({
     isOpen: false
 });
+
+export interface ArmyModalState {
+    isOpen: boolean;
+}
+
+export const armyModalState = writable<ArmyModalState>({
+    isOpen: false
+});
+
+export interface CombatModalState {
+	isOpen: boolean;
+}
+
+export const combatModalState = writable<CombatModalState>({
+	isOpen: false
+});

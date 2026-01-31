@@ -1,4 +1,4 @@
-export type ComponentType = 'position' | 'building' | 'render';
+export type ComponentType = 'position' | 'building' | 'render' | 'armyUnit';
 
 export interface PositionComponent {
     q: number;
@@ -19,4 +19,37 @@ export interface RenderComponent {
     hex: Phaser.GameObjects.Image;
     building?: Phaser.GameObjects.Image; 
     constructionProgress?: Phaser.GameObjects.Graphics;
+}
+
+export interface ArmyUnitTrainingState {
+    status: 'idle' | 'training';
+    progress: number; // ticks elapsed
+}
+
+export interface ArmyUnitTrainDef {
+    health: number;
+    attackDamage: number;
+    drFlat: number;
+}
+
+export interface ArmyUnitTrainingConfig {
+    costBase: Record<string, number>;
+    costMult: number;
+    time: number; // ticks
+    def: ArmyUnitTrainDef;
+}
+
+export interface ArmyUnitComponent {
+    unitId: string;
+    name: string;
+    textureId: string;
+    assetPath: string;
+
+    health: number;
+    drFlat: number;
+    drPercent: number;
+    actionsPerTurn: number;
+
+    trainingLevel: number;
+    training: ArmyUnitTrainingConfig & ArmyUnitTrainingState;
 }

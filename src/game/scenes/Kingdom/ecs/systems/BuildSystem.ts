@@ -1,11 +1,19 @@
 import type { ECSManager, Entity, System } from '../ECSBase';
 import { getBuildingDef, getNextUpgradeDef } from '../../data/buildings';
 
+export type BuildingCompletedEvent = {
+	entity: Entity;
+	buildingId: string;
+	previousStatus: 'constructing' | 'upgrading';
+};
+
 export class BuildSystem implements System {
 	private world: ECSManager;
+	private onCompleted?: (evt: BuildingCompletedEvent) => void;
 
-	constructor(world: ECSManager) {
+	constructor(world: ECSManager, onCompleted?: (evt: BuildingCompletedEvent) => void) {
 		this.world = world;
+		this.onCompleted = onCompleted;
 	}
 
 	update(_delta: number, _time: number) {}
@@ -14,6 +22,8 @@ export class BuildSystem implements System {
 		for (const entity of this.world.getEntities()) {
 			if (!entity.building) continue;
 			if (entity.building.status !== 'constructing' && entity.building.status !== 'upgrading') continue;
+
+			const previousStatus = entity.building.status;
 
 			const isUpgrading = entity.building.status === 'upgrading';
 			const targetId = isUpgrading ? entity.building.upgradeNextId : entity.building.buildingId;
@@ -30,7 +40,7 @@ export class BuildSystem implements System {
 					entity.building.upgradeNextId = undefined;
 				}
 				entity.building.status = 'active';
-				// TODO: trigger any on-complete effects here
+				this.onCompleted?.({ entity, buildingId: targetId, previousStatus });
 			}
 		}
 	}
