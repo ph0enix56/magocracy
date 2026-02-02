@@ -23,16 +23,8 @@
 		combatModalState.set({ isOpen: false });
 	}
 
-	function start() {
-		eventBus.publishUiToGame({ type: 'combat-start-requested', enemyMode: 'mirror' });
-	}
-
 	function step() {
 		eventBus.publishUiToGame({ type: 'combat-step-requested', steps: 1 });
-	}
-
-	function reset() {
-		eventBus.publishUiToGame({ type: 'combat-reset-requested' });
 	}
 
 	function hpPct(u: any): number {
@@ -43,8 +35,14 @@
 
 	onMount(() => {
 		unsubscribeResult = eventBus.subscribeGameToUi((event) => {
-			if (event.type !== 'combat-action-result') return;
-			if (!event.ok && event.reason) alert(event.reason);
+			if (event.type === 'combat-action-result') {
+				if (!event.ok && event.reason) alert(event.reason);
+				return;
+			}
+			if (event.type === 'combat-ui-open') {
+				combatModalState.set({ isOpen: true });
+				return;
+			}
 		});
 	});
 
@@ -61,9 +59,7 @@
 			<div class="header">
 				<h2>Combat</h2>
 				<div class="header-actions">
-					<button on:click={start}>Start</button>
 					<button on:click={step} disabled={state.status !== 'running'}>Next action</button>
-					<button on:click={reset}>Reset</button>
 					<button class="close" on:click={close}>X</button>
 				</div>
 			</div>

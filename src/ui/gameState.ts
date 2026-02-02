@@ -29,6 +29,7 @@ export type ArmyUnitView = {
 	unitId: string;
 	name: string;
 	assetPath: string;
+	speed: number;
 	health: number;
 	drFlat: number;
 	drPercent: number;

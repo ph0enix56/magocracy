@@ -23,7 +23,48 @@ export type UiToGameEvents =
 	| { type: 'army-train-requested'; unitEntityId: string }
 	| { type: 'combat-start-requested'; enemyMode?: 'mirror' | 'random' }
 	| { type: 'combat-step-requested'; steps?: number }
-	| { type: 'combat-reset-requested' };
+	| { type: 'combat-reset-requested' }
+	| { type: 'worldmap-toggle' }
+	| { type: 'worldmap-send-army'; targetPointId: string }
+	| { type: 'worldmap-start-combat'; targetPointId: string }
+	| { type: 'worldmap-refresh-requested' };
+
+export type WorldMapPointUiView = {
+	id: string;
+	name: string;
+	kind: string;
+	owner: string;
+	screenX: number;
+	screenY: number;
+	defenderCount: number;
+};
+
+export type WorldMapPoiSelectedUiView = {
+	id: string;
+	name: string;
+	kind: string;
+	owner: string;
+	defenders: Array<{ unitId: string; name: string; assetPath: string }>;
+};
+
+export type WorldMapTravelUiView =
+	| { status: 'idle' }
+	| {
+		status: 'travelling';
+		fromPointId: string;
+		toPointId: string;
+		distanceTotal: number;
+		distanceRemaining: number;
+		speedPerTick: number;
+		etaTicks: number;
+	}
+	| {
+		status: 'arrived';
+		fromPointId: string;
+		toPointId: string;
+		distanceTotal: number;
+		speedPerTick: number;
+	};
 
 export type CombatUnitUiView = {
 	unitId: string;
@@ -54,6 +95,7 @@ export type ArmyUnitUiView = {
 	name: string;
 	textureId: string;
 	assetPath: string;
+	speed: number;
 	health: number;
 	drFlat: number;
 	drPercent: number;
@@ -76,7 +118,14 @@ export type GameToUiEvents =
 	| { type: 'army-state-updated'; units: ArmyUnitUiView[] }
 	| { type: 'army-action-result'; action: 'train'; ok: boolean; reason?: string; unitEntityId?: string }
 	| { type: 'combat-state-updated'; state: CombatUiState }
-	| { type: 'combat-action-result'; action: 'start' | 'step' | 'reset'; ok: boolean; reason?: string };
+	| { type: 'combat-action-result'; action: 'start' | 'step' | 'reset'; ok: boolean; reason?: string }
+	| { type: 'combat-ui-open'; reason: 'worldmap-arrival'; targetPointId: string; targetName: string }
+	| { type: 'worldmap-visibility-changed'; isOpen: boolean }
+	| { type: 'worldmap-points-layout'; points: WorldMapPointUiView[] }
+	| { type: 'worldmap-poi-selected'; poi: WorldMapPoiSelectedUiView }
+	| { type: 'worldmap-poi-cleared' }
+	| { type: 'worldmap-travel-updated'; travel: WorldMapTravelUiView }
+	| { type: 'worldmap-action-result'; action: 'send-army' | 'start-combat'; ok: boolean; reason?: string };
 
 type GameToUiListener = (event: GameToUiEvents) => void;
 type UiToGameListener = (event: UiToGameEvents) => void;

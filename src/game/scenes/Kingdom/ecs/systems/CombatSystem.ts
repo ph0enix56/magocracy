@@ -429,6 +429,13 @@ export class CombatSystem implements System {
 		this.broadcast();
 	}
 
+	getSnapshot(): CombatSnapshot {
+		if (!this.session) {
+			return { status: 'idle', round: 0, activeSide: 'armyA', armyA: [], armyB: [], log: [] };
+		}
+		return this.session.getSnapshot();
+	}
+
 	stepCombat(steps = 1): void {
 		if (!this.session) throw new Error('No active combat.');
 		const n = Math.max(1, clampInt(steps));

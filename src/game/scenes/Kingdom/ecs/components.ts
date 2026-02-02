@@ -44,6 +44,7 @@ export interface ArmyUnitComponent {
     name: string;
     textureId: string;
     assetPath: string;
+    speed: number;
 
     health: number;
     drFlat: number;

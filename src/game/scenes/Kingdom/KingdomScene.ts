@@ -9,8 +9,7 @@ import { ArmySystem } from './ecs/systems/ArmySystem';
 import { CombatSystem } from './ecs/systems/CombatSystem';
 import { getAllBuildingDefs, getBlockingBuildings, getBuildingDef, getNextUpgradeDef } from './data/buildings';
 import type { Entity } from './ecs/ECSBase';
-import { getUnitDef } from './data/buildings';
-import type { ArmyUnitComponent } from './ecs/components';
+import { getGameRun } from '../../run/runRegistry';
 
 export class KingdomScene extends Scene {
 	private world!: ECSManager;
@@ -24,13 +23,10 @@ export class KingdomScene extends Scene {
 	private readonly SELECTED_TILE_UI_TICK_MS = 250;
 	private readonly HEX_SIZE: number = 64;
 	private readonly HEX_STROKE: number = 4;
-	private readonly TICK_INTERVAL_MS: number = 1000;
-	private tickAccumulator = 0;
 	private readonly GRID_ORIGIN_Y_OFFSET = -20;
 
 	constructor() {
 		super('Kingdom');
-		this.world = new ECSManager();
 	}
 
 	preload() {
@@ -44,7 +40,15 @@ export class KingdomScene extends Scene {
 	}
 
 	create() {
+		// Shared run state across scenes
+		const run = getGameRun(this);
+		this.world = run.ecs;
+		this.combatSystem = run.combatSystem;
+
 		this.cameras.main.setBackgroundColor(0xcacaca);
+
+		// Open/close world map (doesn't destroy this scene)
+		this.input.keyboard?.on('keydown-M', () => this.toggleWorldMap());
 
 		// Initialize ECS systems
 		this.buildSystem = new BuildSystem(this.world, (evt) => {
@@ -57,6 +61,7 @@ export class KingdomScene extends Scene {
 				name: def.unit.name,
 				textureId: def.unit.textureId,
 				assetPath: def.unit.assetPath,
+				speed: def.unit.speed,
 				health: def.unit.health,
 				drFlat: def.unit.drFlat,
 				drPercent: def.unit.drPercent,
@@ -84,8 +89,6 @@ export class KingdomScene extends Scene {
 		this.world.addSystem(this.shopSystem);
 		this.armySystem = new ArmySystem(this.world);
 		this.world.addSystem(this.armySystem);
-		this.combatSystem = new CombatSystem(this.world);
-		this.world.addSystem(this.combatSystem);
 		this.world.addSystem(new RenderSystem(this.world, this));
 
 		// Ensure the shop has offers at game start
@@ -109,7 +112,32 @@ export class KingdomScene extends Scene {
 		});
 
 		// listen for UI build/destroy/upgrade commands
-		eventBus.subscribeUiToGame(event => {
+		eventBus.subscribeUiToGame((event) => {
+			if (event.type === 'worldmap-toggle') {
+				this.toggleWorldMap();
+				return;
+			}
+			if (event.type === 'worldmap-send-army') {
+				try {
+					run.startTravel(event.targetPointId);
+					eventBus.publishGameToUi({ type: 'worldmap-action-result', action: 'send-army', ok: true });
+				} catch (e) {
+					const reason = e instanceof Error ? e.message : String(e);
+					eventBus.publishGameToUi({ type: 'worldmap-action-result', action: 'send-army', ok: false, reason });
+				}
+				return;
+			}
+			if (event.type === 'worldmap-start-combat') {
+				try {
+					run.startPendingEncounterCombat(event.targetPointId);
+					eventBus.publishGameToUi({ type: 'worldmap-action-result', action: 'start-combat', ok: true });
+				} catch (e) {
+					const reason = e instanceof Error ? e.message : String(e);
+					eventBus.publishGameToUi({ type: 'worldmap-action-result', action: 'start-combat', ok: false, reason });
+				}
+				return;
+			}
+
 			if (event.type === 'build-requested') {
 				this.handleBuild(event.q, event.r, event.buildingId);
 			} else if (event.type === 'destroy-requested') {
@@ -126,52 +154,33 @@ export class KingdomScene extends Scene {
 				this.handleCombatStart(event.enemyMode);
 			} else if (event.type === 'combat-step-requested') {
 				this.handleCombatStep(event.steps);
+				const changed = run.tryResolvePendingEncounter();
+				if (changed) eventBus.publishUiToGame({ type: 'worldmap-refresh-requested' });
 			} else if (event.type === 'combat-reset-requested') {
 				this.handleCombatReset();
+				run.clearEncounterAndTravel();
 			}
 		});
 	}
 
-	private getPlayerArmy(): ArmyUnitComponent[] {
-		return this.world
-			.getEntities()
-			.filter(e => !!e.armyUnit)
-			.map(e => e.armyUnit!);
+	private toggleWorldMap(): void {
+		const isWorldMapActive = this.scene.isActive('WorldMap');
+		if (isWorldMapActive) {
+			this.scene.stop('WorldMap');
+			this.scene.resume('Kingdom');
+			eventBus.publishGameToUi({ type: 'worldmap-visibility-changed', isOpen: false });
+			eventBus.publishGameToUi({ type: 'worldmap-poi-cleared' });
+			return;
+		}
+
+		this.scene.launch('WorldMap');
+		this.scene.pause('Kingdom');
+		eventBus.publishGameToUi({ type: 'worldmap-visibility-changed', isOpen: true });
 	}
 
-	private createMirrorEnemyArmy(from: ArmyUnitComponent[]): ArmyUnitComponent[] {
-		return from.map(u => {
-			const def = getUnitDef(u.unitId);
-			if (!def) throw new Error(`Missing unit def for unitId '${u.unitId}'`);
-			return {
-				unitId: def.id,
-				name: def.name,
-				textureId: def.textureId,
-				assetPath: def.assetPath,
-				health: def.health,
-				drFlat: def.drFlat,
-				drPercent: def.drPercent,
-				actionsPerTurn: def.actionsPerTurn,
-				trainingLevel: 0,
-				training: {
-					status: 'idle',
-					progress: 0,
-					costBase: {},
-					costMult: 1,
-					time: 0,
-					def: { health: 0, drFlat: 0, attackDamage: 0 }
-				}
-			};
-		});
-	}
-
-	private handleCombatStart(enemyMode?: 'mirror' | 'random'): void {
+	private handleCombatStart(_enemyMode?: 'mirror' | 'random'): void {
 		try {
-			const armyA = this.getPlayerArmy();
-			const mode = enemyMode ?? 'mirror';
-			const armyB = mode === 'mirror' ? this.createMirrorEnemyArmy(armyA) : this.createMirrorEnemyArmy(armyA);
-			this.combatSystem.startCombat(armyA, armyB);
-			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'start', ok: true });
+			throw new Error('Combat now starts when your army reaches a world-map point.');
 		} catch (e) {
 			const reason = e instanceof Error ? e.message : String(e);
 			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'start', ok: false, reason });
@@ -201,12 +210,6 @@ export class KingdomScene extends Scene {
 	override update(time: number, delta: number): void {
 		this.world.update(time, delta);
 		this.tickSelectedTileUi(delta);
-		this.tickAccumulator += delta;
-		if (this.tickAccumulator >= this.TICK_INTERVAL_MS) {
-			this.tickAccumulator -= this.TICK_INTERVAL_MS;
-			this.world.advanceTick();
-			this.publishResourceUpdates();
-		}
 	}
 
 	private tickSelectedTileUi(delta: number) {

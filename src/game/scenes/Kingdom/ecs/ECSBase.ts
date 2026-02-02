@@ -19,7 +19,7 @@ export interface System {
 export class ECSManager {
 	entities: Map<string, Entity> = new Map();
 	systems: System[] = [];
-	
+
 	// [WIP] Remaining global state
 	resources: Map<string, number> = new Map();
 	blueprintInventory: Map<string, number> = new Map();
@@ -75,6 +75,7 @@ export class ECSManager {
 					name: u.name,
 					textureId: u.textureId,
 					assetPath: u.assetPath,
+					speed: u.speed,
 					health: u.health,
 					drFlat: u.drFlat,
 					drPercent: u.drPercent,

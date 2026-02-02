@@ -61,6 +61,8 @@ export interface UnitDef {
 	actions: UnitAttackDef[];
 	// Actions taken per turn in combat.
 	actionsPerTurn: number;
+	// Travel speed on the world map.
+	speed: number;
 	// Phaser texture key (can be the same as id)
 	textureId: string;
 	// Path relative to public/assets/ for the unit icon, loaded into Phaser under textureId
@@ -149,6 +151,10 @@ export function getNextUpgradeDef(currentBuildingId: string): BuildingDef | unde
 
 export function getAllBuildingDefs(): BuildingDef[] {
 	return Object.values(BUILDINGS);
+}
+
+export function getAllUnitDefs(): UnitDef[] {
+	return Object.values(UNITS);
 }
 
 export function getPurchasableBuildings(): BuildingDef[] {

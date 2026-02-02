@@ -20,6 +20,7 @@ export const BUILDING_DEFS: BuildingDef[] = [
 				{ damage: 25, canUpgrade: true, range: 1, targeting: 'first', actionPointCost: 1 }
 			],
 			actionsPerTurn: 1,
+			speed: 2,
 			textureId: 'unit_swordsman',
 			assetPath: 'game_icons/sword-brandish.png',
 		},
@@ -51,6 +52,7 @@ export const BUILDING_DEFS: BuildingDef[] = [
 				{ damage: 15, canUpgrade: true, range: 5, targeting: 'last', actionPointCost: 1 }
 			],
 			actionsPerTurn: 1,
+			speed: 3,
 			textureId: 'unit_archer',
 			assetPath: 'game_icons/high-shot.png',
 		},
@@ -83,6 +85,7 @@ export const BUILDING_DEFS: BuildingDef[] = [
 				{ damage: 0, canUpgrade: false, range: 0, targeting: 'first', actionPointCost: 1 }
 			],
 			actionsPerTurn: 1,
+			speed: 1,
 			textureId: 'unit_defender',
 			assetPath: 'game_icons/vibrating-shield.png',
 		},
@@ -114,6 +117,7 @@ export const BUILDING_DEFS: BuildingDef[] = [
 				{ damage: 30, canUpgrade: true, range: 100, targeting: 'all', actionPointCost: 2 }
 			],
 			actionsPerTurn: 2,
+			speed: 2,
 			textureId: 'unit_earth_mage',
 			assetPath: 'game_icons/earth-crack.png',
 		},
@@ -146,6 +150,7 @@ export const BUILDING_DEFS: BuildingDef[] = [
 				{ damage: 20, canUpgrade: true, range: 30, targeting: 'last', actionPointCost: 1 }
 			],
 			actionsPerTurn: 2,
+			speed: 3,
 			textureId: 'unit_magic_archer',
 			assetPath: 'game_icons/double-shot.png',
 		},
