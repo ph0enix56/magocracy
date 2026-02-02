@@ -30,13 +30,22 @@
 		eventBus.publishUiToGame({ type: 'army-train-requested', unitEntityId });
 	}
 
+	function reorder(unitEntityId: string, direction: 'up' | 'down') {
+		eventBus.publishUiToGame({ type: 'army-reorder-requested', unitEntityId, direction });
+	}
+
 	onMount(() => {
 		unsubscribe = eventBus.subscribeGameToUi((event) => {
 			if (event.type !== 'army-action-result') return;
-			if (event.action !== 'train') return;
-
-			pendingTrain = null;
-			if (!event.ok && event.reason) alert(event.reason);
+			if (event.action === 'train') {
+				pendingTrain = null;
+				if (!event.ok && event.reason) alert(event.reason);
+				return;
+			}
+			if (event.action === 'reorder') {
+				if (!event.ok && event.reason) alert(event.reason);
+				return;
+			}
 		});
 	});
 
@@ -58,13 +67,27 @@
 					<div class="empty">No units yet. Build an army building.</div>
 				{/if}
 
-				{#each units as u (u.entityId)}
+				{#each units as u, i (u.entityId)}
 					<div class="unit-card">
 						<div class="icon-container">
 							<img src={`assets/${u.assetPath}`} alt={u.name} />
 						</div>
 						<div class="info">
-							<div class="name">{u.name} <span class="lvl">Lv {u.trainingLevel}</span></div>
+							<div class="name-row">
+								<div class="name">
+									{u.name} <span class="lvl">Lv {u.trainingLevel}</span>
+								</div>
+								<div class="reorder">
+									<button class="reorder-btn" disabled={i === 0} on:click={() => reorder(u.entityId, 'up')}>↑</button>
+									<button
+										class="reorder-btn"
+										disabled={i === units.length - 1}
+										on:click={() => reorder(u.entityId, 'down')}
+									>
+										↓
+									</button>
+								</div>
+							</div>
 							<div class="stats">
 								<span>HP: {u.health}</span>
 								<span>DR: {u.drFlat} + {u.drPercent}%</span>
@@ -191,6 +214,39 @@
 	.name {
 		font-weight: 700;
 		font-size: 1.05rem;
+	}
+
+	.name-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	.reorder {
+		display: flex;
+		gap: 6px;
+		flex-shrink: 0;
+	}
+
+	.reorder-btn {
+		padding: 4px 8px;
+		background: #444;
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		border-radius: 4px;
+		color: #fff;
+		font-weight: 800;
+		cursor: pointer;
+		line-height: 1;
+	}
+
+	.reorder-btn:hover {
+		background: #555;
+	}
+
+	.reorder-btn:disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
 	}
 
 	.lvl {

@@ -1,5 +1,6 @@
 import { eventBus } from '../../../../eventBus';
 import type { ArmyUnitComponent, BuildingComponent, PositionComponent, RenderComponent } from './components';
+import { configuration } from '../../../configuration';
 
 export interface Entity {
 	id: string;
@@ -23,23 +24,19 @@ export class ECSManager {
 	// [WIP] Remaining global state
 	resources: Map<string, number> = new Map();
 	blueprintInventory: Map<string, number> = new Map();
-	shopOffers: Array<string | null> = Array.from({ length: 4 }, () => null);
+	shopOffers: Array<string | null> = Array.from({ length: configuration.shop.size }, () => null);
+	// Explicit, player-controlled ordering of army units (used for UI + combat).
+	armyUnitOrder: string[] = [];
 	private nextArmyUnitSeq = 1;
 
 	constructor() {
-		// [WIP] Global resource initialization
-		this.resources.set('stone', 1000);
-		this.resources.set('wood', 1000);
-		this.resources.set('food', 1000);
-		this.resources.set('mana', 1000);
-		this.resources.set('gold', 1000);
+		for (const [key, value] of Object.entries(configuration.economy.startingResources)) {
+			this.resources.set(key, value);
+		}
 
-		// [WIP] Starter blueprints for testing
-		this.blueprintInventory.set('mine', 2);
-		this.blueprintInventory.set('lumber_camp', 1);
-		this.blueprintInventory.set('farm', 1);
-		this.blueprintInventory.set('house', 1);
-		this.blueprintInventory.set('sword_barracks', 1);
+		for (const [buildingId, count] of Object.entries(configuration.economy.starterBlueprintInventory)) {
+			this.blueprintInventory.set(buildingId, count);
+		}
 	}
 
 	spawnArmyUnit(component: Omit<ArmyUnitComponent, 'training'> & { training: ArmyUnitComponent['training'] }): Entity {
@@ -52,7 +49,50 @@ export class ECSManager {
 			armyUnit: component as ArmyUnitComponent
 		};
 		this.addEntity(entity);
+		this.ensureArmyUnitOrderSynced();
 		return entity;
+	}
+
+	private ensureArmyUnitOrderSynced(): void {
+		const existingArmyUnitIds = new Set(
+			this.getEntities()
+				.filter((e) => e.kind === 'armyUnit' && !!e.armyUnit)
+				.map((e) => e.id)
+		);
+
+		// Keep only still-existing units.
+		this.armyUnitOrder = this.armyUnitOrder.filter((id) => existingArmyUnitIds.has(id));
+
+		// Append any new units that weren't in the order yet.
+		for (const id of existingArmyUnitIds) {
+			if (!this.armyUnitOrder.includes(id)) this.armyUnitOrder.push(id);
+		}
+	}
+
+	reorderArmyUnitWithThrow(unitEntityId: string, direction: 'up' | 'down'): void {
+		this.ensureArmyUnitOrderSynced();
+		const idx = this.armyUnitOrder.indexOf(unitEntityId);
+		if (idx < 0) throw new Error('Invalid unit.');
+		const delta = direction === 'up' ? -1 : 1;
+		const next = idx + delta;
+		if (next < 0 || next >= this.armyUnitOrder.length) return;
+		const tmp = this.armyUnitOrder[next];
+		this.armyUnitOrder[next] = this.armyUnitOrder[idx]!;
+		this.armyUnitOrder[idx] = tmp!;
+	}
+
+	getOrderedArmyUnitEntities(): Entity[] {
+		this.ensureArmyUnitOrderSynced();
+		const out: Entity[] = [];
+		for (const id of this.armyUnitOrder) {
+			const e = this.getEntity(id);
+			if (e?.armyUnit) out.push(e);
+		}
+		return out;
+	}
+
+	getOrderedArmyUnits(): ArmyUnitComponent[] {
+		return this.getOrderedArmyUnitEntities().map((e) => e.armyUnit!);
 	}
 
 	private computeNextTrainCost(unit: ArmyUnitComponent): Record<string, number> {
@@ -65,12 +105,10 @@ export class ECSManager {
 	}
 
 	broadcastArmyState(): void {
-		const units = this.getEntities()
-			.filter(e => !!e.armyUnit)
-			.map(e => {
-				const u = e.armyUnit!;
-				return {
-					entityId: e.id,
+		const units = this.getOrderedArmyUnitEntities().map((e) => {
+			const u = e.armyUnit!;
+			return {
+				entityId: e.id,
 					unitId: u.unitId,
 					name: u.name,
 					textureId: u.textureId,
@@ -85,8 +123,8 @@ export class ECSManager {
 					trainingProgress: u.training.time > 0 ? (u.training.progress / u.training.time) * 100 : 0,
 					nextTrainCost: this.computeNextTrainCost(u),
 					trainTime: u.training.time
-				};
-			});
+			};
+		});
 		eventBus.publishGameToUi({ type: 'army-state-updated', units });
 	}
 

@@ -1,9 +1,10 @@
 import { Scene } from 'phaser';
 import { getGameRun } from '../../run/runRegistry';
 import { eventBus } from '../../../eventBus';
+import { configuration } from '../../configuration';
 
 export class WorldMapScene extends Scene {
-	private readonly PADDING = 80;
+	private readonly PADDING = configuration.worldMapView.padding;
 	private dots: Map<string, Phaser.GameObjects.Arc> = new Map();
 	private lastSelectedPointId: string | null = null;
 	private links?: Phaser.GameObjects.Graphics;
@@ -23,12 +24,12 @@ export class WorldMapScene extends Scene {
 		this.load.setPath('assets');
 		if (!this.textures.exists('wm_army_flag')) {
 			// SVG in public/assets/game_icons/flying-flag.svg
-			this.load.svg('wm_army_flag', 'game_icons/flying-flag.svg', { scale: 0.6 });
+			this.load.svg('wm_army_flag', 'game_icons/flying-flag.svg', { scale: configuration.worldMapView.armyFlagScale });
 		}
 	}
 
 	create(): void {
-		this.cameras.main.setBackgroundColor(0x0d1b2a);
+		this.cameras.main.setBackgroundColor(configuration.worldMapView.backgroundColor);
 
 		if (!this.links) this.links = this.add.graphics().setDepth(1);
 		if (!this.armyPath) this.armyPath = this.add.graphics().setDepth(2);
@@ -144,13 +145,13 @@ export class WorldMapScene extends Scene {
 			const y = this.PADDING + p.y * (h - this.PADDING * 2);
 			const color =
 				arrivedTargetId && p.id === arrivedTargetId
-					? 0xe63946
+					? configuration.worldMapView.dots.colors.arrived
 					: p.owner === 'player'
-						? 0x2d6a4f
+						? configuration.worldMapView.dots.colors.player
 						: p.owner === 'enemy'
-							? 0x9b2226
-							: 0x3a86ff;
-			const radius = p.kind === 'kingdom' ? 20 : 14;
+							? configuration.worldMapView.dots.colors.enemy
+							: configuration.worldMapView.dots.colors.neutral;
+			const radius = p.kind === 'kingdom' ? configuration.worldMapView.dots.radius.kingdom : configuration.worldMapView.dots.radius.other;
 
 			let dot = this.dots.get(p.id);
 			const isReusable = !!dot && dot.active && dot.scene === this && (dot as any).geom != null;
@@ -158,7 +159,11 @@ export class WorldMapScene extends Scene {
 				if (dot) dot.destroy();
 				dot = this.add.circle(x, y, radius, color, 1);
 				dot.setDepth(3);
-				dot.setStrokeStyle(3, 0xe0e1dd, 0.8);
+				dot.setStrokeStyle(
+					configuration.worldMapView.dots.stroke.width,
+					configuration.worldMapView.dots.stroke.color,
+					configuration.worldMapView.dots.stroke.alpha
+				);
 				dot.setInteractive({ useHandCursor: true });
 					dot.on('pointerdown', () => {
 						this.lastSelectedPointId = p.id;
@@ -191,7 +196,7 @@ export class WorldMapScene extends Scene {
 		const owned = run.worldMap.points.filter((p) => p.owner === 'player');
 		const home = run.worldMap.points.find((p) => p.owner === 'player' && p.kind === 'kingdom');
 		if (this.links && home) {
-			this.links.lineStyle(3, 0x74c69d, 0.55);
+			this.links.lineStyle(configuration.worldMapView.links.width, configuration.worldMapView.links.color, configuration.worldMapView.links.alpha);
 			const a = toScreen(home);
 			for (const p of owned) {
 				if (p.id === home.id) continue;
@@ -215,14 +220,18 @@ export class WorldMapScene extends Scene {
 		if (this.armyFlag) {
 			this.armyFlag.setVisible(true);
 			this.armyFlag.setPosition(armyScreen.x, armyScreen.y);
-			this.armyFlag.setScale(0.6);
+			this.armyFlag.setScale(configuration.worldMapView.armyFlagScale);
 		}
 
 		const fromId = run.travel.status === 'travelling' ? run.travel.fromPointId : run.travel.status === 'arrived' ? run.travel.fromPointId : null;
 		const from = fromId ? run.worldMap.points.find((p) => p.id === fromId) : undefined;
 		if (this.armyPath && from) {
 			const fromScreen = toScreen(from);
-			this.armyPath.lineStyle(2, 0xe0e1dd, 0.65);
+			this.armyPath.lineStyle(
+				configuration.worldMapView.armyPath.width,
+				configuration.worldMapView.armyPath.color,
+				configuration.worldMapView.armyPath.alpha
+			);
 			this.armyPath.beginPath();
 			this.armyPath.moveTo(fromScreen.x, fromScreen.y);
 			this.armyPath.lineTo(armyScreen.x, armyScreen.y);

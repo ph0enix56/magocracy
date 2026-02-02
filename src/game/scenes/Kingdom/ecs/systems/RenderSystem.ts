@@ -2,6 +2,7 @@ import type { ECSManager } from '../ECSBase';
 import type { System } from '../ECSBase';
 import type { Scene } from 'phaser';
 import { getBuildingDef } from '../../data/buildings';
+import { configuration } from '../../../../configuration';
 
 export class RenderSystem implements System {
     private world: ECSManager;
@@ -13,6 +14,7 @@ export class RenderSystem implements System {
     }
 
     update(_delta: number, _time: number) {
+        const buildingCfg = configuration.render.building;
         for (const entity of this.world.getEntities()) {
             if (!entity.render) continue;
 
@@ -29,9 +31,9 @@ export class RenderSystem implements System {
                     const sprite = this.scene.add.image(x, y, def.textureId);
                     // Scale to fit reasonably within a 64-size hex (approx 100px wide)
                     // Let's assume we want it to be roughly 64px wide/high
-                    const scale = 64 / Math.max(sprite.width, sprite.height);
-                    sprite.setScale(scale * 1.15); // Slightly larger to fill hex
-                    sprite.setAlpha(0.5); // Start semi-transparent
+                    const scale = buildingCfg.hexSize / Math.max(sprite.width, sprite.height);
+                    sprite.setScale(scale * buildingCfg.spriteFillScaleMultiplier);
+                    sprite.setAlpha(buildingCfg.alpha.initial);
                     
                     entity.render.building = sprite;
                 }
@@ -50,8 +52,8 @@ export class RenderSystem implements System {
                     const totalTicks = progressDef?.buildTime ?? 0;
 
                     // Keep sprite semi-transparent and fixed size
-                    entity.render.building.setAlpha(isUpgrading ? 0.8 : 0.6);
-                    const targetScale = 64 / Math.max(entity.render.building.width, entity.render.building.height);
+                    entity.render.building.setAlpha(isUpgrading ? buildingCfg.alpha.upgrading : buildingCfg.alpha.constructing);
+                    const targetScale = buildingCfg.hexSize / Math.max(entity.render.building.width, entity.render.building.height);
                     entity.render.building.setScale(targetScale);
 
                     // Draw progress circle
@@ -64,15 +66,19 @@ export class RenderSystem implements System {
                     
                     const x = entity.render.hex.x;
                     const y = entity.render.hex.y;
-                    const radius = 20;
+                    const radius = buildingCfg.progress.radius;
                     const progress = totalTicks > 0 ? entity.building.progress / totalTicks : 1;
                     
                     // Background circle
-                    graphics.lineStyle(4, 0x000000, 0.5);
+                    graphics.lineStyle(buildingCfg.progress.lineWidth, buildingCfg.progress.backgroundColor, buildingCfg.progress.backgroundAlpha);
                     graphics.strokeCircle(x, y, radius);
                     
                     // Progress arc
-                    graphics.lineStyle(4, isUpgrading ? 0x00bfff : 0xffa500, 1);
+                    graphics.lineStyle(
+                        buildingCfg.progress.lineWidth,
+                        isUpgrading ? buildingCfg.progress.arcColor.upgrading : buildingCfg.progress.arcColor.constructing,
+                        buildingCfg.progress.arcAlpha
+                    );
                     graphics.beginPath();
                     // Arc from -90 degrees (top)
                     graphics.arc(x, y, radius, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(-90 + 360 * progress), false);
@@ -81,7 +87,7 @@ export class RenderSystem implements System {
                 } else {
                     // Active state
                     entity.render.building.setAlpha(1);
-                    const targetScale = 64 / Math.max(entity.render.building.width, entity.render.building.height);
+                    const targetScale = buildingCfg.hexSize / Math.max(entity.render.building.width, entity.render.building.height);
                     entity.render.building.setScale(targetScale);
 
                     // Remove progress indicator if it exists

@@ -1,11 +1,8 @@
 import type { ECSManager, System } from '../ECSBase';
 import { getPurchasableBuildings, type BuildingDef } from '../../data/buildings';
+import { configuration } from '../../../../configuration';
 
 export class ShopSystem implements System {
-	static readonly SHOP_SIZE = 4;
-	static readonly BUY_COST = 10;
-	static readonly REROLL_COST = 10;
-
 	private world: ECSManager;
 
 	constructor(world: ECSManager) {
@@ -18,8 +15,8 @@ export class ShopSystem implements System {
 	getState() {
 		return {
 			offers: [...this.world.shopOffers],
-			buyCost: ShopSystem.BUY_COST,
-			rerollCost: ShopSystem.REROLL_COST
+			buyCost: configuration.shop.buyCost,
+			rerollCost: configuration.shop.rerollCost
 		};
 	}
 
@@ -45,7 +42,7 @@ export class ShopSystem implements System {
 	}
 
 	private rerollInternal(): void {
-		this.world.shopOffers = Array.from({ length: ShopSystem.SHOP_SIZE }, () => this.randomOffer());
+		this.world.shopOffers = Array.from({ length: configuration.shop.size }, () => this.randomOffer());
 	}
 
 	// Free initial roll so the shop has offers at game start.
@@ -54,7 +51,7 @@ export class ShopSystem implements System {
 	}
 
 	rerollWithThrow(): void {
-		this.spendGoldWithThrow(ShopSystem.REROLL_COST);
+		this.spendGoldWithThrow(configuration.shop.rerollCost);
 		this.rerollInternal();
 	}
 
@@ -66,7 +63,7 @@ export class ShopSystem implements System {
 		const buildingId = this.world.shopOffers[slotIndex];
 		if (!buildingId) throw new Error('Empty slot.');
 
-		this.spendGoldWithThrow(ShopSystem.BUY_COST);
+		this.spendGoldWithThrow(configuration.shop.buyCost);
 		const current = this.world.blueprintInventory.get(buildingId) || 0;
 		this.world.blueprintInventory.set(buildingId, current + 1);
 		this.world.shopOffers[slotIndex] = null;

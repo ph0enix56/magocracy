@@ -77,10 +77,7 @@ export class GameRun {
 	}
 
 	getPlayerArmy(): ArmyUnitComponent[] {
-		return this.ecs
-			.getEntities()
-			.filter((e) => !!e.armyUnit)
-			.map((e) => e.armyUnit!);
+		return this.ecs.getOrderedArmyUnits();
 	}
 
 	startTravel(targetPointId: string): void {

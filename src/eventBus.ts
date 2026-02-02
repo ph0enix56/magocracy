@@ -21,6 +21,7 @@ export type UiToGameEvents =
 	| { type: 'shop-buy-requested'; slotIndex: number }
 	| { type: 'shop-reroll-requested' }
 	| { type: 'army-train-requested'; unitEntityId: string }
+	| { type: 'army-reorder-requested'; unitEntityId: string; direction: 'up' | 'down' }
 	| { type: 'combat-start-requested'; enemyMode?: 'mirror' | 'random' }
 	| { type: 'combat-step-requested'; steps?: number }
 	| { type: 'combat-reset-requested' }
@@ -116,7 +117,7 @@ export type GameToUiEvents =
 	| { type: 'shop-state-updated'; offers: Array<string | null>; buyCost: number; rerollCost: number }
 	| { type: 'shop-action-result'; action: 'buy' | 'reroll'; ok: boolean; reason?: string; slotIndex?: number }
 	| { type: 'army-state-updated'; units: ArmyUnitUiView[] }
-	| { type: 'army-action-result'; action: 'train'; ok: boolean; reason?: string; unitEntityId?: string }
+	| { type: 'army-action-result'; action: 'train' | 'reorder'; ok: boolean; reason?: string; unitEntityId?: string }
 	| { type: 'combat-state-updated'; state: CombatUiState }
 	| { type: 'combat-action-result'; action: 'start' | 'step' | 'reset'; ok: boolean; reason?: string }
 	| { type: 'combat-ui-open'; reason: 'worldmap-arrival'; targetPointId: string; targetName: string }

@@ -10,6 +10,7 @@ import { CombatSystem } from './ecs/systems/CombatSystem';
 import { getAllBuildingDefs, getBlockingBuildings, getBuildingDef, getNextUpgradeDef } from './data/buildings';
 import type { Entity } from './ecs/ECSBase';
 import { getGameRun } from '../../run/runRegistry';
+import { configuration } from '../../configuration';
 
 export class KingdomScene extends Scene {
 	private world!: ECSManager;
@@ -20,10 +21,10 @@ export class KingdomScene extends Scene {
 	private combatSystem!: CombatSystem;
 	private selectedTile: { q: number; r: number } | null = null;
 	private selectedTileUiTimer = 0;
-	private readonly SELECTED_TILE_UI_TICK_MS = 250;
-	private readonly HEX_SIZE: number = 64;
-	private readonly HEX_STROKE: number = 4;
-	private readonly GRID_ORIGIN_Y_OFFSET = -20;
+	private readonly SELECTED_TILE_UI_TICK_MS = configuration.kingdomView.selectedTileUiTickMs;
+	private readonly HEX_SIZE: number = configuration.kingdomView.hexSize;
+	private readonly HEX_STROKE: number = configuration.kingdomView.hexStroke;
+	private readonly GRID_ORIGIN_Y_OFFSET = configuration.kingdomView.gridOriginYOffset;
 
 	constructor() {
 		super('Kingdom');
@@ -45,7 +46,7 @@ export class KingdomScene extends Scene {
 		this.world = run.ecs;
 		this.combatSystem = run.combatSystem;
 
-		this.cameras.main.setBackgroundColor(0xcacaca);
+		this.cameras.main.setBackgroundColor(configuration.kingdomView.backgroundColor);
 
 		// Open/close world map (doesn't destroy this scene)
 		this.input.keyboard?.on('keydown-M', () => this.toggleWorldMap());
@@ -150,6 +151,8 @@ export class KingdomScene extends Scene {
 				this.handleShopReroll();
 			} else if (event.type === 'army-train-requested') {
 				this.handleTrain(event.unitEntityId);
+			} else if (event.type === 'army-reorder-requested') {
+				this.handleArmyReorder(event.unitEntityId, event.direction);
 			} else if (event.type === 'combat-start-requested') {
 				this.handleCombatStart(event.enemyMode);
 			} else if (event.type === 'combat-step-requested') {
@@ -161,6 +164,17 @@ export class KingdomScene extends Scene {
 				run.clearEncounterAndTravel();
 			}
 		});
+	}
+
+	private handleArmyReorder(unitEntityId: string, direction: 'up' | 'down') {
+		try {
+			this.world.reorderArmyUnitWithThrow(unitEntityId, direction);
+			this.world.broadcastArmyState();
+			eventBus.publishGameToUi({ type: 'army-action-result', action: 'reorder', ok: true, unitEntityId });
+		} catch (e: Error | any) {
+			const reason = e instanceof Error ? e.message : String(e);
+			eventBus.publishGameToUi({ type: 'army-action-result', action: 'reorder', ok: false, reason, unitEntityId });
+		}
 	}
 
 	private toggleWorldMap(): void {
