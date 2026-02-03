@@ -15,18 +15,19 @@ export class RenderSystem implements System {
 
     update(_delta: number, _time: number) {
         const buildingCfg = configuration.render.building;
-        for (const entity of this.world.getEntities()) {
-            if (!entity.render) continue;
+        for (const entity of this.world.getEntitiesWith(['render'])) {
+            const render = entity.render;
+            if (!render) continue;
 
             // Handle Building Visuals
             if (entity.building) {
                 const def = getBuildingDef(entity.building.buildingId);
                 if (!def) continue;
 
-                if (!entity.render.building) {
+                if (!render.building) {
                     // Create building visual
-                    const x = entity.render.hex.x;
-                    const y = entity.render.hex.y;
+                    const x = render.hex.x;
+                    const y = render.hex.y;
                     
                     const sprite = this.scene.add.image(x, y, def.textureId);
                     // Scale to fit reasonably within a 64-size hex (approx 100px wide)
@@ -35,12 +36,12 @@ export class RenderSystem implements System {
                     sprite.setScale(scale * buildingCfg.spriteFillScaleMultiplier);
                     sprite.setAlpha(buildingCfg.alpha.initial);
                     
-                    entity.render.building = sprite;
+                    render.building = sprite;
                 }
 
                 // Keep sprite in sync if buildingId changes (e.g. upgrade completion)
-                if (entity.render.building.texture.key !== def.textureId) {
-                    entity.render.building.setTexture(def.textureId);
+                if (render.building.texture.key !== def.textureId) {
+                    render.building.setTexture(def.textureId);
                 }
 
                 // Update visual based on status
@@ -52,20 +53,20 @@ export class RenderSystem implements System {
                     const totalTicks = progressDef?.buildTime ?? 0;
 
                     // Keep sprite semi-transparent and fixed size
-                    entity.render.building.setAlpha(isUpgrading ? buildingCfg.alpha.upgrading : buildingCfg.alpha.constructing);
-                    const targetScale = buildingCfg.hexSize / Math.max(entity.render.building.width, entity.render.building.height);
-                    entity.render.building.setScale(targetScale);
+                    render.building.setAlpha(isUpgrading ? buildingCfg.alpha.upgrading : buildingCfg.alpha.constructing);
+                    const targetScale = buildingCfg.hexSize / Math.max(render.building.width, render.building.height);
+                    render.building.setScale(targetScale);
 
                     // Draw progress circle
-                    if (!entity.render.constructionProgress) {
-                        entity.render.constructionProgress = this.scene.add.graphics();
+                    if (!render.constructionProgress) {
+                        render.constructionProgress = this.scene.add.graphics();
                     }
                     
-                    const graphics = entity.render.constructionProgress;
+                    const graphics = render.constructionProgress;
                     graphics.clear();
                     
-                    const x = entity.render.hex.x;
-                    const y = entity.render.hex.y;
+                    const x = render.hex.x;
+                    const y = render.hex.y;
                     const radius = buildingCfg.progress.radius;
                     const progress = totalTicks > 0 ? entity.building.progress / totalTicks : 1;
                     
@@ -86,25 +87,25 @@ export class RenderSystem implements System {
 
                 } else {
                     // Active state
-                    entity.render.building.setAlpha(1);
-                    const targetScale = buildingCfg.hexSize / Math.max(entity.render.building.width, entity.render.building.height);
-                    entity.render.building.setScale(targetScale);
+                    render.building.setAlpha(1);
+                    const targetScale = buildingCfg.hexSize / Math.max(render.building.width, render.building.height);
+                    render.building.setScale(targetScale);
 
                     // Remove progress indicator if it exists
-                    if (entity.render.constructionProgress) {
-                        entity.render.constructionProgress.destroy();
-                        entity.render.constructionProgress = undefined;
+                    if (render.constructionProgress) {
+                        render.constructionProgress.destroy();
+                        render.constructionProgress = undefined;
                     }
                 }
             } else {
                 // No building component, but visual exists? Destroy it.
-                if (entity.render.building) {
-                    entity.render.building.destroy();
-                    entity.render.building = undefined;
+                if (render.building) {
+                    render.building.destroy();
+                    render.building = undefined;
                 }
-                if (entity.render.constructionProgress) {
-                    entity.render.constructionProgress.destroy();
-                    entity.render.constructionProgress = undefined;
+                if (render.constructionProgress) {
+                    render.constructionProgress.destroy();
+                    render.constructionProgress = undefined;
                 }
             }
         }

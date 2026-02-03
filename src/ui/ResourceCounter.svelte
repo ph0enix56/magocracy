@@ -22,22 +22,12 @@
 	});
 </script>
 
-<div class="resource">
+<div class="ui-chip resource">
 	<div class="icon">{icon}</div>
 	<div class="value">{value}</div>
 </div>
 
 <style>
-	.resource {
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-		padding: 4px 8px;
-		border-radius: 4px;
-		background: rgba(0, 0, 0, 0.6);
-		color: #fff;
-		font-family: system-ui, sans-serif;
-	}
 	.icon {
 		min-width: 20px;
 		text-align: center;

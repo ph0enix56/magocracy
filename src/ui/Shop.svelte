@@ -70,15 +70,15 @@
 </script>
 
 {#if state.isOpen}
-	<div class="overlay">
-		<div class="modal">
-			<div class="header">
-				<h2>Blueprint Shop</h2>
+	<div class="ui-overlay" style="--ui-overlay-z: 110;">
+		<div class="ui-modal modal">
+			<div class="ui-modal-header">
+				<h2 class="ui-modal-title">Blueprint Shop</h2>
 				<div class="header-actions">
-					<button class="fill-btn" disabled={!canReroll()} on:click={requestReroll}>
+					<button class="ui-button ui-button--ghost" disabled={!canReroll()} on:click={requestReroll}>
 						Reroll ({view.rerollCost} gold)
 					</button>
-					<button class="close-btn" on:click={close}>X</button>
+					<button class="ui-close-btn" on:click={close}>X</button>
 				</div>
 			</div>
 
@@ -95,10 +95,10 @@
 								on:action={() => buy(i)}
 							/>
 						{:else}
-							<div class="empty-slot">Unknown blueprint.</div>
+							<div class="empty-slot ui-muted">Unknown blueprint.</div>
 						{/if}
 					{:else}
-						<div class="empty-slot">Empty slot</div>
+						<div class="empty-slot ui-muted">Empty slot</div>
 					{/if}
 				{/each}
 			</div>
@@ -106,74 +106,17 @@
 	</div>
 {/if}
 
-<style>
-	.overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.5);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		pointer-events: auto;
-		z-index: 110;
-	}
 
+<style>
 	.modal {
-		background: #2a2a2a;
-		color: #fff;
 		width: 720px;
 		max-height: 80vh;
-		border-radius: 8px;
-		display: flex;
-		flex-direction: column;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-		border: 1px solid #444;
-	}
-
-	.header {
-		padding: 16px;
-		border-bottom: 1px solid #444;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.header h2 {
-		margin: 0;
-		font-size: 1.2rem;
 	}
 
 	.header-actions {
 		display: flex;
 		gap: 8px;
 		align-items: center;
-	}
-
-	.close-btn {
-		background: none;
-		border: none;
-		color: #aaa;
-		cursor: pointer;
-		font-size: 1.2rem;
-	}
-
-	.fill-btn {
-		padding: 6px 10px;
-		border-radius: 4px;
-		background: rgba(0, 0, 0, 0.35);
-		color: #fff;
-		border: 1px solid rgba(255, 255, 255, 0.15);
-		cursor: pointer;
-		font-family: system-ui, sans-serif;
-	}
-
-	.fill-btn:hover {
-		background: rgba(0, 0, 0, 0.55);
-	}
-
-	.fill-btn:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
 	}
 
 	.grid {
@@ -186,7 +129,6 @@
 
 	.empty-slot {
 		padding: 16px;
-		color: #ccc;
 		text-align: center;
 		border: 1px dashed #444;
 		border-radius: 4px;

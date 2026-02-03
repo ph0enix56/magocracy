@@ -17,11 +17,18 @@ export type WorldPoint = {
 	y: number;
 	owner: WorldPointOwner;
 	defenders: ArmyUnitComponent[];
+	neighbors: Array<{ pointId: string; distance: number }>;
+	// Number of edges from the player kingdom (for future difficulty scaling).
+	hopsFromKingdom: number;
+	// Layout hints for outward placement (purely visual).
+	layoutAngleRad: number;
+	layoutRadius: number;
 };
 
 export type WorldMapState = {
 	seed: number;
 	points: WorldPoint[];
+	nextPoiSeq: number;
 };
 
 type TravelState =
@@ -33,6 +40,8 @@ type TravelState =
 		distanceTotal: number;
 		distanceRemaining: number;
 		speedPerTick: number;
+		pathPointIds: string[];
+		pathSegmentDistances: number[];
 	}
 	| {
 		status: 'arrived';
@@ -44,7 +53,6 @@ type TravelState =
 
 type PendingEncounter = { kind: 'capture'; pointId: string };
 
-const WORLD_DISTANCE_SCALE = 100;
 const MIN_SPEED_PER_TICK = 1;
 
 export class GameRun {
@@ -53,26 +61,47 @@ export class GameRun {
 	worldMap: WorldMapState;
 	travel: TravelState = { status: 'idle' };
 	pendingEncounter: PendingEncounter | null = null;
-	revealedPointIds: Set<string> = new Set();
+	private readonly worldRng: () => number;
+	private readonly unitDefs: UnitDef[];
+	private armyLocationPointId: string = 'player-kingdom';
 
 	constructor(seed: number) {
 		this.ecs = new ECSManager();
 		this.combatSystem = new CombatSystem(this.ecs);
-		this.worldMap = { seed, points: [] };
+		this.worldMap = { seed, points: [], nextPoiSeq: 1 };
+		this.worldRng = mulberry32(seed);
+		this.unitDefs = getAllBuildingDefs()
+			.filter((b) => b.type === 'army')
+			.map((b) => b.unit);
+		if (this.unitDefs.length === 0) throw new Error('No unit defs available for world map defenders.');
 	}
 
 	ensureWorldMapGenerated(): void {
 		if (this.worldMap.points.length > 0) return;
-		this.worldMap.points = generateWorldPoints(this.worldMap.seed);
-		this.revealedPointIds = new Set();
-		// Ensure at least the kingdom (and nearby points) are revealed.
-		this.updateRevealedPoints();
+
+		const kingdom: WorldPoint = {
+			id: 'player-kingdom',
+			name: 'Your Kingdom',
+			kind: 'kingdom',
+			x: 0.5,
+			y: 0.55,
+			owner: 'player',
+			defenders: [],
+			neighbors: [],
+			hopsFromKingdom: 0,
+			layoutAngleRad: 0,
+			layoutRadius: 0
+		};
+		this.worldMap.points.push(kingdom);
+		this.armyLocationPointId = kingdom.id;
+
+		// Start small: 3 neighboring POIs.
+		this.expandFromWithNewPois(kingdom.id, 3);
 	}
 
 	advanceTick(): void {
 		this.ecs.advanceTick();
 		this.tickTravel();
-		this.updateRevealedPoints();
 		this.ecs.broadcastResources();
 	}
 
@@ -85,12 +114,14 @@ export class GameRun {
 		if (this.travel.status !== 'idle') throw new Error('Army is already travelling.');
 		if (this.pendingEncounter) throw new Error('Resolve the current encounter first.');
 
-		const from = this.findPlayerKingdomPoint();
+		const from = this.findPointById(this.armyLocationPointId);
 		const to = this.findPointById(targetPointId);
-		if (!from) throw new Error('Missing player kingdom point.');
+		if (!from) throw new Error('Missing current army location.');
 		if (!to) throw new Error('Invalid target point.');
-		if (to.id === from.id) throw new Error('Already at your kingdom.');
-		if (to.owner === 'player') throw new Error('That point is already yours.');
+		if (to.id === from.id) throw new Error('Already at that point.');
+
+		const path = this.findShortestPath(from.id, to.id);
+		if (!path) throw new Error('No path exists to that point.');
 
 		const army = this.getPlayerArmy();
 		if (army.length === 0) throw new Error('You have no army units yet.');
@@ -98,17 +129,24 @@ export class GameRun {
 		const slowest = Math.min(
 			...army.map((u) => (Number.isFinite(u.speed) ? Math.max(MIN_SPEED_PER_TICK, Math.floor(u.speed)) : MIN_SPEED_PER_TICK))
 		);
-		const dist = Math.ceil(distanceUnits(from, to));
+		const dist = Math.ceil(path.distance);
 		this.travel = {
 			status: 'travelling',
 			fromPointId: from.id,
 			toPointId: to.id,
 			distanceTotal: dist,
 			distanceRemaining: dist,
-			speedPerTick: slowest
+			speedPerTick: slowest,
+			pathPointIds: path.pathPointIds,
+			pathSegmentDistances: path.pathSegmentDistances
 		};
-		this.updateRevealedPoints();
 		this.publishTravel();
+	}
+
+	// For future difficulty scaling: how many neighbor-steps away from the kingdom is this POI?
+	getHopsFromKingdom(pointId: string): number {
+		this.ensureWorldMapGenerated();
+		return this.findPointById(pointId)?.hopsFromKingdom ?? 0;
 	}
 
 	clearEncounterAndTravel(): void {
@@ -161,25 +199,41 @@ export class GameRun {
 				if (point.owner !== 'player' || point.defenders.length > 0) changed = true;
 				point.owner = 'player';
 				point.defenders = [];
+
+				// Expanding frontier: capturing a POI generates 2-3 new neighbors.
+				this.expandFromWithNewPois(point.id, randInt(this.worldRng, 2, 3));
+				changed = true;
 			}
 
 			// Encounter is done either way; allow new travel.
 			if (this.travel.status === 'arrived' && this.travel.toPointId === encounter.pointId) {
+				// Win: stay at the captured POI. Loss: retreat to origin.
+				this.armyLocationPointId = snap.winner === 'armyA' ? this.travel.toPointId : this.travel.fromPointId;
 				this.travel = { status: 'idle' };
 				this.publishTravel();
 			}
 		}
 
-		// Captures expand vision.
-		if (this.updateRevealedPoints()) changed = true;
-
 		return changed;
 	}
 
-	getRevealedWorldPoints(): WorldPoint[] {
+	getWorldPoints(): WorldPoint[] {
 		this.ensureWorldMapGenerated();
-		// Always show owned POIs even if somehow not in the set.
-		return this.worldMap.points.filter((p) => p.owner === 'player' || this.revealedPointIds.has(p.id));
+		return this.worldMap.points;
+	}
+
+	// Backwards-compatible name for the old fog-of-war API.
+	getRevealedWorldPoints(): WorldPoint[] {
+		return this.getWorldPoints();
+	}
+
+	getPathDistanceTo(pointId: string): number | null {
+		this.ensureWorldMapGenerated();
+		const fromId = this.armyLocationPointId;
+		const target = this.findPointById(pointId);
+		if (!target) return null;
+		const path = this.findShortestPath(fromId, pointId);
+		return path ? path.distance : null;
 	}
 
 	getArmyWorldPositionNormalized(): { x: number; y: number } {
@@ -195,17 +249,27 @@ export class GameRun {
 		const nextRemaining = Math.max(0, this.travel.distanceRemaining - this.travel.speedPerTick);
 		this.travel = { ...this.travel, distanceRemaining: nextRemaining };
 		this.publishTravel();
-		this.updateRevealedPoints();
 		if (nextRemaining > 0) return;
 
-		// Arrived (combat is started manually from the UI).
+		// Arrived.
 		const toPointId = this.travel.toPointId;
 		const fromPointId = this.travel.fromPointId;
 		const distanceTotal = this.travel.distanceTotal;
 		const speedPerTick = this.travel.speedPerTick;
-		this.travel = { status: 'arrived', fromPointId, toPointId, distanceTotal, speedPerTick };
-		this.pendingEncounter = { kind: 'capture', pointId: toPointId };
-		this.updateRevealedPoints();
+		this.armyLocationPointId = toPointId;
+
+		const target = this.findPointById(toPointId);
+		const needsEncounter = !!target && target.owner !== 'player';
+		if (needsEncounter) {
+			// Combat is started manually from the UI.
+			this.travel = { status: 'arrived', fromPointId, toPointId, distanceTotal, speedPerTick };
+			this.pendingEncounter = { kind: 'capture', pointId: toPointId };
+			this.publishTravel();
+			return;
+		}
+
+		// Friendly arrival: stop immediately.
+		this.travel = { status: 'idle' };
 		this.publishTravel();
 	}
 
@@ -240,79 +304,216 @@ export class GameRun {
 		return this.worldMap.points.find((p) => p.id === id);
 	}
 
-	private findPlayerKingdomPoint(): WorldPoint | undefined {
-		return this.worldMap.points.find((p) => p.kind === 'kingdom' && p.owner === 'player');
+	private getArmyWorldPosition(): { x: number; y: number } {
+		this.ensureWorldMapGenerated();
+
+		if (this.travel.status !== 'travelling') {
+			const id = this.travel.status === 'arrived' ? this.travel.toPointId : this.armyLocationPointId;
+			const p = this.findPointById(id) ?? this.findPointById('player-kingdom');
+			return p ? { x: p.x, y: p.y } : { x: 0.5, y: 0.55 };
+		}
+
+		const traveled = Math.max(0, this.travel.distanceTotal - this.travel.distanceRemaining);
+		let remaining = traveled;
+		for (let i = 0; i < this.travel.pathSegmentDistances.length; i++) {
+			const segDist = this.travel.pathSegmentDistances[i] ?? 0;
+			const aId = this.travel.pathPointIds[i];
+			const bId = this.travel.pathPointIds[i + 1];
+			const a = aId ? this.findPointById(aId) : undefined;
+			const b = bId ? this.findPointById(bId) : undefined;
+			if (!a || !b) continue;
+
+			if (remaining <= segDist || i === this.travel.pathSegmentDistances.length - 1) {
+				const t = segDist > 0 ? Math.max(0, Math.min(1, remaining / segDist)) : 1;
+				return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+			}
+			remaining -= segDist;
+		}
+
+		const lastId = this.travel.pathPointIds[this.travel.pathPointIds.length - 1];
+		const last = lastId ? this.findPointById(lastId) : undefined;
+		return last ? { x: last.x, y: last.y } : { x: 0.5, y: 0.55 };
 	}
 
-	private updateRevealedPoints(): boolean {
+	private addPoint(point: WorldPoint): void {
+		this.worldMap.points.push(point);
+	}
+
+	private connectPoints(aId: string, bId: string, distance: number): void {
+		const a = this.findPointById(aId);
+		const b = this.findPointById(bId);
+		if (!a || !b) throw new Error('Invalid graph edge.');
+		const dist = Math.max(1, Math.floor(distance));
+		if (!a.neighbors.some((n) => n.pointId === bId)) a.neighbors.push({ pointId: bId, distance: dist });
+		if (!b.neighbors.some((n) => n.pointId === aId)) b.neighbors.push({ pointId: aId, distance: dist });
+	}
+
+	private expandFromWithNewPois(parentId: string, count: number): void {
 		this.ensureWorldMapGenerated();
-		const before = this.revealedPointIds.size;
+		const parent = this.findPointById(parentId);
+		if (!parent) return;
 
-		// Owned POIs are always revealed.
-		for (const p of this.worldMap.points) {
-			if (p.owner === 'player') this.revealedPointIds.add(p.id);
+		const n = Math.max(0, Math.floor(count));
+		for (let i = 0; i < n; i++) {
+			const poiId = `poi-${this.worldMap.nextPoiSeq++}`;
+			const kind = pickOne(this.worldRng, ['town', 'ruins', 'camp'] as const);
+			const hops = parent.hopsFromKingdom + 1;
+			const pos = this.generateOutwardPosition(parent, i, n);
+			const defenders = this.generateDefenders(hops);
+			const point: WorldPoint = {
+				id: poiId,
+				name: kind === 'town' ? `Town ${this.worldMap.nextPoiSeq - 1}` : kind === 'ruins' ? `Ruins ${this.worldMap.nextPoiSeq - 1}` : `Camp ${this.worldMap.nextPoiSeq - 1}`,
+				kind,
+				x: pos.x,
+				y: pos.y,
+				owner: 'neutral',
+				defenders,
+				neighbors: [],
+				hopsFromKingdom: hops,
+				layoutAngleRad: pos.angleRad,
+				layoutRadius: pos.radius
+			};
+			this.addPoint(point);
+
+			const edgeDistance = this.generateEdgeDistance(hops);
+			this.connectPoints(parent.id, point.id, edgeDistance);
 		}
 
-		const sources: Array<{ x: number; y: number; radiusUnits: number }> = [];
+		this.recomputeHopsFromKingdom();
+	}
 
-		const armyPos = this.getArmyWorldPosition();
-		const armySight = this.getArmySightRadiusUnits();
-		sources.push({ x: armyPos.x, y: armyPos.y, radiusUnits: armySight });
+	private generateDefenders(hopsFromKingdom: number): ArmyUnitComponent[] {
+		// Keep it simple now; hooks are here for incremental difficulty scaling later.
+		const baseMin = 2;
+		const baseMax = 3;
+		const bonus = Math.max(0, Math.min(3, Math.floor(hopsFromKingdom / 2)));
+		const defendersCount = randInt(this.worldRng, baseMin + bonus, baseMax + bonus);
+		const defenders: ArmyUnitComponent[] = [];
+		for (let j = 0; j < defendersCount; j++) {
+			const u = pickOne(this.worldRng, this.unitDefs);
+			defenders.push(createArmyUnitFromDef(u));
+		}
+		return defenders;
+	}
 
-		for (const p of this.worldMap.points) {
-			if (p.owner !== 'player') continue;
-			sources.push({ x: p.x, y: p.y, radiusUnits: poiSightRadiusUnits(p.kind) });
+	private generateEdgeDistance(hopsFromKingdom: number): number {
+		// Numeric, seeded distances; future scaling can use hopsFromKingdom.
+		const base = randInt(this.worldRng, 8, 14);
+		const depthBonus = Math.max(0, Math.min(10, hopsFromKingdom * 2));
+		return base + depthBonus;
+	}
+
+	private generateOutwardPosition(parent: WorldPoint, childIndex: number, childCount: number): { x: number; y: number; angleRad: number; radius: number } {
+		const centerX = 0.5;
+		const centerY = 0.55;
+		const baseRadiusStep = 0.12;
+		const jitter = 0.03;
+		const spread = Math.PI * 0.9;
+
+		const parentAngle = Number.isFinite(parent.layoutAngleRad) ? parent.layoutAngleRad : 0;
+		const parentRadius = Number.isFinite(parent.layoutRadius) ? parent.layoutRadius : 0;
+		const slot = childCount <= 1 ? 0.5 : childIndex / (childCount - 1);
+		const angle = parentAngle + (slot - 0.5) * spread + (this.worldRng() - 0.5) * 0.35;
+		const radius = parentRadius + baseRadiusStep + this.worldRng() * jitter;
+
+		let x = centerX + Math.cos(angle) * radius;
+		let y = centerY + Math.sin(angle) * radius;
+		// Clamp to screen-ish area (normalized space).
+		x = Math.max(0.06, Math.min(0.94, x));
+		y = Math.max(0.06, Math.min(0.94, y));
+		return { x, y, angleRad: angle, radius };
+	}
+
+	private recomputeHopsFromKingdom(): void {
+		this.ensureWorldMapGenerated();
+		const startId = 'player-kingdom';
+		const dist = new Map<string, number>();
+		const q: string[] = [startId];
+		dist.set(startId, 0);
+
+		while (q.length > 0) {
+			const id = q.shift()!;
+			const p = this.findPointById(id);
+			if (!p) continue;
+			const d = dist.get(id) ?? 0;
+			for (const n of p.neighbors) {
+				if (dist.has(n.pointId)) continue;
+				dist.set(n.pointId, d + 1);
+				q.push(n.pointId);
+			}
 		}
 
 		for (const p of this.worldMap.points) {
-			if (this.revealedPointIds.has(p.id)) continue;
-			for (const s of sources) {
-				const d = Math.hypot(p.x - s.x, p.y - s.y) * WORLD_DISTANCE_SCALE;
-				if (d <= s.radiusUnits) {
-					this.revealedPointIds.add(p.id);
-					break;
+			p.hopsFromKingdom = dist.get(p.id) ?? p.hopsFromKingdom ?? 0;
+		}
+	}
+
+	private findShortestPath(fromId: string, toId: string): { distance: number; pathPointIds: string[]; pathSegmentDistances: number[] } | null {
+		this.ensureWorldMapGenerated();
+		if (fromId === toId) return { distance: 0, pathPointIds: [fromId], pathSegmentDistances: [] };
+
+		const dist = new Map<string, number>();
+		const prev = new Map<string, string>();
+		const visited = new Set<string>();
+		const frontier = new Set<string>();
+		frontier.add(fromId);
+		dist.set(fromId, 0);
+
+		while (frontier.size > 0) {
+			// Pick the frontier node with the smallest distance (graph is small; keep it simple).
+			let current: string | null = null;
+			let best = Number.POSITIVE_INFINITY;
+			for (const id of frontier) {
+				const d = dist.get(id) ?? Number.POSITIVE_INFINITY;
+				if (d < best) {
+					best = d;
+					current = id;
+				}
+			}
+			if (!current) break;
+			frontier.delete(current);
+			if (visited.has(current)) continue;
+			visited.add(current);
+			if (current === toId) break;
+
+			const p = this.findPointById(current);
+			if (!p) continue;
+			const base = dist.get(current) ?? 0;
+			for (const n of p.neighbors) {
+				const cand = base + Math.max(1, Math.floor(n.distance));
+				const prevBest = dist.get(n.pointId);
+				if (prevBest == null || cand < prevBest) {
+					dist.set(n.pointId, cand);
+					prev.set(n.pointId, current);
+					frontier.add(n.pointId);
 				}
 			}
 		}
 
-		return this.revealedPointIds.size !== before;
-	}
+		const total = dist.get(toId);
+		if (total == null || !Number.isFinite(total)) return null;
 
-	private getArmyWorldPosition(): { x: number; y: number } {
-		this.ensureWorldMapGenerated();
-		const home = this.findPlayerKingdomPoint();
-		if (!home) return { x: 0.5, y: 0.55 };
+		// Reconstruct path.
+		const path: string[] = [];
+		let cur: string | undefined = toId;
+		while (cur) {
+			path.push(cur);
+			if (cur === fromId) break;
+			cur = prev.get(cur);
+		}
+		path.reverse();
+		if (path[0] !== fromId) return null;
 
-		if (this.travel.status === 'idle') return { x: home.x, y: home.y };
-		if (this.travel.status === 'arrived') {
-			const to = this.findPointById(this.travel.toPointId);
-			return to ? { x: to.x, y: to.y } : { x: home.x, y: home.y };
+		const segs: number[] = [];
+		for (let i = 0; i < path.length - 1; i++) {
+			const a = this.findPointById(path[i]!);
+			const bId = path[i + 1]!;
+			const edge = a?.neighbors.find((n) => n.pointId === bId);
+			segs.push(edge ? Math.max(1, Math.floor(edge.distance)) : 1);
 		}
 
-		const from = this.findPointById(this.travel.fromPointId) ?? home;
-		const to = this.findPointById(this.travel.toPointId) ?? home;
-		const t = this.travel.distanceTotal > 0 ? 1 - this.travel.distanceRemaining / this.travel.distanceTotal : 1;
-		const clamped = Math.max(0, Math.min(1, t));
-		return {
-			x: from.x + (to.x - from.x) * clamped,
-			y: from.y + (to.y - from.y) * clamped
-		};
+		return { distance: total, pathPointIds: path, pathSegmentDistances: segs };
 	}
-
-	private getArmySightRadiusUnits(): number {
-		const units = this.getPlayerArmy();
-		// Dynamic sight: increases with unit count.
-		const base = 26;
-		const perUnit = 2;
-		return base + units.length * perUnit;
-	}
-}
-
-function poiSightRadiusUnits(kind: WorldPointKind): number {
-	// Static per-POI sight radius (owned POIs reveal nearby points).
-	if (kind === 'kingdom') return 34;
-	if (kind === 'town') return 28;
-	return 24;
 }
 
 function mulberry32(seed: number): () => number {
@@ -355,64 +556,4 @@ function createArmyUnitFromDef(def: UnitDef): ArmyUnitComponent {
 			def: { health: 0, attackDamage: 0, drFlat: 0 }
 		}
 	};
-}
-
-function distanceUnits(a: WorldPoint, b: WorldPoint): number {
-	const dx = a.x - b.x;
-	const dy = a.y - b.y;
-	return Math.hypot(dx, dy) * WORLD_DISTANCE_SCALE;
-}
-
-function generateWorldPoints(seed: number): WorldPoint[] {
-	const rng = mulberry32(seed);
-	const unitDefs = getAllBuildingDefs()
-		.filter((b) => b.type === 'army')
-		.map((b) => b.unit);
-	if (unitDefs.length === 0) throw new Error('No unit defs available for world map defenders.');
-
-	// Normalized world-map coordinates; the scene decides how to project them.
-	const points: WorldPoint[] = [];
-
-	points.push({
-		id: 'player-kingdom',
-		name: 'Your Kingdom',
-		kind: 'kingdom',
-		x: 0.5,
-		y: 0.55,
-		owner: 'player',
-		defenders: []
-	});
-
-	const poiCount = 30;
-	const minDist = 0.07;
-	for (let i = 0; i < poiCount; i++) {
-		const kind = pickOne(rng, ['town', 'ruins', 'camp'] as const);
-		const defendersCount = randInt(rng, 2, 6);
-		const defenders: ArmyUnitComponent[] = [];
-		for (let j = 0; j < defendersCount; j++) {
-			const u = pickOne(rng, unitDefs);
-			defenders.push(createArmyUnitFromDef(u));
-		}
-
-		let x = 0.5;
-		let y = 0.5;
-		for (let attempt = 0; attempt < 60; attempt++) {
-			x = rng() * 0.9 + 0.05;
-			y = rng() * 0.8 + 0.1;
-			const ok = points.every((p) => Math.hypot(p.x - x, p.y - y) >= minDist);
-			if (ok) break;
-		}
-
-		points.push({
-			id: `poi-${i + 1}`,
-			name: kind === 'town' ? `Town ${i + 1}` : kind === 'ruins' ? `Ruins ${i + 1}` : `Camp ${i + 1}`,
-			kind,
-			x,
-			y,
-			owner: 'neutral',
-			defenders
-		});
-	}
-
-	return points;
 }

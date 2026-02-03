@@ -17,7 +17,7 @@ export class ProductionSystem implements System {
     }
 
     public calculateMultiplier(entity: Entity): number {
-        if (!entity.building) return 0;
+        if (!entity.building || !entity.position) return 0;
         const def = getBuildingDef(entity.building.buildingId);
         if (!def || def.type !== 'production') return 0;
 
@@ -44,7 +44,7 @@ export class ProductionSystem implements System {
     private produceResources() {
         const production = new Map<string, number>();
 
-        for (const entity of this.world.getEntities()) {
+        for (const entity of this.world.getEntitiesWith(['building', 'position'])) {
             if (entity.building && entity.building.status === 'active') {
                 const def = getBuildingDef(entity.building.buildingId);
                 if (!def || def.type !== 'production') continue;
@@ -92,7 +92,7 @@ export class ProductionSystem implements System {
         for (const dir of doubledDirections) {
             const nQ = q + dir.dq;
             const nR = r + dir.dr;
-            const neighbor = this.world.getEntities().find(e => e.position.q === nQ && e.position.r === nR);
+            const neighbor = this.world.getEntitiesWith(['position']).find(e => e.position && e.position.q === nQ && e.position.r === nR);
             if (neighbor) neighbors.push(neighbor);
         }
         return neighbors;

@@ -1,12 +1,11 @@
 import { eventBus } from '../../../../eventBus';
-import type { ArmyUnitComponent, BuildingComponent, PositionComponent, RenderComponent } from './components';
+import type { ArmyUnitComponent, BuildingComponent, ComponentType, PositionComponent, RenderComponent } from './components';
 import { configuration } from '../../../configuration';
 
 export interface Entity {
 	id: string;
-	kind: 'tile' | 'armyUnit';
 	// [WIP] Half-assed ECS with components coupled to entities
-	position: PositionComponent;
+	position?: PositionComponent;
 	building?: BuildingComponent;
 	armyUnit?: ArmyUnitComponent;
 	render?: RenderComponent;
@@ -43,9 +42,6 @@ export class ECSManager {
 		const id = `unit:${component.unitId}:${this.nextArmyUnitSeq++}`;
 		const entity: Entity = {
 			id,
-			kind: 'armyUnit',
-			// Keep army unit entities away from the board coordinate space.
-			position: { q: 1_000_000 + this.nextArmyUnitSeq, r: 1_000_000 },
 			armyUnit: component as ArmyUnitComponent
 		};
 		this.addEntity(entity);
@@ -56,7 +52,7 @@ export class ECSManager {
 	private ensureArmyUnitOrderSynced(): void {
 		const existingArmyUnitIds = new Set(
 			this.getEntities()
-				.filter((e) => e.kind === 'armyUnit' && !!e.armyUnit)
+				.filter((e) => !!e.armyUnit)
 				.map((e) => e.id)
 		);
 
@@ -138,6 +134,26 @@ export class ECSManager {
 
 	getEntities() {
 		return Array.from(this.entities.values());
+	}
+
+	// Lightweight ECS-style queries. Components can be 'position', 'building', 'render', 'armyUnit'.
+	getEntitiesWith(components: ComponentType[]) {
+		return this.getEntities().filter((e) =>
+			components.every((c) => {
+				switch (c) {
+					case 'position':
+						return !!e.position;
+					case 'building':
+						return !!e.building;
+					case 'render':
+						return !!e.render;
+					case 'armyUnit':
+						return !!e.armyUnit;
+					default:
+						return false;
+				}
+			})
+		);
 	}
 
 	// Registers a system to be updated through the Manager

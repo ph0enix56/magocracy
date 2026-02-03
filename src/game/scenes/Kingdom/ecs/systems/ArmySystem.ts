@@ -15,9 +15,8 @@ export class ArmySystem implements System {
 
 	advanceTick(): void {
 		let changed = false;
-		for (const entity of this.world.getEntities()) {
-			const u = entity.armyUnit;
-			if (!u) continue;
+		for (const entity of this.world.getEntitiesWith(['armyUnit'])) {
+			const u = entity.armyUnit!;
 			if (u.training.status !== 'training') continue;
 
 			u.training.progress += 1;

@@ -54,13 +54,13 @@
 </script>
 
 {#if modal.isOpen}
-	<div class="overlay">
-		<div class="modal">
-			<div class="header">
-				<h2>Combat</h2>
+	<div class="ui-overlay" style="--ui-overlay-z: 130;">
+		<div class="ui-modal modal">
+			<div class="ui-modal-header">
+				<h2 class="ui-modal-title">Combat</h2>
 				<div class="header-actions">
-					<button on:click={step} disabled={state.status !== 'running'}>Next action</button>
-					<button class="close" on:click={close}>X</button>
+					<button class="ui-button" on:click={step} disabled={state.status !== 'running'}>Next action</button>
+					<button class="ui-close-btn" on:click={close}>X</button>
 				</div>
 			</div>
 
@@ -133,40 +133,9 @@
 {/if}
 
 <style>
-	.overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.5);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		pointer-events: auto;
-		z-index: 130;
-	}
-
 	.modal {
-		background: #2a2a2a;
-		color: #fff;
 		width: 980px;
 		max-height: 85vh;
-		border-radius: 8px;
-		display: flex;
-		flex-direction: column;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-		border: 1px solid #444;
-	}
-
-	.header {
-		padding: 12px 16px;
-		border-bottom: 1px solid #444;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.header h2 {
-		margin: 0;
-		font-size: 1.2rem;
 	}
 
 	.header-actions {
@@ -175,32 +144,7 @@
 		align-items: center;
 	}
 
-	button {
-		padding: 6px 10px;
-		background: rgba(0, 0, 0, 0.6);
-		color: #fff;
-		border: 1px solid rgba(255, 255, 255, 0.15);
-		border-radius: 4px;
-		cursor: pointer;
-		font-family: system-ui, sans-serif;
-	}
 
-	button:hover {
-		background: rgba(0, 0, 0, 0.75);
-	}
-
-	button:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	button.close {
-		background: none;
-		border: none;
-		color: #aaa;
-		font-weight: 700;
-		padding: 0 6px;
-	}
 
 	.meta {
 		padding: 10px 16px;

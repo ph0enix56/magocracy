@@ -8,7 +8,6 @@ export class WorldMapScene extends Scene {
 	private dots: Map<string, Phaser.GameObjects.Arc> = new Map();
 	private lastSelectedPointId: string | null = null;
 	private links?: Phaser.GameObjects.Graphics;
-	private armyPath?: Phaser.GameObjects.Graphics;
 	private armyFlag?: Phaser.GameObjects.Image;
 	private onResize?: () => void;
 	private onBackgroundPointerDown?: (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => void;
@@ -30,9 +29,7 @@ export class WorldMapScene extends Scene {
 
 	create(): void {
 		this.cameras.main.setBackgroundColor(configuration.worldMapView.backgroundColor);
-
 		if (!this.links) this.links = this.add.graphics().setDepth(1);
-		if (!this.armyPath) this.armyPath = this.add.graphics().setDepth(2);
 		if (!this.armyFlag && this.textures.exists('wm_army_flag')) {
 			this.armyFlag = this.add.image(0, 0, 'wm_army_flag').setDepth(4);
 			this.armyFlag.setVisible(false);
@@ -50,13 +47,15 @@ export class WorldMapScene extends Scene {
 
 		this.createOrUpdateDots();
 		this.publishLayout();
-		this.redrawLinksAndArmy();
+		this.redrawLinks();
+		this.redrawArmyMarker();
 		this.lastSelectedPointId = null;
 
 		this.onResize = () => {
 			this.createOrUpdateDots();
 			this.publishLayout();
-			this.redrawLinksAndArmy();
+			this.redrawLinks();
+			this.redrawArmyMarker();
 		};
 		this.scale.on('resize', this.onResize);
 
@@ -72,16 +71,18 @@ export class WorldMapScene extends Scene {
 			if (event.type !== 'worldmap-refresh-requested') return;
 			this.createOrUpdateDots();
 			this.publishLayout();
-			this.redrawLinksAndArmy();
+			this.redrawLinks();
+			this.redrawArmyMarker();
 			if (this.lastSelectedPointId) this.publishSelected(this.lastSelectedPointId);
 		});
 
-		// Travel reveals new POIs; refresh map when travel updates.
+		// Travel updates can affect army marker + POI colors.
 		this.unsubscribeGameToUi = eventBus.subscribeGameToUi((event) => {
 			if (event.type !== 'worldmap-travel-updated') return;
 			this.createOrUpdateDots();
 			this.publishLayout();
-			this.redrawLinksAndArmy();
+			this.redrawLinks();
+			this.redrawArmyMarker();
 		});
 
 		this.onEsc = () => {
@@ -106,10 +107,8 @@ export class WorldMapScene extends Scene {
 			this.unsubscribeGameToUi = undefined;
 			this.lastSelectedPointId = null;
 			if (this.links) this.links.destroy();
-			if (this.armyPath) this.armyPath.destroy();
 			if (this.armyFlag) this.armyFlag.destroy();
 			this.links = undefined;
-			this.armyPath = undefined;
 			this.armyFlag = undefined;
 
 			for (const dot of this.dots.values()) {
@@ -120,6 +119,12 @@ export class WorldMapScene extends Scene {
 			eventBus.publishGameToUi({ type: 'worldmap-visibility-changed', isOpen: false });
 			eventBus.publishGameToUi({ type: 'worldmap-poi-cleared' });
 		});
+	}
+
+	private formatPoiName(name: string, kind: string, hops: number): string {
+		if (kind === 'kingdom') return name;
+		const level = Number.isFinite(hops) ? Math.max(0, Math.floor(hops)) : 0;
+		return `${name} Lv. ${level}`;
 	}
 
 	private createOrUpdateDots(): void {
@@ -179,42 +184,17 @@ export class WorldMapScene extends Scene {
 		}
 	}
 
-	private redrawLinksAndArmy(): void {
+	private redrawArmyMarker(): void {
 		const run = getGameRun(this);
 		const w = this.scale.width;
 		const h = this.scale.height;
-
-		this.links?.clear();
-		this.armyPath?.clear();
 
 		const toScreen = (p: { x: number; y: number }) => ({
 			x: this.PADDING + p.x * (w - this.PADDING * 2),
 			y: this.PADDING + p.y * (h - this.PADDING * 2)
 		});
 
-		// Lines between player-controlled POIs.
-		const owned = run.worldMap.points.filter((p) => p.owner === 'player');
-		const home = run.worldMap.points.find((p) => p.owner === 'player' && p.kind === 'kingdom');
-		if (this.links && home) {
-			this.links.lineStyle(configuration.worldMapView.links.width, configuration.worldMapView.links.color, configuration.worldMapView.links.alpha);
-			const a = toScreen(home);
-			for (const p of owned) {
-				if (p.id === home.id) continue;
-				const b = toScreen(p);
-				this.links.beginPath();
-				this.links.moveTo(a.x, a.y);
-				this.links.lineTo(b.x, b.y);
-				this.links.strokePath();
-			}
-		}
-
-		// Army marker and line to origin.
-		const showArmy = run.travel.status === 'travelling' || run.travel.status === 'arrived';
-		if (!showArmy) {
-			if (this.armyFlag) this.armyFlag.setVisible(false);
-			return;
-		}
-
+		// Army marker only (no dynamic path rendering).
 		const armyPos = run.getArmyWorldPositionNormalized();
 		const armyScreen = toScreen(armyPos);
 		if (this.armyFlag) {
@@ -222,20 +202,37 @@ export class WorldMapScene extends Scene {
 			this.armyFlag.setPosition(armyScreen.x, armyScreen.y);
 			this.armyFlag.setScale(configuration.worldMapView.armyFlagScale);
 		}
+	}
 
-		const fromId = run.travel.status === 'travelling' ? run.travel.fromPointId : run.travel.status === 'arrived' ? run.travel.fromPointId : null;
-		const from = fromId ? run.worldMap.points.find((p) => p.id === fromId) : undefined;
-		if (this.armyPath && from) {
-			const fromScreen = toScreen(from);
-			this.armyPath.lineStyle(
-				configuration.worldMapView.armyPath.width,
-				configuration.worldMapView.armyPath.color,
-				configuration.worldMapView.armyPath.alpha
-			);
-			this.armyPath.beginPath();
-			this.armyPath.moveTo(fromScreen.x, fromScreen.y);
-			this.armyPath.lineTo(armyScreen.x, armyScreen.y);
-			this.armyPath.strokePath();
+	private redrawLinks(): void {
+		const run = getGameRun(this);
+		const w = this.scale.width;
+		const h = this.scale.height;
+		if (!this.links) return;
+
+		this.links.clear();
+		this.links.lineStyle(configuration.worldMapView.links.width, configuration.worldMapView.links.color, configuration.worldMapView.links.alpha);
+
+		const toScreen = (p: { x: number; y: number }) => ({
+			x: this.PADDING + p.x * (w - this.PADDING * 2),
+			y: this.PADDING + p.y * (h - this.PADDING * 2)
+		});
+
+		const drawn = new Set<string>();
+		for (const p of run.getWorldPoints()) {
+			const a = toScreen(p);
+			for (const n of p.neighbors) {
+				const other = run.getWorldPoints().find((x) => x.id === n.pointId);
+				if (!other) continue;
+				const key = [p.id, other.id].sort().join('|');
+				if (drawn.has(key)) continue;
+				drawn.add(key);
+				const b = toScreen(other);
+				this.links.beginPath();
+				this.links.moveTo(a.x, a.y);
+				this.links.lineTo(b.x, b.y);
+				this.links.strokePath();
+			}
 		}
 	}
 
@@ -248,7 +245,7 @@ export class WorldMapScene extends Scene {
 			type: 'worldmap-points-layout',
 			points: visiblePoints.map((p) => ({
 				id: p.id,
-				name: p.name,
+				name: this.formatPoiName(p.name, p.kind, p.hopsFromKingdom),
 				kind: p.kind,
 				owner: p.owner,
 				screenX: this.PADDING + p.x * (w - this.PADDING * 2),
@@ -266,9 +263,10 @@ export class WorldMapScene extends Scene {
 			type: 'worldmap-poi-selected',
 			poi: {
 				id: p.id,
-				name: p.name,
+				name: this.formatPoiName(p.name, p.kind, p.hopsFromKingdom),
 				kind: p.kind,
 				owner: p.owner,
+				pathDistance: run.getPathDistanceTo(p.id),
 				defenders: p.defenders.map((d) => ({ unitId: d.unitId, name: d.name, assetPath: d.assetPath }))
 			}
 		});

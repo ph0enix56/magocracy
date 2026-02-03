@@ -22,9 +22,7 @@ export type UiToGameEvents =
 	| { type: 'shop-reroll-requested' }
 	| { type: 'army-train-requested'; unitEntityId: string }
 	| { type: 'army-reorder-requested'; unitEntityId: string; direction: 'up' | 'down' }
-	| { type: 'combat-start-requested'; enemyMode?: 'mirror' | 'random' }
 	| { type: 'combat-step-requested'; steps?: number }
-	| { type: 'combat-reset-requested' }
 	| { type: 'worldmap-toggle' }
 	| { type: 'worldmap-send-army'; targetPointId: string }
 	| { type: 'worldmap-start-combat'; targetPointId: string }
@@ -45,6 +43,7 @@ export type WorldMapPoiSelectedUiView = {
 	name: string;
 	kind: string;
 	owner: string;
+	pathDistance: number | null;
 	defenders: Array<{ unitId: string; name: string; assetPath: string }>;
 };
 
@@ -119,7 +118,7 @@ export type GameToUiEvents =
 	| { type: 'army-state-updated'; units: ArmyUnitUiView[] }
 	| { type: 'army-action-result'; action: 'train' | 'reorder'; ok: boolean; reason?: string; unitEntityId?: string }
 	| { type: 'combat-state-updated'; state: CombatUiState }
-	| { type: 'combat-action-result'; action: 'start' | 'step' | 'reset'; ok: boolean; reason?: string }
+	| { type: 'combat-action-result'; action: 'step'; ok: boolean; reason?: string }
 	| { type: 'combat-ui-open'; reason: 'worldmap-arrival'; targetPointId: string; targetName: string }
 	| { type: 'worldmap-visibility-changed'; isOpen: boolean }
 	| { type: 'worldmap-points-layout'; points: WorldMapPointUiView[] }

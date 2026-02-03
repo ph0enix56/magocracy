@@ -7,8 +7,10 @@ import { ProductionSystem } from './ecs/systems/ProductionSystem';
 import { ShopSystem } from './ecs/systems/ShopSystem';
 import { ArmySystem } from './ecs/systems/ArmySystem';
 import { CombatSystem } from './ecs/systems/CombatSystem';
-import { getAllBuildingDefs, getBlockingBuildings, getBuildingDef, getNextUpgradeDef } from './data/buildings';
-import type { Entity } from './ecs/ECSBase';
+import { HexGridSystem } from './ecs/systems/HexGridSystem';
+import { TileSelectionSystem } from './ecs/systems/TileSelectionSystem';
+import { SelectionSystem } from './ecs/systems/SelectionSystem';
+import { getAllBuildingDefs, getBuildingDef } from './data/buildings';
 import { getGameRun } from '../../run/runRegistry';
 import { configuration } from '../../configuration';
 
@@ -19,8 +21,9 @@ export class KingdomScene extends Scene {
 	private shopSystem!: ShopSystem;
 	private armySystem!: ArmySystem;
 	private combatSystem!: CombatSystem;
-	private selectedTile: { q: number; r: number } | null = null;
-	private selectedTileUiTimer = 0;
+	private hexGridSystem!: HexGridSystem;
+	private tileSelectionSystem!: TileSelectionSystem;
+	private selectionSystem!: SelectionSystem;
 	private readonly SELECTED_TILE_UI_TICK_MS = configuration.kingdomView.selectedTileUiTickMs;
 	private readonly HEX_SIZE: number = configuration.kingdomView.hexSize;
 	private readonly HEX_STROKE: number = configuration.kingdomView.hexStroke;
@@ -32,7 +35,7 @@ export class KingdomScene extends Scene {
 
 	preload() {
 		this.load.setPath('assets');
-		this.initHexTexture(this.HEX_SIZE, this.HEX_STROKE);
+		HexGridSystem.preloadHexTexture(this, this.HEX_SIZE, this.HEX_STROKE);
 
 		// Load building icon assets
 		for (const def of getAllBuildingDefs()) {
@@ -52,45 +55,28 @@ export class KingdomScene extends Scene {
 		this.input.keyboard?.on('keydown-M', () => this.toggleWorldMap());
 
 		// Initialize ECS systems
-		this.buildSystem = new BuildSystem(this.world, (evt) => {
-			if (evt.previousStatus !== 'constructing') return;
-			const def = getBuildingDef(evt.buildingId);
-			if (!def || def.type !== 'army') return;
-
-			this.world.spawnArmyUnit({
-				unitId: def.unit.id,
-				name: def.unit.name,
-				textureId: def.unit.textureId,
-				assetPath: def.unit.assetPath,
-				speed: def.unit.speed,
-				health: def.unit.health,
-				drFlat: def.unit.drFlat,
-				drPercent: def.unit.drPercent,
-				actionsPerTurn: def.unit.actionsPerTurn,
-				trainingLevel: 0,
-				training: {
-					status: 'idle',
-					progress: 0,
-					costBase: def.trainCostBase,
-					costMult: def.trainCostMult,
-					time: def.trainTime,
-					def: {
-						health: def.trainDef.health,
-						drFlat: def.trainDef.drFlat,
-						attackDamage: def.trainDef.attackDamage
-					}
-				}
-			});
-			this.world.broadcastArmyState();
-		});
+		this.buildSystem = new BuildSystem(this.world);
 		this.world.addSystem(this.buildSystem);
 		this.productionSystem = new ProductionSystem(this.world);
 		this.world.addSystem(this.productionSystem);
+		this.tileSelectionSystem = new TileSelectionSystem(this.world, this.productionSystem);
+		this.selectionSystem = new SelectionSystem({
+			tickIntervalMs: this.SELECTED_TILE_UI_TICK_MS,
+			onTick: (q, r) => this.publishTileSelected(q, r)
+		});
 		this.shopSystem = new ShopSystem(this.world);
 		this.world.addSystem(this.shopSystem);
 		this.armySystem = new ArmySystem(this.world);
 		this.world.addSystem(this.armySystem);
 		this.world.addSystem(new RenderSystem(this.world, this));
+		this.hexGridSystem = new HexGridSystem(this.world, this, {
+			hexSize: this.HEX_SIZE,
+			hexStroke: this.HEX_STROKE,
+			gridOriginYOffset: this.GRID_ORIGIN_Y_OFFSET,
+			onTileSelected: (q, r) => {
+				this.selectionSystem.select(q, r);
+			}
+		});
 
 		// Ensure the shop has offers at game start
 		this.shopSystem.rerollFree();
@@ -102,12 +88,12 @@ export class KingdomScene extends Scene {
 		this.publishShopState();
 
 		// Initialize dynamic visible hexes
-		this.initDynamicStartingArea();
+		this.hexGridSystem.initDynamicStartingArea();
 
 		// notify UI when clicking off any tile
 		this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
 			if (currentlyOver.length === 0) {
-				this.selectedTile = null;
+				this.selectionSystem.clear();
 				eventBus.publishGameToUi({ type: 'tile-cleared' });
 			}
 		});
@@ -153,15 +139,10 @@ export class KingdomScene extends Scene {
 				this.handleTrain(event.unitEntityId);
 			} else if (event.type === 'army-reorder-requested') {
 				this.handleArmyReorder(event.unitEntityId, event.direction);
-			} else if (event.type === 'combat-start-requested') {
-				this.handleCombatStart(event.enemyMode);
 			} else if (event.type === 'combat-step-requested') {
 				this.handleCombatStep(event.steps);
 				const changed = run.tryResolvePendingEncounter();
 				if (changed) eventBus.publishUiToGame({ type: 'worldmap-refresh-requested' });
-			} else if (event.type === 'combat-reset-requested') {
-				this.handleCombatReset();
-				run.clearEncounterAndTravel();
 			}
 		});
 	}
@@ -192,15 +173,6 @@ export class KingdomScene extends Scene {
 		eventBus.publishGameToUi({ type: 'worldmap-visibility-changed', isOpen: true });
 	}
 
-	private handleCombatStart(_enemyMode?: 'mirror' | 'random'): void {
-		try {
-			throw new Error('Combat now starts when your army reaches a world-map point.');
-		} catch (e) {
-			const reason = e instanceof Error ? e.message : String(e);
-			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'start', ok: false, reason });
-		}
-	}
-
 	private handleCombatStep(steps?: number): void {
 		try {
 			this.combatSystem.stepCombat(steps ?? 1);
@@ -211,247 +183,20 @@ export class KingdomScene extends Scene {
 		}
 	}
 
-	private handleCombatReset(): void {
-		try {
-			this.combatSystem.resetCombat();
-			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'reset', ok: true });
-		} catch (e) {
-			const reason = e instanceof Error ? e.message : String(e);
-			eventBus.publishGameToUi({ type: 'combat-action-result', action: 'reset', ok: false, reason });
-		}
-	}
 
 	override update(time: number, delta: number): void {
 		this.world.update(time, delta);
-		this.tickSelectedTileUi(delta);
-	}
-
-	private tickSelectedTileUi(delta: number) {
-		if (!this.selectedTile) return;
-		this.selectedTileUiTimer += delta;
-		if (this.selectedTileUiTimer < this.SELECTED_TILE_UI_TICK_MS) return;
-		this.selectedTileUiTimer = 0;
-		this.publishTileSelected(this.selectedTile.q, this.selectedTile.r);
+		this.selectionSystem.tick(delta);
 	}
 
 	private publishTileSelected(q: number, r: number) {
-		const e = this.world.getEntity(`${q},${r}`);
-		const built = !!e?.building;
-
-		let buildingId: string | undefined;
-		let buildingStatus: 'constructing' | 'active' | 'upgrading' | undefined;
-		let constructionProgress: number | undefined;
-		let productionMultiplier: number | undefined;
-		let nextUpgradeId: string | undefined;
-		let nextUpgradeCost: Record<string, number> | undefined;
-		let nextUpgradeTime: number | undefined;
-		let upgradingToId: string | undefined;
-		let upgradeProgress: number | undefined;
-
-		if (e?.building) {
-			buildingId = e.building.buildingId;
-			buildingStatus = e.building.status;
-			const def = getBuildingDef(buildingId);
-
-			if (e.building.status === 'constructing' && def) {
-				const totalTicks = def.buildTime;
-				constructionProgress = totalTicks > 0 ? (e.building.progress / totalTicks) * 100 : 100;
-				constructionProgress = Math.min(100, Math.max(0, constructionProgress));
-			} else if (e.building.status === 'upgrading') {
-				upgradingToId = e.building.upgradeNextId;
-				const targetDef = upgradingToId ? getBuildingDef(upgradingToId) : undefined;
-				if (targetDef) {
-					const totalTicks = targetDef.buildTime;
-					upgradeProgress = totalTicks > 0 ? (e.building.progress / totalTicks) * 100 : 100;
-					upgradeProgress = Math.min(100, Math.max(0, upgradeProgress));
-				}
-			} else if (e.building.status === 'active') {
-				if (def?.type === 'production') {
-					productionMultiplier = this.productionSystem.calculateMultiplier(e);
-				}
-
-				const next = buildingId ? getNextUpgradeDef(buildingId) : undefined;
-				if (next) {
-					nextUpgradeId = next.id;
-					nextUpgradeCost = next.cost;
-					nextUpgradeTime = next.buildTime;
-				}
-			}
-		}
-
+		const payload = this.tileSelectionSystem.buildPayload(q, r);
 		eventBus.publishGameToUi({
 			type: 'tile-selected',
-			payload: {
-				q,
-				r,
-				built,
-				buildingId,
-				buildingStatus,
-				constructionProgress,
-				productionMultiplier,
-				nextUpgradeId,
-				nextUpgradeCost,
-				nextUpgradeTime,
-				upgradingToId,
-				upgradeProgress
-			}
+			payload
 		});
 	}
 
-	private getHexagon(hexSize: number, centerX: number, centerY: number): Phaser.Geom.Polygon {
-		const points = [];
-		for (let i = 0; i < 6; i++) {
-			const angle = Phaser.Math.DegToRad(60 * i - 30);
-			const x = centerX + hexSize * Math.cos(angle);
-			const y = centerY + hexSize * Math.sin(angle);
-			points.push(new Phaser.Geom.Point(x, y));
-		}
-		return new Phaser.Geom.Polygon(points);
-	}
-
-	// create and bake hex texture
-	private initHexTexture(hexSize: number, stroke: number) {
-		const width = Math.sqrt(3) * hexSize + 2 * stroke;
-		const height = 2 * hexSize + 2 * stroke;
-
-		this.add
-			.graphics()
-			.lineStyle(stroke, 0xffffff)
-			.fillStyle(0x33cc33, 1)
-			.strokePoints(this.getHexagon(hexSize, width / 2, height / 2).points, true)
-			.fillPoints(this.getHexagon(hexSize, width / 2, height / 2).points, true)
-			.generateTexture('hexTile', width, height)
-			.destroy();
-	}
-
-	private neighborsOf(q: number, r: number): Array<{ q: number; r: number }> {
-		// Doubled-q coordinates (q is doubled column), derived from odd-r offset grid.
-		// Neighbor deltas: E/W = +/-2,0 ; diagonals = +/-1,+/-1
-		const deltas = [
-			{ dq: 2, dr: 0 },
-			{ dq: 1, dr: 1 },
-			{ dq: -1, dr: 1 },
-			{ dq: -2, dr: 0 },
-			{ dq: -1, dr: -1 },
-			{ dq: 1, dr: -1 }
-		];
-		return deltas.map(d => ({ q: q + d.dq, r: r + d.dr }));
-	}
-
-	private screenPosFor(q: number, r: number) {
-		const centerX = this.scale.width / 2;
-		const centerY = this.scale.height / 2 + this.GRID_ORIGIN_Y_OFFSET;
-
-		const parity = (r & 1) === 0 ? 0 : 1;
-		const c = (q - parity) / 2;
-
-		const x = centerX + this.HEX_SIZE * Math.sqrt(3) * (c + 0.5 * parity);
-		const y = centerY + (this.HEX_SIZE * 3) / 2 * r;
-		return { x, y };
-	}
-
-	private getRandomBlockerId(): string {
-		const blockers = getBlockingBuildings();
-		if (blockers.length === 0) {
-			throw new Error('No blocker building defs found.');
-		}
-		return blockers[Math.floor(Math.random() * blockers.length)]!.id;
-	}
-
-	private ensureTileExists(q: number, r: number): Entity {
-		const id = `${q},${r}`;
-		const existing = this.world.getEntity(id);
-		if (existing) return existing;
-
-		const { x, y } = this.screenPosFor(q, r);
-		const tile = this.add.image(x, y, 'hexTile');
-		tile.setInteractive(this.getHexagon(this.HEX_SIZE, tile.width / 2, tile.height / 2), Phaser.Geom.Polygon.Contains);
-
-		const entity: Entity = {
-			id,
-			kind: 'tile',
-			position: { q, r },
-			render: { hex: tile }
-		};
-		this.world.addEntity(entity);
-
-		tile.on('pointerover', () => {
-			tile.setTintFill(0x70db70);
-		});
-		tile.on('pointerout', () => {
-			tile.clearTint();
-		});
-		tile.on('pointerdown', (
-			_pointer: Phaser.Input.Pointer,
-			_localX: number,
-			_localY: number,
-			event: Phaser.Types.Input.EventData
-		) => {
-			// prevent global pointerdown from clearing selection
-			event.stopPropagation();
-			this.selectedTile = { q, r };
-			this.publishTileSelected(q, r);
-		});
-
-		return entity;
-	}
-
-	private placeBlockerIfEmpty(q: number, r: number): void {
-		const entity = this.ensureTileExists(q, r);
-		if (entity.building) return;
-
-		const blockerId = this.getRandomBlockerId();
-		entity.building = {
-			buildingId: blockerId,
-			status: 'active',
-			progress: 0
-		};
-	}
-
-	private initDynamicStartingArea(): void {
-		const startCenter = { q: 0, r: 0 };
-		const free = new Set<string>();
-		const markFree = (q: number, r: number) => free.add(`${q},${r}`);
-
-		// Center + 6 neighbors are visible and free to build.
-		markFree(startCenter.q, startCenter.r);
-		for (const n of this.neighborsOf(startCenter.q, startCenter.r)) {
-			markFree(n.q, n.r);
-		}
-
-		// Spawn free tiles.
-		for (const key of free) {
-			const [qStr, rStr] = key.split(',');
-			this.ensureTileExists(Number(qStr), Number(rStr));
-		}
-
-		// All neighbors of the free region become visible but blocked.
-		const blocked = new Set<string>();
-		for (const key of free) {
-			const [qStr, rStr] = key.split(',');
-			const q = Number(qStr);
-			const r = Number(rStr);
-			for (const n of this.neighborsOf(q, r)) {
-				const nid = `${n.q},${n.r}`;
-				if (free.has(nid)) continue;
-				blocked.add(nid);
-			}
-		}
-
-		for (const key of blocked) {
-			const [qStr, rStr] = key.split(',');
-			this.placeBlockerIfEmpty(Number(qStr), Number(rStr));
-		}
-	}
-
-	private revealHiddenNeighbors(q: number, r: number): void {
-		for (const n of this.neighborsOf(q, r)) {
-			// If a tile doesn't exist yet, it was hidden; uncover as blocked.
-			if (!this.world.getEntity(`${n.q},${n.r}`)) {
-				this.placeBlockerIfEmpty(n.q, n.r);
-			}
-		}
-	}
 
 	private handleBuild(q: number, r: number, buildingId: string) {
 		const entity = this.world.getEntity(`${q},${r}`);
@@ -491,7 +236,7 @@ export class KingdomScene extends Scene {
 		}
 		this.publishResourceUpdates();
 		if (wasBlocker) {
-			this.revealHiddenNeighbors(q, r);
+			this.hexGridSystem.revealHiddenNeighbors(q, r);
 		}
 	}
 

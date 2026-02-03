@@ -63,16 +63,16 @@
 </script>
 
 {#if visible && selected}
-	<div class="sidebar">
-		<h2>Tile ({selected.q}, {selected.r})</h2>
+	<div class="ui-panel sidebar">
+		<h2 class="ui-panel-title">Tile ({selected.q}, {selected.r})</h2>
 		
 		{#if selected.buildingId}
 			<p><strong>{selected.buildingId}</strong></p>
 		{/if}
 
 		{#if selected.constructionProgress !== undefined}
-			<div class="progress-container">
-				<div class="progress-bar" style="width: {selected.constructionProgress}%"></div>
+			<div class="ui-progress">
+				<div class="ui-progress-fill" style="width: {selected.constructionProgress}%"></div>
 			</div>
 			<p>Construction: {Math.round(selected.constructionProgress)}%</p>
 		{/if}
@@ -85,8 +85,8 @@
 			<div class="upgrade-section">
 				<p><strong>Upgrading</strong> → {selected.upgradingToId}</p>
 				{#if selected.upgradeProgress !== undefined}
-					<div class="progress-container">
-						<div class="progress-bar" style="width: {selected.upgradeProgress}%"></div>
+					<div class="ui-progress">
+						<div class="ui-progress-fill" style="width: {selected.upgradeProgress}%"></div>
 					</div>
 					<p>Upgrade: {Math.round(selected.upgradeProgress)}%</p>
 				{/if}
@@ -100,14 +100,14 @@
 				{#if selected.nextUpgradeTime !== undefined}
 					<p>Time: {selected.nextUpgradeTime}s</p>
 				{/if}
-				<button on:click={onUpgradeClick}>Upgrade</button>
+				<button class="ui-button" on:click={onUpgradeClick}>Upgrade</button>
 			</div>
 		{/if}
 
 		{#if selected.built}
-			<button on:click={onDestroyClick}>Destroy</button>
+			<button class="ui-button" on:click={onDestroyClick}>Destroy</button>
 		{:else}
-			<button on:click={onBuild}>Build</button>
+			<button class="ui-button" on:click={onBuild}>Build</button>
 		{/if}
 	</div>
 {/if}
@@ -121,34 +121,7 @@
 		width: 200px;
 		padding: 16px;
 		box-sizing: border-box;
-		background: rgba(0, 0, 0, 0.7);
-		color: #fff;
-		font-family: system-ui, sans-serif;
 		pointer-events: auto;
-	}
-	button {
-		margin-top: 12px;
-		padding: 6px 12px;
-		background: #444;
-		color: #fff;
-		border: none;
-		cursor: pointer;
-	}
-	button:hover {
-		background: #666;
-	}
-	.progress-container {
-		width: 100%;
-		height: 10px;
-		background: #333;
-		margin-top: 8px;
-		border-radius: 5px;
-		overflow: hidden;
-	}
-	.progress-bar {
-		height: 100%;
-		background: #0f0;
-		transition: width 0.3s ease;
 	}
 	.upgrade-section {
 		margin-top: 12px;

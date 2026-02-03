@@ -38,7 +38,7 @@
 	</div>
 	<div class="actions">
 		{#if actionLabel}
-			<button disabled={actionDisabled} on:click={onAction}>{actionLabel}</button>
+			<button class="ui-button" disabled={actionDisabled} on:click={onAction}>{actionLabel}</button>
 		{/if}
 	</div>
 </div>
@@ -104,22 +104,12 @@
 		color: #ffd700;
 	}
 
-	.actions button {
-		padding: 8px 16px;
+	.actions .ui-button {
 		background: #4a9eff;
-		color: white;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
 		font-weight: bold;
 	}
 
-	.actions button:hover {
+	.actions .ui-button:hover {
 		background: #3a8eef;
-	}
-
-	.actions button:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
 	}
 </style>

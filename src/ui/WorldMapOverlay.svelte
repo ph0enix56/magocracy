@@ -72,11 +72,11 @@
 
 {#if $worldMapUiState.isOpen}
 	<div class="wm-root">
-		<div class="wm-header">World Map</div>
+		<div class="ui-floating wm-header">World Map</div>
 
 		{#if $worldMapUiState.travel.status === 'travelling'}
-			<div class="wm-travel">
-				Travelling → {$worldMapUiState.travel.toPointId}
+			<div class="ui-floating wm-travel">
+				Travelling → {$worldMapUiState.selectedPoi?.id === $worldMapUiState.travel.toPointId ? $worldMapUiState.selectedPoi?.name : $worldMapUiState.travel.toPointId}
 				<div class="wm-travel-sub">
 					Speed: {$worldMapUiState.travel.speedPerTick}/tick • ETA: {$worldMapUiState.travel.etaTicks} ticks
 				</div>
@@ -88,22 +88,25 @@
 				</div>
 			</div>
 		{:else if $worldMapUiState.travel.status === 'arrived'}
-			<div class="wm-travel">
-				Arrived → {$worldMapUiState.travel.toPointId}
+			<div class="ui-floating wm-travel">
+				Arrived → {$worldMapUiState.selectedPoi?.id === $worldMapUiState.travel.toPointId ? $worldMapUiState.selectedPoi?.name : $worldMapUiState.travel.toPointId}
 				<div class="wm-travel-sub">Ready to start combat from the POI prompt.</div>
 			</div>
 		{/if}
 
 		{#if $worldMapUiState.selectedPoi}
-			<div class="wm-prompt">
+			<div class="ui-panel wm-prompt">
 				<div class="wm-title">{$worldMapUiState.selectedPoi.name}</div>
 				<div class="wm-sub">
 					Owner: <span style="color:{ownerColor($worldMapUiState.selectedPoi.owner)}">{$worldMapUiState.selectedPoi.owner}</span>
 				</div>
+				<div class="wm-sub">
+					Path distance: {$worldMapUiState.selectedPoi.pathDistance ?? '—'}
+				</div>
 				<div class="wm-sub">Defenders:</div>
 				<div class="wm-defenders">
 					{#if $worldMapUiState.selectedPoi.defenders.length === 0}
-						<div class="wm-muted">None</div>
+						<div class="ui-muted wm-muted">None</div>
 					{:else}
 						{#each $worldMapUiState.selectedPoi.defenders as d, i (d.unitId + ':' + i)}
 							<div class="wm-defender">{d.name}</div>
@@ -111,14 +114,14 @@
 					{/if}
 				</div>
 				<button
-					class="wm-action"
+					class="ui-button ui-button--ghost wm-action"
 					disabled={!canSendArmy($worldMapUiState.selectedPoi, $worldMapUiState.travel)}
 					on:click={sendArmy}
 				>
 					Send Army
 				</button>
 				<button
-					class="wm-action"
+					class="ui-button ui-button--ghost wm-action"
 					disabled={!canStartCombat($worldMapUiState.selectedPoi, $worldMapUiState.travel)}
 					on:click={startCombat}
 				>
@@ -140,9 +143,7 @@
 		position: absolute;
 		top: 14px;
 		left: 14px;
-		padding: 8px 12px;
 		border-radius: 10px;
-		background: rgba(0, 0, 0, 0.55);
 		color: #e0e1dd;
 		font-size: 20px;
 		letter-spacing: 0.4px;
@@ -154,7 +155,6 @@
 		width: 320px;
 		padding: 14px;
 		border-radius: 12px;
-		background: rgba(0, 0, 0, 0.75);
 		color: #e0e1dd;
 		pointer-events: auto;
 	}
@@ -183,32 +183,19 @@
 		border-bottom: none;
 	}
 	.wm-muted {
-		opacity: 0.7;
 		font-size: 14px;
 	}
 	.wm-action {
 		margin-top: 10px;
 		width: 100%;
-		padding: 10px 12px;
 		border-radius: 10px;
-		border: 1px solid rgba(255, 255, 255, 0.18);
-		background: rgba(255, 255, 255, 0.08);
-		color: #e0e1dd;
-		cursor: pointer;
-	}
-	.wm-action:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
 	}
 	.wm-travel {
 		position: absolute;
 		top: 14px;
 		left: 50%;
 		transform: translateX(-50%);
-		padding: 10px 14px;
 		border-radius: 12px;
-		background: rgba(0, 0, 0, 0.65);
-		color: #e0e1dd;
 		pointer-events: none;
 		text-align: center;
 		min-width: 360px;

@@ -55,16 +55,16 @@
 </script>
 
 {#if state.isOpen}
-	<div class="overlay">
-		<div class="modal">
-			<div class="header">
-				<h2>Army</h2>
-				<button class="close-btn" on:click={close}>X</button>
+	<div class="ui-overlay" style="--ui-overlay-z: 120;">
+		<div class="ui-modal modal">
+			<div class="ui-modal-header">
+				<h2 class="ui-modal-title">Army</h2>
+				<button class="ui-close-btn" on:click={close}>X</button>
 			</div>
 
 			<div class="list">
 				{#if units.length === 0}
-					<div class="empty">No units yet. Build an army building.</div>
+					<div class="empty ui-muted">No units yet. Build an army building.</div>
 				{/if}
 
 				{#each units as u, i (u.entityId)}
@@ -78,9 +78,9 @@
 									{u.name} <span class="lvl">Lv {u.trainingLevel}</span>
 								</div>
 								<div class="reorder">
-									<button class="reorder-btn" disabled={i === 0} on:click={() => reorder(u.entityId, 'up')}>↑</button>
+									<button class="ui-button ui-button--tiny reorder-btn" disabled={i === 0} on:click={() => reorder(u.entityId, 'up')}>↑</button>
 									<button
-										class="reorder-btn"
+										class="ui-button ui-button--tiny reorder-btn"
 										disabled={i === units.length - 1}
 										on:click={() => reorder(u.entityId, 'down')}
 									>
@@ -100,6 +100,7 @@
 									<div>Train time: {u.trainTime}s</div>
 								</div>
 								<button
+									class="ui-button"
 									disabled={u.trainingStatus === 'training' || pendingTrain !== null}
 									on:click={() => train(u.entityId)}
 								>
@@ -108,8 +109,8 @@
 							</div>
 
 							{#if u.trainingStatus === 'training'}
-								<div class="progress-container">
-									<div class="progress-bar" style={`width: ${u.trainingProgress}%`}></div>
+								<div class="ui-progress">
+									<div class="ui-progress-fill" style={`width: ${u.trainingProgress}%`}></div>
 								</div>
 							{/if}
 						</div>
@@ -120,49 +121,11 @@
 	</div>
 {/if}
 
-<style>
-	.overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.5);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		pointer-events: auto;
-		z-index: 120;
-	}
 
+<style>
 	.modal {
-		background: #2a2a2a;
-		color: #fff;
 		width: 720px;
 		max-height: 80vh;
-		border-radius: 8px;
-		display: flex;
-		flex-direction: column;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-		border: 1px solid #444;
-	}
-
-	.header {
-		padding: 16px;
-		border-bottom: 1px solid #444;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.header h2 {
-		margin: 0;
-		font-size: 1.2rem;
-	}
-
-	.close-btn {
-		background: none;
-		border: none;
-		color: #aaa;
-		cursor: pointer;
-		font-size: 1.2rem;
 	}
 
 	.list {
@@ -175,7 +138,6 @@
 
 	.empty {
 		padding: 12px;
-		color: #ccc;
 	}
 
 	.unit-card {
@@ -230,14 +192,10 @@
 	}
 
 	.reorder-btn {
-		padding: 4px 8px;
 		background: #444;
 		border: 1px solid rgba(255, 255, 255, 0.15);
-		border-radius: 4px;
 		color: #fff;
 		font-weight: 800;
-		cursor: pointer;
-		line-height: 1;
 	}
 
 	.reorder-btn:hover {
@@ -277,37 +235,22 @@
 		color: #bbb;
 	}
 
-	button {
-		padding: 8px 14px;
+	.ui-button {
 		background: #4a9eff;
-		color: white;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
 		font-weight: 700;
 	}
 
-	button:hover {
+	.ui-button:hover {
 		background: #3a8eef;
 	}
 
-	button:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	.progress-container {
-		width: 100%;
-		height: 10px;
+	.ui-progress {
 		background: #222;
 		border-radius: 999px;
-		overflow: hidden;
 		border: 1px solid rgba(255, 255, 255, 0.08);
 	}
 
-	.progress-bar {
-		height: 100%;
+	.ui-progress-fill {
 		background: #00c26e;
-		transition: width 0.2s linear;
 	}
 </style>

@@ -1,46 +1,75 @@
 import type { ECSManager, Entity, System } from '../ECSBase';
 import { getBuildingDef, getNextUpgradeDef } from '../../data/buildings';
 
-export type BuildingCompletedEvent = {
-	entity: Entity;
-	buildingId: string;
-	previousStatus: 'constructing' | 'upgrading';
-};
-
 export class BuildSystem implements System {
 	private world: ECSManager;
-	private onCompleted?: (evt: BuildingCompletedEvent) => void;
 
-	constructor(world: ECSManager, onCompleted?: (evt: BuildingCompletedEvent) => void) {
+	constructor(world: ECSManager) {
 		this.world = world;
-		this.onCompleted = onCompleted;
 	}
 
 	update(_delta: number, _time: number) {}
 
 	advanceTick(): void {
-		for (const entity of this.world.getEntities()) {
-			if (!entity.building) continue;
-			if (entity.building.status !== 'constructing' && entity.building.status !== 'upgrading') continue;
+		for (const entity of this.world.getEntitiesWith(['building'])) {
+			const building = entity.building;
+			if (!building) continue;
+			if (building.status !== 'constructing' && building.status !== 'upgrading') continue;
 
-			const previousStatus = entity.building.status;
+			const previousStatus = building.status;
 
-			const isUpgrading = entity.building.status === 'upgrading';
-			const targetId = isUpgrading ? entity.building.upgradeNextId : entity.building.buildingId;
+			const isUpgrading = building.status === 'upgrading';
+			const targetId = isUpgrading ? building.upgradeNextId : building.buildingId;
 			if (!targetId) continue;
 
 			const targetDef = getBuildingDef(targetId);
 			if (!targetDef) continue;
 
-			entity.building.progress += 1;
-			if (entity.building.progress >= targetDef.buildTime) {
-				entity.building.progress = targetDef.buildTime;
+			building.progress += 1;
+			if (building.progress >= targetDef.buildTime) {
+				building.progress = targetDef.buildTime;
 				if (isUpgrading) {
-					entity.building.buildingId = targetId;
-					entity.building.upgradeNextId = undefined;
+					building.buildingId = targetId;
+					building.upgradeNextId = undefined;
 				}
-				entity.building.status = 'active';
-				this.onCompleted?.({ entity, buildingId: targetId, previousStatus });
+				building.status = 'active';
+
+				// Optional building-defined completion hook.
+				targetDef.onComplete?.({
+					world: this.world,
+					entity,
+					buildingId: targetId,
+					previousStatus
+				});
+
+				// Army buildings spawn their unit on completion (construct only).
+				if (previousStatus === 'constructing' && targetDef.type === 'army') {
+					this.world.spawnArmyUnit({
+						unitId: targetDef.unit.id,
+						name: targetDef.unit.name,
+						textureId: targetDef.unit.textureId,
+						assetPath: targetDef.unit.assetPath,
+						speed: targetDef.unit.speed,
+						health: targetDef.unit.health,
+						drFlat: targetDef.unit.drFlat,
+						drPercent: targetDef.unit.drPercent,
+						actionsPerTurn: targetDef.unit.actionsPerTurn,
+						trainingLevel: 0,
+						training: {
+							status: 'idle',
+							progress: 0,
+							costBase: targetDef.trainCostBase,
+							costMult: targetDef.trainCostMult,
+							time: targetDef.trainTime,
+							def: {
+								health: targetDef.trainDef.health,
+								drFlat: targetDef.trainDef.drFlat,
+								attackDamage: targetDef.trainDef.attackDamage
+							}
+						}
+					});
+					this.world.broadcastArmyState();
+				}
 			}
 		}
 	}

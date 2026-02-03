@@ -47,11 +47,11 @@
 </script>
 
 {#if state.isOpen}
-    <div class="overlay">
-        <div class="modal">
-            <div class="header">
-                <h2>{state.mode === 'build' ? 'Select Blueprint' : 'Blueprint Inventory'}</h2>
-                <button class="close-btn" on:click={close}>X</button>
+    <div class="ui-overlay" style="--ui-overlay-z: 100;">
+        <div class="ui-modal modal">
+            <div class="ui-modal-header">
+                <h2 class="ui-modal-title">{state.mode === 'build' ? 'Select Blueprint' : 'Blueprint Inventory'}</h2>
+                <button class="ui-close-btn" on:click={close}>X</button>
             </div>
             
             <div class="list">
@@ -65,7 +65,7 @@
                 {/each}
 
                 {#if ownedBlueprints().length === 0}
-                    <div class="empty">No blueprints yet.</div>
+                    <div class="empty ui-muted">No blueprints yet.</div>
                 {/if}
             </div>
         </div>
@@ -73,48 +73,9 @@
 {/if}
 
 <style>
-    .overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        pointer-events: auto;
-        z-index: 100;
-    }
-
     .modal {
-        background: #2a2a2a;
-        color: #fff;
         width: 600px;
         max-height: 80vh;
-        border-radius: 8px;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        border: 1px solid #444;
-    }
-
-    .header {
-        padding: 16px;
-        border-bottom: 1px solid #444;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .header h2 {
-        margin: 0;
-        font-size: 1.2rem;
-    }
-
-    .close-btn {
-        background: none;
-        border: none;
-        color: #aaa;
-        cursor: pointer;
-        font-size: 1.2rem;
     }
 
     .list {
@@ -127,7 +88,6 @@
 
     .empty {
         padding: 12px;
-        color: #ccc;
         margin-bottom: 8px;
     }
 </style>

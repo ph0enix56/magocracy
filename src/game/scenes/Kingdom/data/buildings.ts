@@ -1,4 +1,11 @@
-import type { Entity } from '../ecs/ECSBase';
+import type { ECSManager, Entity } from '../ecs/ECSBase';
+
+export type BuildingCompleteContext = {
+	world: ECSManager;
+	entity: Entity;
+	buildingId: string;
+	previousStatus: 'constructing' | 'upgrading';
+};
 
 export interface BaseBuildingDef {
 	// Unique identifier for this building/upgrade.
@@ -20,6 +27,8 @@ export interface BaseBuildingDef {
 	// An additive bonus to the target's production multiplier (e.g. 0.1 for +10%).
 	// TODO: for now evaluted only on neighboring production buildings; could be extended later.
 	getOutgoingProdModifier?: (self: Entity, neighbors: Entity) => number;
+	// Optional hook executed when this building finishes construction or upgrade.
+	onComplete?: (ctx: BuildingCompleteContext) => void;
 }
 
 // Buildings that produce resources over time.
