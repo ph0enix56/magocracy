@@ -3,11 +3,11 @@ import type { BuildingDef } from '../buildings';
 
 export const BUILDING_DEFS: BuildingDef[] = [
 	{
-		id: 'mine',
+		id: 'stone_mine',
 		type: 'production',
 		name: 'Stone Mine',
 		description: 'Extracts stone from the earth.',
-		textureId: 'building_mine',
+		textureId: 'building_stone_mine',
 		assetPath: 'game_icons/stone-crafting.svg',
 		cost: { wood: 35 },
 		buildTime: 5,
@@ -17,12 +17,12 @@ export const BUILDING_DEFS: BuildingDef[] = [
 		}
 	},
 	{
-		id: 'mine_2',
-		parentId: 'mine',
+		id: 'stone_mine_2',
+		parentId: 'stone_mine',
 		type: 'production',
 		name: 'Stone Mine II',
 		description: 'Upgraded mine with better tools and throughput.',
-		textureId: 'building_mine',
+		textureId: 'building_stone_mine',
 		assetPath: 'game_icons/stone-crafting.svg',
 		cost: { wood: 60, stone: 30 },
 		buildTime: 8,
@@ -30,12 +30,12 @@ export const BUILDING_DEFS: BuildingDef[] = [
 		getSelfProdModifier: (_self: Entity, _neighbors: Entity[]) => 0
 	},
 	{
-		id: 'mine_3',
-		parentId: 'mine_2',
+		id: 'stone_mine_3',
+		parentId: 'stone_mine_2',
 		type: 'production',
 		name: 'Stone Mine III',
 		description: 'Deep shafts and reinforced supports.',
-		textureId: 'building_mine',
+		textureId: 'building_stone_mine',
 		assetPath: 'game_icons/stone-crafting.png',
 		cost: { wood: 90, stone: 70 },
 		buildTime: 12,
@@ -137,6 +137,20 @@ export const BUILDING_DEFS: BuildingDef[] = [
 		productions: {},
 		getOutgoingProdModifier: (_self: Entity, _target: Entity) => {
 			return 0.1;
+		}
+	},
+	{
+		id: 'gold_mine',
+		type: 'production',
+		name: 'Gold Mine',
+		description: 'Deep shafts allow mining gold in addition to stone.',
+		textureId: 'building_gold_mine',
+		assetPath: 'game_icons/gold-mine.svg',
+		cost: { wood: 50, stone: 150 },
+		buildTime: 15,
+		productions: { gold: 5, stone: 10 },
+		getSelfProdModifier: (_self: Entity, _neighbors: Entity[]) => {
+			return 0;
 		}
 	}
 ];

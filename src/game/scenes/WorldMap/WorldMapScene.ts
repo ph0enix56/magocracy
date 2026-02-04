@@ -22,7 +22,6 @@ export class WorldMapScene extends Scene {
 	preload(): void {
 		this.load.setPath('assets');
 		if (!this.textures.exists('wm_army_flag')) {
-			// SVG in public/assets/game_icons/flying-flag.svg
 			this.load.svg('wm_army_flag', 'game_icons/flying-flag.svg', { scale: configuration.worldMapView.armyFlagScale });
 		}
 	}

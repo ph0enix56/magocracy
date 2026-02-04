@@ -25,7 +25,3 @@ Možný výběr technologií:
 		- možnost přechodu na Node.js s Express (+ Socket.IO), pokud by se ukázal výhodnější čistě TypeScript vývoj
 		- unit testing v rámci frameworku
 	- Databáze: PostgreSQL nebo MongoDB dle vlastností perzistovaného herního stavu
-
-## Detail design
-
-`TBD`

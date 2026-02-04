@@ -1,6 +1,6 @@
 # Magocracy
 
-Magocracy je real-time webová strategická hra, vytvářená jako semestrální projekt na NI-VGA a ideálně i jako diplomová práce.
+Magocracy je real-time webová strategická hra, vytvářená jako semestrální projekt na NI-VGA a následně jako diplomová práce.
 
 ## Dokumentace
 
@@ -10,9 +10,7 @@ Technický design: [zde](docs/TECHNICAL.md)
 
 Implementační plán: [zde](docs/ROADMAP.md)
 
-Plný soupis myšlenek na mechaniky: [Notion odkaz](https://ph0enix56.notion.site/vga-magocracy)
-
-Závěrečná zpráva: `TODO`
+Závěrečná zpráva: [zde](docs/REPORT.md)
 
 ## Lokální spuštění
 

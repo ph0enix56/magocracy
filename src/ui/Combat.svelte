@@ -84,7 +84,7 @@
 							<div class="unit">
 								<div class="unit-left">
 									<div class="pos">{idx + 1}</div>
-									<img class="icon" src={"assets/" + u.assetPath} alt={u.name} />
+									<img class="icon icon--ally" src={"assets/" + u.assetPath} alt={u.name} />
 								</div>
 								<div class="unit-mid">
 									<div class="name">{u.name}</div>
@@ -104,7 +104,7 @@
 							<div class="unit">
 								<div class="unit-left">
 									<div class="pos">{idx + 1}</div>
-									<img class="icon" src={"assets/" + u.assetPath} alt={u.name} />
+									<img class="icon icon--enemy" src={"assets/" + u.assetPath} alt={u.name} />
 								</div>
 								<div class="unit-mid">
 									<div class="name">{u.name}</div>
@@ -221,6 +221,14 @@
 		border: 1px solid rgba(255, 255, 255, 0.08);
 		object-fit: contain;
 		padding: 4px;
+	}
+
+	.icon--ally {
+		filter: grayscale(0) sepia(1) hue-rotate(85deg) saturate(5) contrast(1) brightness(1);
+	}
+
+	.icon--enemy {
+		filter: grayscale(0) sepia(1) hue-rotate(-20deg) saturate(5) contrast(1) brightness(1);
 	}
 
 	.name {

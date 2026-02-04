@@ -70,7 +70,7 @@
 				{#each units as u, i (u.entityId)}
 					<div class="unit-card">
 						<div class="icon-container">
-							<img src={`assets/${u.assetPath}`} alt={u.name} />
+							<img class="unit-icon unit-icon--ally" src={`assets/${u.assetPath}`} alt={u.name} />
 						</div>
 						<div class="info">
 							<div class="name-row">
@@ -164,6 +164,10 @@
 	.icon-container img {
 		max-width: 100%;
 		max-height: 100%;
+	}
+
+	.unit-icon--ally {
+		filter: grayscale(0) sepia(1) hue-rotate(85deg) saturate(5) contrast(1) brightness(1);
 	}
 
 	.info {

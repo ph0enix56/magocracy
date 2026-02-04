@@ -2,6 +2,8 @@
 
 Tento dokument popisuje koncepční návrh hry Magocracy, její herní mechaniky, cíle a součásti.
 
+_Poznámka: tento dokument reflektuje původní plán celé hry, z níž je v rámci VGA dodán singleplayerový prototyp, viz také závěrečná zpráva._
+
 ## Executive summary
 
 Magocracy je multiplayer real-time strategická hra pro uzavřené lobby hráčů (primárně 4-8).
@@ -32,11 +34,18 @@ Je tak možné hrát jak rychlé zápasy (dohratelné v jednom sezení), tak i d
 - Engine - Web framework (Phaser): 15
 - Vizuál - Jednoduchá 2D grafika: 10
 - Audio - Bez zvuku: 0
-- Procedurální generování herní mapy: 15
 - ECS: 10
 - Přebarvování assetů karet/jednotek/budov: 5
-- AI protihráčů - stavový automat/behaviorální strom: 5/10
-- Politická mapa?: 5 (tady nevím, co přesně je tím myšleno)
+- Procedurální generování herní mapy*: 15
+- Politická mapa*: 5
+- Diskrétní pathfinding: 5
+
+\* implementována základní varianta s grafovou reprezentací mapy
+
+### Nerealizované aspekty v rámci VGA
+
+- Základní hra po síti (WebSockets)
+- AI protihráčů - behaviorální strom
 
 ## Herní mechaniky *(under construction)*
 

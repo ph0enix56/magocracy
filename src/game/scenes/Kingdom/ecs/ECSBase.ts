@@ -4,7 +4,6 @@ import { configuration } from '../../../configuration';
 
 export interface Entity {
 	id: string;
-	// [WIP] Half-assed ECS with components coupled to entities
 	position?: PositionComponent;
 	building?: BuildingComponent;
 	armyUnit?: ArmyUnitComponent;
@@ -20,7 +19,7 @@ export class ECSManager {
 	entities: Map<string, Entity> = new Map();
 	systems: System[] = [];
 
-	// [WIP] Remaining global state
+	// Remaining global state
 	resources: Map<string, number> = new Map();
 	blueprintInventory: Map<string, number> = new Map();
 	shopOffers: Array<string | null> = Array.from({ length: configuration.shop.size }, () => null);
@@ -174,7 +173,7 @@ export class ECSManager {
 		}
 	}
 
-	// [WIP] Broadcast current resources to UI
+	// Broadcast current resources to UI
 	broadcastResources() {
 		for (const [key, value] of this.resources) {
 			eventBus.publishGameToUi({
@@ -185,7 +184,7 @@ export class ECSManager {
 		}
 	}
 
-	// [WIP] Broadcast blueprint inventory to UI
+	// Broadcast blueprint inventory to UI
 	broadcastBlueprintInventory() {
 		const inventory: Record<string, number> = {};
 		for (const [buildingId, count] of this.blueprintInventory) {

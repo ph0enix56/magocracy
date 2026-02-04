@@ -12,6 +12,8 @@ export interface BaseBuildingDef {
 	id: string;
 	// If set, this building cannot be obtained directly; it is an upgrade of the parent building.
 	parentId?: string;
+	// Building type, set in the sub-interfaces.
+	type: string;
 	// In-game display name.
 	name: string;
 	// In-game building card description.
