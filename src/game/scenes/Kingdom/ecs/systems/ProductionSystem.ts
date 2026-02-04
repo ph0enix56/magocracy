@@ -76,9 +76,6 @@ export class ProductionSystem implements System {
     }
 
     private getNeighbors(q: number, r: number) {
-        // Simple neighbor check - this is O(N) which is bad for large maps, 
-        // but fine for small ones. A GridSystem with a 2D array lookup would be better.
-        // For now, let's just scan entities.
         const neighbors = [];
         
         // Neighbors in doubled coords:

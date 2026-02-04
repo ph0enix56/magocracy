@@ -9,7 +9,7 @@ export type TileSelectedPayload = {
 	// Upgrade UI
 	nextUpgradeId?: string;
 	nextUpgradeCost?: Record<string, number>;
-	nextUpgradeTime?: number; // seconds
+	nextUpgradeTime?: number; // time units
 	upgradingToId?: string;
 	upgradeProgress?: number; // percent
 };
