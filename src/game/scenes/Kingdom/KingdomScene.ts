@@ -51,9 +51,6 @@ export class KingdomScene extends Scene {
 
 		this.cameras.main.setBackgroundColor(configuration.kingdomView.backgroundColor);
 
-		// Open/close world map (doesn't destroy this scene)
-		this.input.keyboard?.on('keydown-M', () => this.toggleWorldMap());
-
 		// Initialize ECS systems
 		this.buildSystem = new BuildSystem(this.world);
 		this.world.addSystem(this.buildSystem);
@@ -100,31 +97,6 @@ export class KingdomScene extends Scene {
 
 		// listen for UI build/destroy/upgrade commands
 		eventBus.subscribeUiToGame((event) => {
-			if (event.type === 'worldmap-toggle') {
-				this.toggleWorldMap();
-				return;
-			}
-			if (event.type === 'worldmap-send-army') {
-				try {
-					run.startTravel(event.targetPointId);
-					eventBus.publishGameToUi({ type: 'worldmap-action-result', action: 'send-army', ok: true });
-				} catch (e) {
-					const reason = e instanceof Error ? e.message : String(e);
-					eventBus.publishGameToUi({ type: 'worldmap-action-result', action: 'send-army', ok: false, reason });
-				}
-				return;
-			}
-			if (event.type === 'worldmap-start-combat') {
-				try {
-					run.startPendingEncounterCombat(event.targetPointId);
-					eventBus.publishGameToUi({ type: 'worldmap-action-result', action: 'start-combat', ok: true });
-				} catch (e) {
-					const reason = e instanceof Error ? e.message : String(e);
-					eventBus.publishGameToUi({ type: 'worldmap-action-result', action: 'start-combat', ok: false, reason });
-				}
-				return;
-			}
-
 			if (event.type === 'build-requested') {
 				this.handleBuild(event.q, event.r, event.buildingId);
 			} else if (event.type === 'destroy-requested') {
@@ -141,8 +113,6 @@ export class KingdomScene extends Scene {
 				this.handleArmyReorder(event.unitEntityId, event.direction);
 			} else if (event.type === 'combat-step-requested') {
 				this.handleCombatStep(event.steps);
-				const changed = run.tryResolvePendingEncounter();
-				if (changed) eventBus.publishUiToGame({ type: 'worldmap-refresh-requested' });
 			}
 		});
 	}
@@ -156,21 +126,6 @@ export class KingdomScene extends Scene {
 			const reason = e instanceof Error ? e.message : String(e);
 			eventBus.publishGameToUi({ type: 'army-action-result', action: 'reorder', ok: false, reason, unitEntityId });
 		}
-	}
-
-	private toggleWorldMap(): void {
-		const isWorldMapActive = this.scene.isActive('WorldMap');
-		if (isWorldMapActive) {
-			this.scene.stop('WorldMap');
-			this.scene.resume('Kingdom');
-			eventBus.publishGameToUi({ type: 'worldmap-visibility-changed', isOpen: false });
-			eventBus.publishGameToUi({ type: 'worldmap-poi-cleared' });
-			return;
-		}
-
-		this.scene.launch('WorldMap');
-		this.scene.pause('Kingdom');
-		eventBus.publishGameToUi({ type: 'worldmap-visibility-changed', isOpen: true });
 	}
 
 	private handleCombatStep(steps?: number): void {

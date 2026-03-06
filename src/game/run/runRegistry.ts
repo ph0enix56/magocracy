@@ -9,7 +9,6 @@ export function ensureGameRun(scene: Scene): GameRun {
 
 	const seed = Date.now() & 0xffffffff;
 	const run = new GameRun(seed);
-	run.ensureWorldMapGenerated();
 	scene.registry.set(RUN_KEY, run);
 	return run;
 }

@@ -1,6 +1,5 @@
 import { KingdomScene } from './scenes/Kingdom/KingdomScene';
 import { BootScene } from './scenes/Boot/BootScene';
-import { WorldMapScene } from './scenes/WorldMap/WorldMapScene';
 import { RunLoopScene } from './scenes/RunLoop/RunLoopScene';
 import { AUTO, Game, Scale, type Types } from 'phaser';
 
@@ -17,8 +16,7 @@ const config: Types.Core.GameConfig = {
 	scene: [
 		BootScene,
 		RunLoopScene,
-		KingdomScene,
-		WorldMapScene
+		KingdomScene
 	]
 };
 

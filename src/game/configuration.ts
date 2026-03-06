@@ -35,39 +35,6 @@ export const configuration = {
 		backgroundColor: 0xcacaca
 	},
 
-	worldMapView: {
-		padding: 80,
-		backgroundColor: 0x0d1b2a,
-		armyFlagScale: 0.3,
-		dots: {
-			radius: {
-				kingdom: 20,
-				other: 14
-			},
-			stroke: {
-				width: 3,
-				color: 0xe0e1dd,
-				alpha: 0.8
-			},
-			colors: {
-				arrived: 0xe63946,
-				player: 0x2d6a4f,
-				enemy: 0x9b2226,
-				neutral: 0x3a86ff
-			}
-		},
-		links: {
-			width: 3,
-			color: 0x74c69d,
-			alpha: 0.55
-		},
-		armyPath: {
-			width: 2,
-			color: 0xe0e1dd,
-			alpha: 0.65
-		}
-	},
-
 	render: {
 		building: {
 			hexSize: 64,

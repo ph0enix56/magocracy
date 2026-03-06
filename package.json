@@ -6,16 +6,22 @@
 	"licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
 	"scripts": {
 		"dev": "bunx --bun vite --config vite/config.dev.mjs",
-		"build": "bunx --bun vite build --config vite/config.prod.mjs"
+		"build": "bunx --bun vite build --config vite/config.prod.mjs",
+		"server:dev": "bun --watch src/multiplayer/server/index.ts",
+		"server:start": "bun src/multiplayer/server/index.ts"
 	},
 	"devDependencies": {
+		"@types/node": "^24.6.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
+		"terser": "^5.44.0",
 		"typescript": "~5.9.3",
 		"vite": "^7.2.2"
 	},
 	"dependencies": {
-		"phaser": "^3.90.0"
+		"phaser": "^3.90.0",
+		"socket.io": "^4.8.1",
+		"socket.io-client": "^4.8.1"
 	}
 }
