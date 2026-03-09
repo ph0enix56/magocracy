@@ -61,7 +61,7 @@ Hráči náleží zásoba několika druhů zdrojů, kterou hráč doplňuje pře
 
 - **dřevo** a **kámen**: stavba a vylepšení čtvrtí města
 - **mana:** nákup blueprintů čtvrtí, čtvrti s magickými oddíly, další zvláštní schopnosti
-- **jídlo:** na rozdíl od ostatních nefunguje jako zásoba, ze které hráč platí, ale okamžitý rozdíl výroba-spotřeba; např. pokud aktuálně produkuji 6 jídla a 3 spotřebovávám, mohu postavit čtvrť se spotřebou 3, nebo dvě se spotřebami 1 a 2, nikoliv ale čtvrť se spotřebou 4 jídla; armádní čtvrti spotřebovávají jídlo
+- **jídlo:** na rozdíl od ostatních nefunguje jako zásoba, ze které hráč platí, ale okamžitý rozdíl výroba-spotřeba; např. pokud aktuálně produkuji +6 jídla a 3 spotřebovávám, mohu postavit čtvrť se spotřebou 3, nebo dvě se spotřebami 1 a 2, nikoliv ale čtvrť se spotřebou 4 jídla; armádní čtvrti spotřebovávají jídlo
 
 ### Blueprinty
 
@@ -105,7 +105,7 @@ Jedná se o hlavní fázi hry, kdy hráč rozhoduje o tom, jak ve městě invest
 - výcvik armády: hráč vybere armádní oddíl a zaplatí příslušné zdroje; oddíl se začne cvičit, před dokončením výcviku má stále původní úroveň
 - nákup blueprintů: hráči je během fáze dostupná nabídka několika náhodných blueprintů ke koupi, každý blueprint stojí stanovený počet many; hráč může zároveň za fixní počet many vylosovat novou nabídku - v ní by měly být garantované čtvrti různých rolí (produkční, armádní)
 - sledování hráčů: hráč může nahlédnout i do měst ostatních hráčů; vidí mřížku čtvrtí, dostupné zdroje pouze odhadem (přibližné počty), cizí blueprinty hráči nevidí, úrovně a přesné vlastnosti armády hráči vidí až při střetu ve fázi boje
-
+6
 Během fáze budování navíc ve městě “plyne čas” - za fázi uběhne v pravidelném tempu daný počet časových jednotek (time units - TU). Po každé uplynuté TU hra přidá hráčům zdroje podle součtu jejich produkčních čtvrtí a posune postup stavby/vylepšení čtvrtí a výcviku oddílů. V případě dokončení některé z těchto akcí hra vyhodnotí příslušné efekty.
 
 Na konci fáze budování je čas zastavený, rozestavěné čtvrti jsou nedokončené, vylepšované čtvrti/oddíly zůstávají na stávající úrovni, postup v nich je však zachován do další fáze budování.

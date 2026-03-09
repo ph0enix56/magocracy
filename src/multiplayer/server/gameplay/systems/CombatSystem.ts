@@ -1,7 +1,4 @@
-import type { ECSManager, System } from '../ECSBase';
-import type { ArmyUnitComponent } from '../components';
-import { getUnitDef } from '../../data/buildings';
-import { eventBus } from '../../../../../eventBus';
+import { getUnitDef } from '../../config/buildings';
 import {
 	CombatSession,
 	resolveCombat,
@@ -9,11 +6,12 @@ import {
 	type CombatResult,
 	type CombatSnapshot,
 	type CombatUnit
-} from '../../../../../shared/combat/combatCore';
+} from '../../../../shared/combat/combatCore';
+import type { ArmyUnitComponent } from '../model';
 
-function clampInt(n: number): number {
-	if (!Number.isFinite(n)) return 0;
-	return Math.floor(n);
+function clampInt(value: number): number {
+	if (!Number.isFinite(value)) return 0;
+	return Math.floor(value);
 }
 
 function toCombatUnit(unit: ArmyUnitComponent): CombatUnit {
@@ -35,19 +33,16 @@ function toCombatUnit(unit: ArmyUnitComponent): CombatUnit {
 	};
 }
 
-export class CombatSystem implements System {
+export class CombatSystem {
 	private session: CombatSession | null = null;
 
-	constructor(_world: ECSManager) {
-		this.broadcastIdle();
-	}
+	constructor() {}
 
 	update(_delta: number, _time: number): void {}
 	advanceTick(): void {}
 
 	startCombat(armyA: ArmyUnitComponent[], armyB: ArmyUnitComponent[]): void {
 		this.session = new CombatSession(armyA.map(toCombatUnit), armyB.map(toCombatUnit));
-		this.broadcast();
 	}
 
 	getSnapshot(): CombatSnapshot {
@@ -59,29 +54,15 @@ export class CombatSystem implements System {
 
 	stepCombat(steps = 1): void {
 		if (!this.session) throw new Error('No active combat.');
-		const n = Math.max(1, clampInt(steps));
-		for (let i = 0; i < n; i++) {
+		const count = Math.max(1, clampInt(steps));
+		for (let index = 0; index < count; index += 1) {
 			const entry = this.session.step();
 			if (!entry) break;
 		}
-		this.broadcast();
 	}
 
 	resetCombat(): void {
 		this.session = null;
-		this.broadcastIdle();
-	}
-
-	broadcast(): void {
-		if (!this.session) return this.broadcastIdle();
-		eventBus.publishGameToUi({ type: 'combat-state-updated', state: this.session.getSnapshot() });
-	}
-
-	private broadcastIdle(): void {
-		eventBus.publishGameToUi({
-			type: 'combat-state-updated',
-			state: { status: 'idle', round: 0, activeSide: 'armyA', armyA: [], armyB: [], log: [] }
-		});
 	}
 
 	static resolveCombat(armyA: ArmyUnitComponent[], armyB: ArmyUnitComponent[], options?: CombatOptions): CombatResult {

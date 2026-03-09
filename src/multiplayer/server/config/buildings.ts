@@ -1,7 +1,11 @@
-import type { ECSManager, Entity } from '../ecs/ECSBase';
+import type { ServerEcsWorld } from '../gameplay/ServerEcsWorld';
+import type { Entity } from '../gameplay/model';
+import { BUILDING_DEFS as ARMY_BUILDING_DEFS } from './buildingDefs/army';
+import { BUILDING_DEFS as BLOCKER_BUILDING_DEFS } from './buildingDefs/blockers';
+import { BUILDING_DEFS as CORE_BUILDING_DEFS } from './buildingDefs/core';
 
 export type BuildingCompleteContext = {
-	world: ECSManager;
+	world: ServerEcsWorld;
 	entity: Entity;
 	buildingId: string;
 	previousStatus: 'constructing' | 'upgrading';
@@ -101,18 +105,15 @@ export interface UnitAttackDef {
 
 export type BuildingDef = ProductionBuildingDef | BlockingBuildingDef | ArmyBuildingDef;
 
-type BuildingDefsModule = { BUILDING_DEFS?: BuildingDef[]; default?: BuildingDef[] };
-
-const buildingDefModules = import.meta.glob('./buildingDefs/*.ts', { eager: true }) as Record<string, BuildingDefsModule>;
-
 function loadAllBuildings(): Record<string, BuildingDef> {
 	const rawBuildings: Record<string, BuildingDef> = {};
+	const modules: Array<{ modulePath: string; defs: BuildingDef[] }> = [
+		{ modulePath: './buildingDefs/core', defs: CORE_BUILDING_DEFS },
+		{ modulePath: './buildingDefs/army', defs: ARMY_BUILDING_DEFS },
+		{ modulePath: './buildingDefs/blockers', defs: BLOCKER_BUILDING_DEFS }
+	];
 
-	for (const [modulePath, mod] of Object.entries(buildingDefModules)) {
-		const defs = mod.BUILDING_DEFS ?? mod.default;
-		if (!Array.isArray(defs)) {
-			throw new Error(`Invalid building def module ${modulePath}: export BUILDING_DEFS (array) or default array`);
-		}
+	for (const { modulePath, defs } of modules) {
 		for (const def of defs) {
 			if (!def?.id) {
 				throw new Error(`Invalid building def in ${modulePath}: missing id`);

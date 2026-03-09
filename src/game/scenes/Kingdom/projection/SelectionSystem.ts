@@ -4,13 +4,10 @@ export type SelectionSystemOptions = {
 };
 
 export class SelectionSystem {
-	private options: SelectionSystemOptions;
 	private selected: { q: number; r: number } | null = null;
 	private timerMs = 0;
 
-	constructor(options: SelectionSystemOptions) {
-		this.options = options;
-	}
+	constructor(private readonly options: SelectionSystemOptions) {}
 
 	select(q: number, r: number): void {
 		this.selected = { q, r };

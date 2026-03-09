@@ -1,9 +1,11 @@
 <script lang="ts">
+    import { onDestroy } from 'svelte';
     import { eventBus } from '../eventBus';
     import { blueprintModalState } from './uiState';
     import { blueprintInventory } from './gameState';
     import BuildingCard from './BuildingCard.svelte';
-    import { getPurchasableBuildings } from '../game/scenes/Kingdom/data/buildings';
+    import { buildingCatalog } from '../multiplayer/client/buildingCatalog';
+    import type { BuildingCatalogEntry } from '../shared/multiplayer/protocol';
 
     // Subscribe to stores
     let state: { isOpen: boolean; mode: 'view' | 'build'; q: number; r: number } = { isOpen: false, mode: 'view', q: 0, r: 0 };
@@ -11,6 +13,10 @@
 
     let inventory: Record<string, number> = {};
     blueprintInventory.subscribe(v => inventory = v);
+    let purchasableBuildings: BuildingCatalogEntry[] = [];
+    const unsubscribeCatalog = buildingCatalog.subscribe((entries) => {
+        purchasableBuildings = entries.filter((entry) => !entry.parentId && entry.type !== 'blocking');
+    });
 
     // Pending build: used only for correlating build-result.
     let pendingBuild: { q: number; r: number; buildingId: string } | null = null;
@@ -39,11 +45,14 @@
     }
 
     function ownedBlueprints() {
-        const buildables = getPurchasableBuildings();
-        return buildables
+        return purchasableBuildings
             .map(def => ({ def, count: inventory[def.id] || 0 }))
             .filter(x => x.count > 0);
     }
+
+	onDestroy(() => {
+		unsubscribeCatalog();
+	});
 </script>
 
 {#if state.isOpen}

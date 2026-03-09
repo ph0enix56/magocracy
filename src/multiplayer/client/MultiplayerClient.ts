@@ -1,12 +1,18 @@
 import { io, type Socket } from 'socket.io-client';
+import type { UiToGameEvents } from '../../eventBus';
 import type {
 	ClientCommand,
 	ClientToServerEvents,
+	BuildingCatalogSnapshot,
+	GameActionCommand,
+	GameSnapshot,
 	LobbyPlayerSnapshot,
 	LobbySnapshot,
+	PlayerGameView,
 	ServerEvent,
 	ServerToClientEvents
 } from '../../shared/multiplayer/protocol';
+import { buildingCatalog } from './buildingCatalog';
 
 export type MultiplayerConnectionStatus = 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error';
 
@@ -16,16 +22,25 @@ export type MultiplayerClientState = {
 	playerId: string | null;
 	playerName: string;
 	lobby: LobbySnapshot | null;
+	game: GameSnapshot | null;
 	lastError: string | null;
 };
 
 type Listener = (state: MultiplayerClientState) => void;
+type ServerEventListener = (event: ServerEvent) => void;
 
 const PLAYER_NAME_STORAGE_KEY = 'magocracy:player-name';
+const DEFAULT_MULTIPLAYER_PORT = '3001';
 
 function getDefaultEndpoint(): string {
 	const envUrl = import.meta.env['VITE_MULTIPLAYER_URL'];
 	if (typeof envUrl === 'string' && envUrl.trim().length > 0) return envUrl;
+	if (import.meta.env.DEV) {
+		if (window.location.port === DEFAULT_MULTIPLAYER_PORT) return window.location.origin;
+		const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+		const hostname = window.location.hostname || 'localhost';
+		return `${protocol}//${hostname}:${DEFAULT_MULTIPLAYER_PORT}`;
+	}
 	return window.location.origin;
 }
 
@@ -47,12 +62,14 @@ function loadInitialPlayerName(): string {
 export class MultiplayerClient {
 	private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 	private listeners = new Set<Listener>();
+	private serverEventListeners = new Set<ServerEventListener>();
 	private state: MultiplayerClientState = {
 		endpoint: getDefaultEndpoint(),
 		connectionStatus: 'idle',
 		playerId: null,
 		playerName: loadInitialPlayerName(),
 		lobby: null,
+		game: null,
 		lastError: null
 	};
 
@@ -64,6 +81,11 @@ export class MultiplayerClient {
 
 	getState(): MultiplayerClientState {
 		return this.state;
+	}
+
+	subscribeServerEvents(listener: ServerEventListener): () => void {
+		this.serverEventListeners.add(listener);
+		return () => this.serverEventListeners.delete(listener);
 	}
 
 	setPlayerName(playerName: string): void {
@@ -111,7 +133,12 @@ export class MultiplayerClient {
 		this.socket.removeAllListeners();
 		this.socket.disconnect();
 		this.socket = null;
-		this.setState({ connectionStatus: 'idle', playerId: null, lobby: null, lastError: null });
+		buildingCatalog.reset();
+		this.setState({ connectionStatus: 'idle', playerId: null, lobby: null, game: null, lastError: null });
+	}
+
+	getCatalog(): BuildingCatalogSnapshot | null {
+		return buildingCatalog.getSnapshot();
 	}
 
 	createLobby(): void {
@@ -138,6 +165,28 @@ export class MultiplayerClient {
 		this.send(command);
 	}
 
+	getSelfGameView(game = this.state.game): PlayerGameView | null {
+		const playerId = this.state.playerId;
+		if (!playerId || !game) return null;
+		return game.players.find((player) => player.playerId === playerId) ?? null;
+	}
+
+	isAuthoritativeGameplayActive(): boolean {
+		return this.state.connectionStatus === 'connected' && this.state.lobby?.status === 'in-game' && this.state.game !== null;
+	}
+
+	handlesUiToGameEvent(event: UiToGameEvents): boolean {
+		if (!this.isAuthoritativeGameplayActive()) return false;
+		return toGameActionCommand(event) !== null;
+	}
+
+	forwardUiToGameEvent(event: UiToGameEvents): boolean {
+		const action = toGameActionCommand(event);
+		if (!action) return false;
+		this.send({ type: 'game/action', action });
+		return true;
+	}
+
 	getSelfPlayer(): LobbyPlayerSnapshot | null {
 		const lobby = this.state.lobby;
 		const playerId = this.state.playerId;
@@ -154,12 +203,16 @@ export class MultiplayerClient {
 	}
 
 	private handleServerEvent(event: ServerEvent): void {
+		for (const listener of this.serverEventListeners) listener(event);
 		switch (event.type) {
 			case 'session/connected':
 				this.setState({ playerId: event.playerId, lastError: null });
 				return;
+			case 'catalog/snapshot':
+				buildingCatalog.setSnapshot(event.catalog);
+				return;
 			case 'lobby/state':
-				this.setState({ lobby: event.lobby, lastError: null });
+				this.setState({ lobby: event.lobby, game: event.lobby?.status === 'in-game' ? this.state.game : null, lastError: null });
 				return;
 			case 'command/rejected':
 				this.setState({ lastError: event.reason });
@@ -168,7 +221,7 @@ export class MultiplayerClient {
 				this.setState({ lastError: event.message });
 				return;
 			case 'game/snapshot':
-				this.setState({ lastError: null });
+				this.setState({ game: event.game, lastError: null });
 				return;
 		}
 	}
@@ -176,5 +229,28 @@ export class MultiplayerClient {
 	private setState(patch: Partial<MultiplayerClientState>): void {
 		this.state = { ...this.state, ...patch };
 		for (const listener of this.listeners) listener(this.state);
+	}
+}
+
+function toGameActionCommand(event: UiToGameEvents): GameActionCommand | null {
+	switch (event.type) {
+		case 'build-requested':
+			return { type: 'build/request', q: event.q, r: event.r, buildingId: event.buildingId };
+		case 'destroy-requested':
+			return { type: 'destroy/request', q: event.q, r: event.r };
+		case 'upgrade-requested':
+			return { type: 'upgrade/request', q: event.q, r: event.r, upgradeBuildingId: event.upgradeBuildingId };
+		case 'shop-buy-requested':
+			return { type: 'shop/buy', slotIndex: event.slotIndex };
+		case 'shop-reroll-requested':
+			return { type: 'shop/reroll' };
+		case 'army-train-requested':
+			return { type: 'army/train', unitEntityId: event.unitEntityId };
+		case 'army-reorder-requested':
+			return { type: 'army/reorder', unitEntityId: event.unitEntityId, direction: event.direction };
+		case 'combat-step-requested':
+			return { type: 'combat/step', steps: event.steps };
+		default:
+			return null;
 	}
 }

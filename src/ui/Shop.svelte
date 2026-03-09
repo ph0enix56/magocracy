@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { eventBus } from '../eventBus';
-	import { getPurchasableBuildings, type BuildingDef } from '../game/scenes/Kingdom/data/buildings';
 	import { shopModalState } from './uiState';
 	import { shopState } from './gameState';
 	import BuildingCard from './BuildingCard.svelte';
+	import { buildingCatalog } from '../multiplayer/client/buildingCatalog';
+	import type { BuildingCatalogEntry } from '../shared/multiplayer/protocol';
 
 	let state: { isOpen: boolean } = { isOpen: false };
 	shopModalState.subscribe(v => (state = v));
@@ -14,10 +15,10 @@
 
 	let pendingBuySlot: number | null = null;
 	let pendingReroll = false;
-
-	function purchasablePool(): BuildingDef[] {
-		return getPurchasableBuildings();
-	}
+	let purchasableBuildings: BuildingCatalogEntry[] = [];
+	const unsubscribeCatalog = buildingCatalog.subscribe((entries) => {
+		purchasableBuildings = entries.filter((entry) => !entry.parentId && entry.type !== 'blocking');
+	});
 
 	function close() {
 		shopModalState.set({ isOpen: false });
@@ -61,11 +62,12 @@
 
 	onDestroy(() => {
 		if (unsubscribe) unsubscribe();
+		unsubscribeCatalog();
 	});
 
-	function defFor(id: string | null): BuildingDef | null {
+	function defFor(id: string | null): BuildingCatalogEntry | null {
 		if (!id) return null;
-		return purchasablePool().find(b => b.id === id) ?? null;
+		return purchasableBuildings.find((building) => building.id === id) ?? null;
 	}
 </script>
 

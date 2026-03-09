@@ -2,14 +2,17 @@ import { createServer, type Server as HttpServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { Server, type Socket } from 'socket.io';
 import type {
+	BuildingCatalogEntry,
 	ClientCommand,
 	ClientToServerEvents,
-	GameSnapshot,
+	GameActionCommand,
 	LobbyPlayerSnapshot,
 	LobbySnapshot,
 	ServerEvent,
 	ServerToClientEvents
 } from '../../shared/multiplayer/protocol';
+import { RoomGameRuntime } from './RoomGameRuntime';
+import { getAllBuildingDefs } from './config/buildings';
 
 const MAX_PLAYERS_PER_LOBBY = 8;
 const MIN_PLAYERS_TO_START = 2;
@@ -47,6 +50,7 @@ export class LobbyServer {
 	private readonly io: Server<ClientToServerEvents, ServerToClientEvents>;
 	private readonly lobbies = new Map<string, LobbyRecord>();
 	private readonly playerLobbyIndex = new Map<string, string>();
+	private readonly gameRuntimes = new Map<string, RoomGameRuntime>();
 
 	constructor() {
 		this.httpServer = createServer();
@@ -68,6 +72,7 @@ export class LobbyServer {
 		const playerId = randomUUID();
 		socket.data.playerId = playerId;
 		this.emitToSocket(socket, { type: 'session/connected', playerId });
+		this.emitToSocket(socket, { type: 'catalog/snapshot', catalog: { buildings: this.buildBuildingCatalog() } });
 
 		socket.on('command', (command: ClientCommand) => {
 			try {
@@ -92,7 +97,7 @@ export class LobbyServer {
 				this.handleJoinLobby(socket, command.lobbyId, command.playerName);
 				return;
 			case 'lobby/leave':
-				this.handleLeaveLobby(socket.data.playerId as string);
+				this.handleLeaveLobby(socket, socket.data.playerId as string);
 				return;
 			case 'lobby/set-ready':
 				this.handleSetReady(socket.data.playerId as string, command.ready);
@@ -101,14 +106,14 @@ export class LobbyServer {
 				this.handleStartLobby(socket.data.playerId as string);
 				return;
 			case 'game/action':
-				this.reject(socket, 'game/action', 'Authoritative multiplayer gameplay bridge is not wired yet.');
+				this.handleGameAction(socket, socket.data.playerId as string, command.action);
 				return;
 		}
 	}
 
 	private handleCreateLobby(socket: MultiplayerSocket, playerName: string): void {
 		const playerId = socket.data.playerId as string;
-		this.handleLeaveLobby(playerId);
+		this.handleLeaveLobby(socket, playerId);
 
 		let lobbyId = createLobbyId();
 		while (this.lobbies.has(lobbyId)) {
@@ -143,16 +148,21 @@ export class LobbyServer {
 			return;
 		}
 
-		this.handleLeaveLobby(playerId);
+		this.handleLeaveLobby(socket, playerId);
 		this.addOrUpdatePlayer(socket, lobby, playerName);
 	}
 
-	private handleLeaveLobby(playerId: string): void {
+	private handleLeaveLobby(socket: MultiplayerSocket, playerId: string): void {
 		const lobbyId = this.playerLobbyIndex.get(playerId);
 		if (!lobbyId) return;
 		const lobby = this.lobbies.get(lobbyId);
 		if (!lobby) {
 			this.playerLobbyIndex.delete(playerId);
+			return;
+		}
+
+		if (lobby.status === 'in-game') {
+			this.reject(socket, 'lobby/leave', 'Leaving an active match is not supported yet.');
 			return;
 		}
 
@@ -170,6 +180,8 @@ export class LobbyServer {
 		}
 
 		if (lobby.players.size === 0) {
+			this.gameRuntimes.get(lobbyId)?.stop();
+			this.gameRuntimes.delete(lobbyId);
 			this.lobbies.delete(lobbyId);
 			return;
 		}
@@ -207,11 +219,37 @@ export class LobbyServer {
 		}
 
 		lobby.status = 'in-game';
-		this.broadcastLobbyState(lobby);
-		this.broadcastToLobby(lobby.lobbyId, {
-			type: 'game/snapshot',
-			game: this.buildInitialGameSnapshot(lobby)
+		const runtime = new RoomGameRuntime([...lobby.players.keys()], {
+			onSnapshot: (snapshot) => {
+				this.broadcastToLobby(lobby.lobbyId, { type: 'game/snapshot', game: snapshot });
+			}
 		});
+		runtime.start();
+		this.gameRuntimes.set(lobby.lobbyId, runtime);
+		this.broadcastLobbyState(lobby);
+		this.broadcastToLobby(lobby.lobbyId, { type: 'game/snapshot', game: runtime.emitSnapshot() });
+	}
+
+	private handleGameAction(socket: MultiplayerSocket, playerId: string, action: GameActionCommand): void {
+		const lobby = this.getLobbyForPlayer(playerId);
+		if (!lobby) {
+			this.reject(socket, 'game/action', 'You are not in a lobby.', action.type);
+			return;
+		}
+		if (lobby.status !== 'in-game') {
+			this.reject(socket, 'game/action', 'The match has not started yet.', action.type);
+			return;
+		}
+		const runtime = this.gameRuntimes.get(lobby.lobbyId);
+		if (!runtime) {
+			this.reject(socket, 'game/action', 'Missing authoritative game runtime.', action.type);
+			return;
+		}
+
+		const result = runtime.handleAction(playerId, action);
+		if (!result.ok) {
+			this.reject(socket, action.type, result.reason, action.type);
+		}
 	}
 
 	private handleDisconnect(playerId: string): void {
@@ -272,29 +310,13 @@ export class LobbyServer {
 		};
 	}
 
-	private buildInitialGameSnapshot(lobby: LobbyRecord): GameSnapshot {
-		return {
-			tick: 0,
-			phase: 'setup',
-			players: [...lobby.players.values()].map((player) => ({
-				playerId: player.playerId,
-				resources: {},
-				blueprints: {},
-				army: [],
-				combat: {
-					status: 'idle',
-					round: 0,
-					activeSide: 'armyA',
-					armyA: [],
-					armyB: [],
-					log: []
-				}
-			}))
-		};
-	}
-
-	private reject(socket: MultiplayerSocket, commandType: ClientCommand['type'], reason: string): void {
-		this.emitToSocket(socket, { type: 'command/rejected', commandType, reason });
+	private reject(
+		socket: MultiplayerSocket,
+		commandType: ClientCommand['type'] | GameActionCommand['type'],
+		reason: string,
+		actionType?: GameActionCommand['type']
+	): void {
+		this.emitToSocket(socket, { type: 'command/rejected', commandType, actionType, reason });
 	}
 
 	private emitToSocket(socket: MultiplayerSocket, event: ServerEvent): void {
@@ -303,5 +325,19 @@ export class LobbyServer {
 
 	private broadcastToLobby(lobbyId: string, event: ServerEvent): void {
 		this.io.to(lobbyId).emit('event', event);
+	}
+
+	private buildBuildingCatalog(): BuildingCatalogEntry[] {
+		return getAllBuildingDefs().map((def) => ({
+			id: def.id,
+			parentId: def.parentId,
+			type: def.type,
+			name: def.name,
+			description: def.description,
+			textureId: def.textureId,
+			assetPath: def.assetPath,
+			cost: def.cost,
+			buildTime: def.buildTime
+		}));
 	}
 }

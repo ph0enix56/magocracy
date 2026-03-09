@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { BuildingDef } from '../game/scenes/Kingdom/data/buildings';
+	import type { BuildingCatalogEntry } from '../shared/multiplayer/protocol';
 	import { createEventDispatcher } from 'svelte';
 
-	export let def: BuildingDef;
+	export let def: BuildingCatalogEntry;
 	export let count: number | null = null;
 	export let actionLabel: string | null = null;
 	export let actionDisabled: boolean = false;

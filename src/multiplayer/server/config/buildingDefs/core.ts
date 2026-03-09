@@ -1,4 +1,4 @@
-import type { Entity } from '../../ecs/ECSBase';
+import type { Entity } from '../../gameplay/model';
 import type { BuildingDef } from '../buildings';
 
 export const BUILDING_DEFS: BuildingDef[] = [

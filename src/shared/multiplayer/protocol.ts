@@ -21,11 +21,52 @@ export type LobbySnapshot = {
 export type ResourceSnapshot = Record<string, number>;
 export type BlueprintInventorySnapshot = Record<string, number>;
 
+export type BuildingCatalogEntry = {
+	id: string;
+	parentId?: string;
+	type: 'production' | 'blocking' | 'army';
+	name: string;
+	description: string;
+	textureId: string;
+	assetPath: string;
+	cost: Record<string, number>;
+	buildTime: number;
+};
+
+export type BuildingCatalogSnapshot = {
+	buildings: BuildingCatalogEntry[];
+};
+
+export type ShopSnapshot = {
+	offers: Array<string | null>;
+	buyCost: number;
+	rerollCost: number;
+};
+
+export type KingdomBuildingSnapshot = {
+	buildingId: string;
+	status: 'constructing' | 'active' | 'upgrading';
+	progress: number;
+	upgradeNextId?: string;
+	productionMultiplier?: number;
+};
+
+export type KingdomTileSnapshot = {
+	q: number;
+	r: number;
+	building?: KingdomBuildingSnapshot;
+};
+
+export type KingdomSnapshot = {
+	tiles: KingdomTileSnapshot[];
+};
+
 export type ArmyUnitSnapshot = {
 	entityId: string;
 	unitId: string;
 	name: string;
 	assetPath: string;
+	speed: number;
 	health: number;
 	drFlat: number;
 	drPercent: number;
@@ -33,6 +74,8 @@ export type ArmyUnitSnapshot = {
 	trainingLevel: number;
 	trainingStatus: 'idle' | 'training';
 	trainingProgress: number;
+	nextTrainCost: Record<string, number>;
+	trainTime: number;
 };
 
 export type CombatUnitSnapshot = {
@@ -62,6 +105,8 @@ export type PlayerGameView = {
 	playerId: string;
 	resources: ResourceSnapshot;
 	blueprints: BlueprintInventorySnapshot;
+	shop: ShopSnapshot;
+	kingdom: KingdomSnapshot;
 	army: ArmyUnitSnapshot[];
 	combat: CombatSnapshot;
 };
@@ -92,9 +137,15 @@ export type ClientCommand =
 
 export type ServerEvent =
 	| { type: 'session/connected'; playerId: string }
+	| { type: 'catalog/snapshot'; catalog: BuildingCatalogSnapshot }
 	| { type: 'lobby/state'; lobby: LobbySnapshot | null }
 	| { type: 'game/snapshot'; game: GameSnapshot }
-	| { type: 'command/rejected'; commandType: ClientCommand['type'] | GameActionCommand['type']; reason: string }
+	| {
+		type: 'command/rejected';
+		commandType: ClientCommand['type'] | GameActionCommand['type'];
+		actionType?: GameActionCommand['type'];
+		reason: string;
+	}
 	| { type: 'system/error'; message: string };
 
 export type ClientToServerEvents = {

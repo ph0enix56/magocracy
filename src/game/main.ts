@@ -1,6 +1,4 @@
 import { KingdomScene } from './scenes/Kingdom/KingdomScene';
-import { BootScene } from './scenes/Boot/BootScene';
-import { RunLoopScene } from './scenes/RunLoop/RunLoopScene';
 import { AUTO, Game, Scale, type Types } from 'phaser';
 
 const config: Types.Core.GameConfig = {
@@ -13,11 +11,7 @@ const config: Types.Core.GameConfig = {
 		mode: Scale.FIT,
 		autoCenter: Scale.CENTER_BOTH
 	},
-	scene: [
-		BootScene,
-		RunLoopScene,
-		KingdomScene
-	]
+	scene: [KingdomScene]
 };
 
 const StartGame = (parent: string) => {
