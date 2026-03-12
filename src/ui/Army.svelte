@@ -2,7 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import { armyModalState } from './uiState';
 	import { armyState } from './gameState';
-	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
+	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
 
 	let state: { isOpen: boolean } = { isOpen: false };
 	armyModalState.subscribe(v => (state = v));
@@ -24,7 +24,7 @@
 	}
 
 	async function train(unitEntityId: string) {
-		if (pendingTrain) return;
+		if (pendingTrain || !$gameSessionState.canIssueCommands) return;
 		pendingTrain = unitEntityId;
 		const result = await gameSessionClient.requestArmyTrain(unitEntityId);
 		pendingTrain = null;
@@ -34,6 +34,7 @@
 	}
 
 	async function reorder(unitEntityId: string, direction: 'up' | 'down') {
+		if (!$gameSessionState.canIssueCommands) return;
 		const result = await gameSessionClient.requestArmyReorder(unitEntityId, direction);
 		if (!result.ok) {
 			alert(result.reason);
@@ -51,6 +52,9 @@
 				<h2 class="ui-modal-title">Army</h2>
 				<button class="ui-close-btn" on:click={close}>X</button>
 			</div>
+			{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
+				<div class="readonly-banner">Scouting {$gameSessionState.viewedPlayer.name}. Army actions are disabled.</div>
+			{/if}
 
 			<div class="list">
 				{#if units.length === 0}
@@ -68,10 +72,10 @@
 									{u.name} <span class="lvl">Lv {u.trainingLevel}</span>
 								</div>
 								<div class="reorder">
-									<button class="ui-button ui-button--tiny reorder-btn" disabled={i === 0} on:click={() => reorder(u.entityId, 'up')}>↑</button>
+									<button class="ui-button ui-button--tiny reorder-btn" disabled={i === 0 || !$gameSessionState.canIssueCommands} on:click={() => reorder(u.entityId, 'up')}>↑</button>
 									<button
 										class="ui-button ui-button--tiny reorder-btn"
-										disabled={i === units.length - 1}
+										disabled={i === units.length - 1 || !$gameSessionState.canIssueCommands}
 										on:click={() => reorder(u.entityId, 'down')}
 									>
 										↓
@@ -91,7 +95,7 @@
 								</div>
 								<button
 									class="ui-button"
-									disabled={u.trainingStatus === 'training' || pendingTrain !== null}
+									disabled={u.trainingStatus === 'training' || pendingTrain !== null || !$gameSessionState.canIssueCommands}
 									on:click={() => train(u.entityId)}
 								>
 									{u.trainingStatus === 'training' ? 'Training…' : 'Train'}
@@ -124,6 +128,12 @@
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
+	}
+
+	.readonly-banner {
+		padding: 10px 16px 0;
+		color: #ffd28a;
+		font-size: 0.9rem;
 	}
 
 	.empty {

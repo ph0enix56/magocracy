@@ -1,5 +1,5 @@
 import { derived } from 'svelte/store';
-import type { ArmyUnitSnapshot, BuildingCatalogEntry, CombatSnapshot } from '../shared/multiplayer/protocol';
+import type { ArmyUnitSnapshot, BuildingCatalogEntry, CombatSnapshot, LobbyPlayerSnapshot } from '../shared/multiplayer/protocol';
 import { gameSessionState, type SelectedTileView } from '../multiplayer/client/gameSessionStore';
 
 export const blueprintInventory = derived(gameSessionState, ($state) => $state.blueprints);
@@ -22,3 +22,20 @@ export const combatState = derived(gameSessionState, ($state): CombatUiState => 
 export const selectedTileState = derived(gameSessionState, ($state): SelectedTileView | null => $state.selectedTile);
 export const buildingCatalogState = derived(gameSessionState, ($state): BuildingCatalogEntry[] => $state.catalog);
 export const combatOpenRequestState = derived(gameSessionState, ($state) => $state.combatOpenRequest);
+
+export type ViewModeState = {
+	canIssueCommands: boolean;
+	isScouting: boolean;
+	viewedPlayer: LobbyPlayerSnapshot | null;
+	viewedPlayerId: string | null;
+};
+
+export const viewModeState = derived(
+	gameSessionState,
+	($state): ViewModeState => ({
+		canIssueCommands: $state.canIssueCommands,
+		isScouting: $state.isScouting,
+		viewedPlayer: $state.viewedPlayer,
+		viewedPlayerId: $state.viewedPlayerId
+	})
+);

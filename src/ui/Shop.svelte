@@ -4,7 +4,7 @@
 	import { buildingCatalogState, shopState } from './gameState';
 	import BuildingCard from './BuildingCard.svelte';
 	import type { BuildingCatalogEntry } from '../shared/multiplayer/protocol';
-	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
+	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
 
 	let state: { isOpen: boolean } = { isOpen: false };
 	shopModalState.subscribe(v => (state = v));
@@ -26,7 +26,7 @@
 	}
 
 	function canReroll(): boolean {
-		return pendingBuySlot === null && !pendingReroll;
+		return pendingBuySlot === null && !pendingReroll && $gameSessionState.canIssueCommands;
 	}
 
 	async function requestReroll() {
@@ -40,7 +40,7 @@
 	}
 
 	async function buy(slotIndex: number) {
-		if (pendingBuySlot !== null || pendingReroll) return;
+		if (pendingBuySlot !== null || pendingReroll || !$gameSessionState.canIssueCommands) return;
 		pendingBuySlot = slotIndex;
 		const result = await gameSessionClient.requestShopBuy(slotIndex);
 		pendingBuySlot = null;
@@ -71,6 +71,9 @@
 					<button class="ui-close-btn" on:click={close}>X</button>
 				</div>
 			</div>
+			{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
+				<div class="readonly-banner">Scouting {$gameSessionState.viewedPlayer.name}. Shop actions are disabled.</div>
+			{/if}
 
 			<div class="grid">
 				{#each view.offers as slot, i}
@@ -81,7 +84,7 @@
 								def={def}
 								count={null}
 								actionLabel={`Buy (${view.buyCost} gold)`}
-								actionDisabled={pendingBuySlot !== null || pendingReroll}
+								actionDisabled={pendingBuySlot !== null || pendingReroll || !$gameSessionState.canIssueCommands}
 								on:action={() => buy(i)}
 							/>
 						{:else}
@@ -107,6 +110,12 @@
 		display: flex;
 		gap: 8px;
 		align-items: center;
+	}
+
+	.readonly-banner {
+		padding: 10px 16px 0;
+		color: #ffd28a;
+		font-size: 0.9rem;
 	}
 
 	.grid {

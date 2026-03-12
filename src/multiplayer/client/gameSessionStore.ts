@@ -37,6 +37,11 @@ export type GameSessionState = MultiplayerClientState & {
 	catalog: BuildingCatalogEntry[];
 	selfPlayer: LobbyPlayerSnapshot | null;
 	selfGameView: PlayerGameView | null;
+	viewedPlayerId: string | null;
+	viewedPlayer: LobbyPlayerSnapshot | null;
+	viewedGameView: PlayerGameView | null;
+	isScouting: boolean;
+	canIssueCommands: boolean;
 	resources: ResourceSnapshot;
 	blueprints: BlueprintInventorySnapshot;
 	shop: ShopSnapshot;
@@ -70,6 +75,7 @@ const EMPTY_KINGDOM: KingdomSnapshot = {
 };
 
 let selectedTileCoords: { q: number; r: number } | null = null;
+let viewedPlayerId: string | null = null;
 let combatOpenRequest = 0;
 let lastCombatStatus: CombatSnapshot['status'] = 'idle';
 const pendingRequests = new Map<string, PendingRequest>();
@@ -108,6 +114,20 @@ export const gameSessionClient = {
 		selectedTileCoords = null;
 		setState(buildState(multiplayerClient.getState(), currentState.catalog));
 	},
+	scoutPlayer(playerId: string): void {
+		const nextPlayerId = playerId.trim();
+		if (!nextPlayerId) return;
+		if (viewedPlayerId === nextPlayerId) return;
+		viewedPlayerId = nextPlayerId;
+		selectedTileCoords = null;
+		setState(buildState(multiplayerClient.getState(), currentState.catalog));
+	},
+	viewOwnTown(): void {
+		if (viewedPlayerId === null) return;
+		viewedPlayerId = null;
+		selectedTileCoords = null;
+		setState(buildState(multiplayerClient.getState(), currentState.catalog));
+	},
 	requestBuild(q: number, r: number, buildingId: string): Promise<CommandResult> {
 		return sendTrackedAction({ type: 'build/request', q, r, buildingId });
 	},
@@ -142,6 +162,14 @@ function setState(nextState: GameSessionState): void {
 function buildState(base: MultiplayerClientState, catalog: BuildingCatalogEntry[]): GameSessionState {
 	const selfPlayer = getSelfPlayer(base);
 	const selfGameView = getSelfGameView(base);
+	const resolvedViewedPlayerId = resolveViewedPlayerId(base, viewedPlayerId);
+	if (resolvedViewedPlayerId !== viewedPlayerId) {
+		viewedPlayerId = resolvedViewedPlayerId;
+	}
+	const viewedPlayer = getViewedPlayer(base, resolvedViewedPlayerId);
+	const viewedGameView = getViewedGameView(base, resolvedViewedPlayerId);
+	const isScouting = viewedGameView !== null && selfGameView !== null && viewedGameView.playerId !== selfGameView.playerId;
+	const canIssueCommands = !isScouting && selfGameView !== null && base.lobby?.status === 'in-game';
 	const nextCombatStatus = selfGameView?.combat.status ?? 'idle';
 
 	if (lastCombatStatus === 'idle' && nextCombatStatus === 'running') {
@@ -149,7 +177,7 @@ function buildState(base: MultiplayerClientState, catalog: BuildingCatalogEntry[
 	}
 	lastCombatStatus = nextCombatStatus;
 
-	if (!selfGameView) {
+	if (!viewedGameView) {
 		selectedTileCoords = null;
 	}
 
@@ -158,14 +186,19 @@ function buildState(base: MultiplayerClientState, catalog: BuildingCatalogEntry[
 		catalog,
 		selfPlayer,
 		selfGameView,
-		resources: selfGameView?.resources ?? EMPTY_RESOURCES,
-		blueprints: selfGameView?.blueprints ?? {},
-		shop: selfGameView?.shop ?? EMPTY_SHOP,
-		army: selfGameView?.army ?? [],
-		combat: selfGameView?.combat ?? EMPTY_COMBAT,
-		kingdom: selfGameView?.kingdom ?? EMPTY_KINGDOM,
-		selectedTile: selfGameView && selectedTileCoords
-			? buildSelectedTileView(selectedTileCoords.q, selectedTileCoords.r, selfGameView.kingdom, catalog)
+		viewedPlayerId: viewedGameView?.playerId ?? selfGameView?.playerId ?? null,
+		viewedPlayer,
+		viewedGameView,
+		isScouting,
+		canIssueCommands,
+		resources: viewedGameView?.resources ?? EMPTY_RESOURCES,
+		blueprints: viewedGameView?.blueprints ?? {},
+		shop: viewedGameView?.shop ?? EMPTY_SHOP,
+		army: viewedGameView?.army ?? [],
+		combat: viewedGameView?.combat ?? EMPTY_COMBAT,
+		kingdom: viewedGameView?.kingdom ?? EMPTY_KINGDOM,
+		selectedTile: viewedGameView && selectedTileCoords
+			? buildSelectedTileView(selectedTileCoords.q, selectedTileCoords.r, viewedGameView.kingdom, catalog)
 			: null,
 		combatOpenRequest
 	};
@@ -179,6 +212,24 @@ function getSelfPlayer(base: MultiplayerClientState): LobbyPlayerSnapshot | null
 function getSelfGameView(base: MultiplayerClientState): PlayerGameView | null {
 	if (!base.game || !base.playerId) return null;
 	return base.game.players.find((player) => player.playerId === base.playerId) ?? null;
+}
+
+function getViewedPlayer(base: MultiplayerClientState, targetPlayerId: string | null): LobbyPlayerSnapshot | null {
+	const playerId = targetPlayerId ?? base.playerId;
+	if (!base.lobby || !playerId) return null;
+	return base.lobby.players.find((player) => player.playerId === playerId) ?? null;
+}
+
+function getViewedGameView(base: MultiplayerClientState, targetPlayerId: string | null): PlayerGameView | null {
+	const playerId = targetPlayerId ?? base.playerId;
+	if (!base.game || !playerId) return null;
+	return base.game.players.find((player) => player.playerId === playerId) ?? null;
+}
+
+function resolveViewedPlayerId(base: MultiplayerClientState, candidatePlayerId: string | null): string | null {
+	if (!base.game || !base.playerId) return null;
+	if (!candidatePlayerId || candidatePlayerId === base.playerId) return null;
+	return base.game.players.some((player) => player.playerId === candidatePlayerId) ? candidatePlayerId : null;
 }
 
 function buildSelectedTileView(
@@ -246,6 +297,10 @@ function toProgressPercent(progress: number, total: number): number {
 }
 
 function sendTrackedAction(action: GameActionCommand): Promise<CommandResult> {
+	if (currentState.isScouting) {
+		return Promise.resolve({ ok: false, reason: 'Return to your own town before issuing commands.' });
+	}
+
 	if (!multiplayerClient.isAuthoritativeGameplayActive()) {
 		return Promise.resolve({ ok: false, reason: 'Authoritative multiplayer gameplay is not active.' });
 	}

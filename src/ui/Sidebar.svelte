@@ -3,6 +3,7 @@
 	import { blueprintModalState } from './uiState';
 	import { selectedTileState } from './gameState';
 	import { gameSessionClient, type SelectedTileView } from '../multiplayer/client/gameSessionStore';
+	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
 
 	let visible = false;
 	let selected: SelectedTileView | null = null;
@@ -27,6 +28,7 @@
 
 	function onBuild() {
 		if (!selected) return;
+		if (!$gameSessionState.canIssueCommands) return;
 		blueprintModalState.set({ isOpen: true, mode: 'build', q: selected.q, r: selected.r });
 		visible = false;
 		selected = null;
@@ -68,6 +70,9 @@
 {#if visible && selected}
 	<div class="ui-panel sidebar">
 		<h2 class="ui-panel-title">Tile ({selected.q}, {selected.r})</h2>
+		{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
+			<p class="ui-muted">Scouting {$gameSessionState.viewedPlayer.name}. Commands are disabled.</p>
+		{/if}
 		
 		{#if selected.buildingId}
 			<p><strong>{selected.buildingId}</strong></p>
@@ -103,14 +108,14 @@
 				{#if selected.nextUpgradeTime !== undefined}
 					<p>Time: {selected.nextUpgradeTime}s</p>
 				{/if}
-				<button class="ui-button" on:click={onUpgradeClick}>Upgrade</button>
+				<button class="ui-button" disabled={!$gameSessionState.canIssueCommands} on:click={onUpgradeClick}>Upgrade</button>
 			</div>
 		{/if}
 
 		{#if selected.built}
-			<button class="ui-button" on:click={onDestroyClick}>Destroy</button>
+			<button class="ui-button" disabled={!$gameSessionState.canIssueCommands} on:click={onDestroyClick}>Destroy</button>
 		{:else}
-			<button class="ui-button" on:click={onBuild}>Build</button>
+			<button class="ui-button" disabled={!$gameSessionState.canIssueCommands} on:click={onBuild}>Build</button>
 		{/if}
 	</div>
 {/if}

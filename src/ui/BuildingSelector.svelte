@@ -4,7 +4,7 @@
     import { blueprintInventory, buildingCatalogState } from './gameState';
     import BuildingCard from './BuildingCard.svelte';
     import type { BuildingCatalogEntry } from '../shared/multiplayer/protocol';
-    import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
+    import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
 
     // Subscribe to stores
     let state: { isOpen: boolean; mode: 'view' | 'build'; q: number; r: number } = { isOpen: false, mode: 'view', q: 0, r: 0 };
@@ -22,7 +22,7 @@
     }
 
     async function build(buildingId: string) {
-        if (state.mode !== 'build') return;
+        if (state.mode !== 'build' || !$gameSessionState.canIssueCommands) return;
         const result = await gameSessionClient.requestBuild(state.q, state.r, buildingId);
         close();
         if (!result.ok) {
@@ -50,11 +50,15 @@
             </div>
             
             <div class="list">
+                {#if state.mode === 'build' && $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
+                    <div class="empty ui-muted">Scouting {$gameSessionState.viewedPlayer.name}. Building is disabled.</div>
+                {/if}
                 {#each ownedBlueprints() as item}
                     <BuildingCard
                         def={item.def}
                         count={item.count}
                         actionLabel={state.mode === 'build' ? 'Use' : null}
+                        actionDisabled={state.mode === 'build' && !$gameSessionState.canIssueCommands}
                         on:action={() => build(item.def.id)}
                     />
                 {/each}

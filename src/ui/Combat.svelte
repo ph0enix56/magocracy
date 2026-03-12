@@ -2,7 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import { combatModalState } from './uiState';
 	import { combatOpenRequestState, combatState } from './gameState';
-	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
+	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
 
 	let modal: { isOpen: boolean } = { isOpen: false };
 	const unsubModal = combatModalState.subscribe(v => (modal = v));
@@ -30,7 +30,7 @@
 	}
 
 	async function step() {
-		if (stepPending) return;
+		if (stepPending || !$gameSessionState.canIssueCommands) return;
 		stepPending = true;
 		const result = await gameSessionClient.requestCombatStep(1);
 		stepPending = false;
@@ -58,10 +58,13 @@
 			<div class="ui-modal-header">
 				<h2 class="ui-modal-title">Combat</h2>
 				<div class="header-actions">
-					<button class="ui-button" on:click={step} disabled={state.status !== 'running' || stepPending}>Next action</button>
+					<button class="ui-button" on:click={step} disabled={state.status !== 'running' || stepPending || !$gameSessionState.canIssueCommands}>Next action</button>
 					<button class="ui-close-btn" on:click={close}>X</button>
 				</div>
 			</div>
+			{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
+				<div class="readonly-banner">Scouting {$gameSessionState.viewedPlayer.name}. Combat controls are disabled.</div>
+			{/if}
 
 			<div class="meta">
 				<div>Status: <strong>{state.status}</strong></div>
@@ -153,6 +156,12 @@
 		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 		color: #ddd;
 		font-size: 0.95rem;
+	}
+
+	.readonly-banner {
+		padding: 10px 16px 0;
+		color: #ffd28a;
+		font-size: 0.9rem;
 	}
 
 	.content {
