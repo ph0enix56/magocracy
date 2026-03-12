@@ -62,15 +62,22 @@ export class ProjectionHexGrid {
 		return tile;
 	}
 
+	relayout(): void {
+		for (const tile of this.world.getTiles()) {
+			const { x, y } = this.screenPosFor(tile.position.q, tile.position.r);
+			tile.render.hex.setPosition(x, y);
+		}
+	}
+
 	private screenPosFor(q: number, r: number): { x: number; y: number } {
-		const centerX = this.scene.scale.width / 2;
-		const centerY = this.scene.scale.height / 2 + this.options.gridOriginYOffset;
+		const centerX = Math.round(this.scene.scale.width / 2);
+		const centerY = Math.round(this.scene.scale.height / 2 + this.options.gridOriginYOffset);
 		const parity = (r & 1) === 0 ? 0 : 1;
 		const c = (q - parity) / 2;
 
 		return {
-			x: centerX + this.options.hexSize * Math.sqrt(3) * (c + 0.5 * parity),
-			y: centerY + (this.options.hexSize * 3) / 2 * r
+			x: Math.round(centerX + this.options.hexSize * Math.sqrt(3) * (c + 0.5 * parity)),
+			y: Math.round(centerY + (this.options.hexSize * 3) / 2 * r)
 		};
 	}
 

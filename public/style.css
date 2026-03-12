@@ -5,13 +5,34 @@ body {
     background-color: #0f0f0f;
 }
 
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
 #app {
     width: 100%;
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    position: relative;
+}
+
+#ui-root {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+}
+
+#game-container {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+#game-container canvas {
+    display: block;
 }
 
 .ui-overlay {

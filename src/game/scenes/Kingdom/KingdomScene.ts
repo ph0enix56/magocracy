@@ -15,6 +15,9 @@ export class KingdomScene extends Scene {
 	private readonly HEX_STROKE: number = configuration.kingdomView.hexStroke;
 	private readonly GRID_ORIGIN_Y_OFFSET = configuration.kingdomView.gridOriginYOffset;
 	private stateUnsubscribe: (() => void) | null = null;
+	private readonly handleResize = () => {
+		this.hexGridSystem.relayout();
+	};
 
 	constructor() {
 		super('Kingdom');
@@ -40,11 +43,15 @@ export class KingdomScene extends Scene {
 			}
 		});
 
+		this.scale.on('resize', this.handleResize);
+
 		this.stateUnsubscribe = gameSessionState.subscribe((state) => {
 			this.loadCatalogAssets({ buildings: state.catalog });
 			this.applyKingdomSnapshot(state.kingdom.tiles);
+			this.hexGridSystem.relayout();
 		});
 		this.events.once('shutdown', () => {
+			this.scale.off('resize', this.handleResize);
 			this.stateUnsubscribe?.();
 			this.stateUnsubscribe = null;
 		});

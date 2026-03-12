@@ -22,8 +22,7 @@ export class ProjectionRenderSystem {
 
 				if (!render.building) {
 					const sprite = this.scene.add.image(render.hex.x, render.hex.y, def.textureId);
-					const scale = buildingCfg.hexSize / Math.max(sprite.width, sprite.height);
-					sprite.setScale(scale * buildingCfg.spriteFillScaleMultiplier);
+					sprite.setScale(this.getTargetBuildingScale(sprite, buildingCfg.spriteFillScaleMultiplier));
 					sprite.setAlpha(buildingCfg.alpha.initial);
 					render.building = sprite;
 				}
@@ -31,6 +30,8 @@ export class ProjectionRenderSystem {
 				if (render.building.texture.key !== def.textureId) {
 					render.building.setTexture(def.textureId);
 				}
+
+				render.building.setPosition(render.hex.x, render.hex.y);
 
 				if (tile.building.status === 'constructing' || tile.building.status === 'upgrading') {
 					const isUpgrading = tile.building.status === 'upgrading';
@@ -42,8 +43,7 @@ export class ProjectionRenderSystem {
 					const remainingRatio = totalTicks > 0 ? remainingTicks / totalTicks : 0;
 
 					render.building.setAlpha(isUpgrading ? buildingCfg.alpha.upgrading : buildingCfg.alpha.constructing);
-					const targetScale = buildingCfg.hexSize / Math.max(render.building.width, render.building.height);
-					render.building.setScale(targetScale);
+					render.building.setScale(this.getTargetBuildingScale(render.building, buildingCfg.spriteFillScaleMultiplier));
 
 					if (!render.constructionBadge) {
 						render.constructionBadge = new ConstructionBadge(this.scene);
@@ -60,8 +60,7 @@ export class ProjectionRenderSystem {
 					);
 				} else {
 					render.building.setAlpha(1);
-					const targetScale = buildingCfg.hexSize / Math.max(render.building.width, render.building.height);
-					render.building.setScale(targetScale);
+					render.building.setScale(this.getTargetBuildingScale(render.building, buildingCfg.spriteFillScaleMultiplier));
 					if (render.constructionBadge) {
 						render.constructionBadge.destroy();
 						render.constructionBadge = undefined;
@@ -78,5 +77,11 @@ export class ProjectionRenderSystem {
 				}
 			}
 		}
+	}
+
+	private getTargetBuildingScale(sprite: Phaser.GameObjects.Image, fillScaleMultiplier: number): number {
+		const sourceWidth = sprite.frame.realWidth || sprite.width;
+		const sourceHeight = sprite.frame.realHeight || sprite.height;
+		return (configuration.render.building.hexSize / Math.max(sourceWidth, sourceHeight)) * fillScaleMultiplier;
 	}
 }

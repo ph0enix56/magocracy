@@ -46,8 +46,10 @@ export class ConstructionBadge {
 	}
 
 	setPosition(x: number, y: number): void {
-		this.background.setPosition(x, y);
-		this.label.setPosition(x, y);
+		const px = Math.round(x);
+		const py = Math.round(y);
+		this.background.setPosition(px, py);
+		this.label.setPosition(px, py);
 	}
 
 	setRemainingTicks(remainingTicks: number, remainingRatio: number, variant: 'constructing' | 'upgrading'): void {
