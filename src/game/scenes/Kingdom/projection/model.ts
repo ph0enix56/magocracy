@@ -1,3 +1,5 @@
+import type { ConstructionBadge } from './ConstructionBadge';
+
 export interface ProjectionPosition {
 	q: number;
 	r: number;
@@ -14,7 +16,7 @@ export interface ProjectionBuilding {
 export interface ProjectionRenderState {
 	hex: Phaser.GameObjects.Image;
 	building?: Phaser.GameObjects.Image;
-	constructionProgress?: Phaser.GameObjects.Graphics;
+	constructionBadge?: ConstructionBadge;
 }
 
 export interface ProjectionTile {

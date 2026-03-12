@@ -1,26 +1,20 @@
 import { Scene } from 'phaser';
-import { eventBus } from '../../../eventBus';
 import { configuration } from '../../configuration';
-import { multiplayerClient } from '../../../multiplayer/client/clientSingleton';
-import type { BuildingCatalogSnapshot, GameSnapshot, KingdomTileSnapshot } from '../../../shared/multiplayer/protocol';
-import { ensureProjectionWorld } from './projection/ProjectionRegistry';
+import type { BuildingCatalogSnapshot, KingdomTileSnapshot } from '../../../shared/multiplayer/protocol';
+import { gameSessionClient, gameSessionState } from '../../../multiplayer/client/gameSessionStore';
+import { ConstructionBadge } from './projection/ConstructionBadge';
 import { ProjectionRenderSystem } from './projection/ProjectionRenderSystem';
 import { ProjectionHexGrid } from './projection/ProjectionHexGrid';
-import { TileSelectionProjection } from './projection/TileSelectionProjection';
-import { SelectionSystem } from './projection/SelectionSystem';
-import type { ProjectionWorld } from './projection/model';
+import { ProjectionWorld, type ProjectionRenderState } from './projection/model';
 
 export class KingdomScene extends Scene {
 	private world!: ProjectionWorld;
 	private renderSystem!: ProjectionRenderSystem;
 	private hexGridSystem!: ProjectionHexGrid;
-	private tileSelectionSystem!: TileSelectionProjection;
-	private selectionSystem!: SelectionSystem;
-	private readonly SELECTED_TILE_UI_TICK_MS = configuration.kingdomView.selectedTileUiTickMs;
 	private readonly HEX_SIZE: number = configuration.kingdomView.hexSize;
 	private readonly HEX_STROKE: number = configuration.kingdomView.hexStroke;
 	private readonly GRID_ORIGIN_Y_OFFSET = configuration.kingdomView.gridOriginYOffset;
-	private multiplayerUnsubscribe: (() => void) | null = null;
+	private stateUnsubscribe: (() => void) | null = null;
 
 	constructor() {
 		super('Kingdom');
@@ -28,85 +22,69 @@ export class KingdomScene extends Scene {
 
 	preload() {
 		ProjectionHexGrid.preloadHexTexture(this, this.HEX_SIZE, this.HEX_STROKE);
+		ConstructionBadge.preload(this);
 	}
 
 	create() {
-		this.world = ensureProjectionWorld(this);
+		this.world = new ProjectionWorld();
 
 		this.cameras.main.setBackgroundColor(configuration.kingdomView.backgroundColor);
 
-		this.tileSelectionSystem = new TileSelectionProjection(this.world);
-		this.selectionSystem = new SelectionSystem({
-			tickIntervalMs: this.SELECTED_TILE_UI_TICK_MS,
-			onTick: (q, r) => this.publishTileSelected(q, r)
-		});
 		this.renderSystem = new ProjectionRenderSystem(this.world, this);
 		this.hexGridSystem = new ProjectionHexGrid(this.world, this, {
 			hexSize: this.HEX_SIZE,
 			hexStroke: this.HEX_STROKE,
 			gridOriginYOffset: this.GRID_ORIGIN_Y_OFFSET,
 			onTileSelected: (q, r) => {
-				this.selectionSystem.select(q, r);
+				gameSessionClient.selectTile(q, r);
 			}
 		});
 
-		this.multiplayerUnsubscribe = multiplayerClient.subscribeServerEvents((event) => {
-			if (event.type === 'catalog/snapshot') {
-				this.loadCatalogAssets(event.catalog);
-				return;
-			}
-			if (event.type !== 'game/snapshot') return;
-			this.applyMultiplayerSnapshot(event.game);
+		this.stateUnsubscribe = gameSessionState.subscribe((state) => {
+			this.loadCatalogAssets({ buildings: state.catalog });
+			this.applyKingdomSnapshot(state.kingdom.tiles);
 		});
 		this.events.once('shutdown', () => {
-			this.multiplayerUnsubscribe?.();
-			this.multiplayerUnsubscribe = null;
+			this.stateUnsubscribe?.();
+			this.stateUnsubscribe = null;
 		});
 
 		// notify UI when clicking off any tile
 		this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
 			if (currentlyOver.length === 0) {
-				this.selectionSystem.clear();
-				eventBus.publishGameToUi({ type: 'tile-cleared' });
+				gameSessionClient.clearSelectedTile();
 			}
 		});
-
-		const initialCatalog = multiplayerClient.getCatalog();
-		if (initialCatalog) {
-			this.loadCatalogAssets(initialCatalog);
-		}
 	}
 
 
-	override update(time: number, delta: number): void {
+	override update(_time: number, _delta: number): void {
 		this.renderSystem.update();
-		this.selectionSystem.tick(delta);
-	}
-
-	private publishTileSelected(q: number, r: number) {
-		const payload = this.tileSelectionSystem.buildPayload(q, r);
-		eventBus.publishGameToUi({
-			type: 'tile-selected',
-			payload
-		});
-	}
-
-	private applyMultiplayerSnapshot(game: GameSnapshot): void {
-		const view = multiplayerClient.getSelfGameView(game);
-		if (!view) return;
-		this.applyKingdomSnapshot(view.kingdom.tiles);
 	}
 
 	private loadCatalogAssets(catalog: BuildingCatalogSnapshot): void {
 		let queued = false;
 		for (const building of catalog.buildings) {
 			if (this.textures.exists(building.textureId)) continue;
-			this.load.image(building.textureId, `assets/${building.assetPath}`);
+			const assetUrl = `assets/${building.assetPath}`;
+			if (assetUrl.toLowerCase().endsWith('.svg')) {
+				const targetSize = this.getBuildingRasterSize();
+				this.load.svg(building.textureId, assetUrl, { width: targetSize, height: targetSize });
+			} else {
+				this.load.image(building.textureId, assetUrl);
+			}
 			queued = true;
 		}
 		if (queued && !this.load.isLoading()) {
 			this.load.start();
 		}
+	}
+
+	private getBuildingRasterSize(): number {
+		const buildingCfg = configuration.render.building;
+		const deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+		const targetDisplaySize = buildingCfg.hexSize * buildingCfg.spriteFillScaleMultiplier;
+		return Math.ceil(targetDisplaySize * buildingCfg.textureOversample * deviceScale);
 	}
 
 	private applyKingdomSnapshot(tiles: KingdomTileSnapshot[]): void {
@@ -130,7 +108,15 @@ export class KingdomScene extends Scene {
 		for (const tile of this.world.getTiles()) {
 			const key = `${tile.position.q},${tile.position.r}`;
 			if (snapshotIds.has(key)) continue;
+			this.destroyTileRenderState(tile.render);
 			delete tile.building;
 		}
+	}
+
+	private destroyTileRenderState(render: ProjectionRenderState): void {
+		render.building?.destroy();
+		render.building = undefined;
+		render.constructionBadge?.destroy();
+		render.constructionBadge = undefined;
 	}
 }

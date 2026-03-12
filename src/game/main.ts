@@ -7,6 +7,9 @@ const config: Types.Core.GameConfig = {
 	height: 1080,
 	parent: 'game-container',
 	backgroundColor: '#000000',
+	antialias: true,
+	antialiasGL: true,
+	roundPixels: false,
 	scale: {
 		mode: Scale.FIT,
 		autoCenter: Scale.CENTER_BOTH

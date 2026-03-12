@@ -1,6 +1,7 @@
 import type { Scene } from 'phaser';
 import { configuration } from '../../../configuration';
 import { buildingCatalog } from '../../../../multiplayer/client/buildingCatalog';
+import { ConstructionBadge } from './ConstructionBadge';
 import type { ProjectionWorld } from './model';
 
 export class ProjectionRenderSystem {
@@ -37,43 +38,33 @@ export class ProjectionRenderSystem {
 						? (tile.building.upgradeNextId ? buildingCatalog.getById(tile.building.upgradeNextId) : undefined)
 						: def;
 					const totalTicks = progressDef?.buildTime ?? 0;
+					const remainingTicks = Math.max(0, totalTicks - tile.building.progress);
+					const remainingRatio = totalTicks > 0 ? remainingTicks / totalTicks : 0;
 
 					render.building.setAlpha(isUpgrading ? buildingCfg.alpha.upgrading : buildingCfg.alpha.constructing);
 					const targetScale = buildingCfg.hexSize / Math.max(render.building.width, render.building.height);
 					render.building.setScale(targetScale);
 
-					if (!render.constructionProgress) {
-						render.constructionProgress = this.scene.add.graphics();
+					if (!render.constructionBadge) {
+						render.constructionBadge = new ConstructionBadge(this.scene);
 					}
 
-					const graphics = render.constructionProgress;
-					graphics.clear();
-					const progress = totalTicks > 0 ? tile.building.progress / totalTicks : 1;
-
-					graphics.lineStyle(buildingCfg.progress.lineWidth, buildingCfg.progress.backgroundColor, buildingCfg.progress.backgroundAlpha);
-					graphics.strokeCircle(render.hex.x, render.hex.y, buildingCfg.progress.radius);
-					graphics.lineStyle(
-						buildingCfg.progress.lineWidth,
-						isUpgrading ? buildingCfg.progress.arcColor.upgrading : buildingCfg.progress.arcColor.constructing,
-						buildingCfg.progress.arcAlpha
+					render.constructionBadge.setPosition(
+						render.hex.x + buildingCfg.badge.offsetX,
+						render.hex.y + buildingCfg.badge.offsetY
 					);
-					graphics.beginPath();
-					graphics.arc(
-						render.hex.x,
-						render.hex.y,
-						buildingCfg.progress.radius,
-						Phaser.Math.DegToRad(-90),
-						Phaser.Math.DegToRad(-90 + 360 * progress),
-						false
+					render.constructionBadge.setRemainingTicks(
+						remainingTicks,
+						remainingRatio,
+						isUpgrading ? 'upgrading' : 'constructing'
 					);
-					graphics.strokePath();
 				} else {
 					render.building.setAlpha(1);
 					const targetScale = buildingCfg.hexSize / Math.max(render.building.width, render.building.height);
 					render.building.setScale(targetScale);
-					if (render.constructionProgress) {
-						render.constructionProgress.destroy();
-						render.constructionProgress = undefined;
+					if (render.constructionBadge) {
+						render.constructionBadge.destroy();
+						render.constructionBadge = undefined;
 					}
 				}
 			} else {
@@ -81,9 +72,9 @@ export class ProjectionRenderSystem {
 					render.building.destroy();
 					render.building = undefined;
 				}
-				if (render.constructionProgress) {
-					render.constructionProgress.destroy();
-					render.constructionProgress = undefined;
+				if (render.constructionBadge) {
+					render.constructionBadge.destroy();
+					render.constructionBadge = undefined;
 				}
 			}
 		}

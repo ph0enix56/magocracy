@@ -1,28 +1,28 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import type { TileSelectedPayload } from '../eventBus';
-	import { eventBus } from '../eventBus';
+	import { onDestroy } from 'svelte';
 	import { blueprintModalState } from './uiState';
+	import { selectedTileState } from './gameState';
+	import { gameSessionClient, type SelectedTileView } from '../multiplayer/client/gameSessionStore';
 
 	let visible = false;
-	let selected: TileSelectedPayload | null = null;
+	let selected: SelectedTileView | null = null;
 
-	let unsubscribe: (() => void) | null = null;
+	const unsubscribe = selectedTileState.subscribe((nextSelected) => {
+		if (!nextSelected) {
+			selected = null;
+			visible = false;
+			return;
+		}
 
-	onMount(() => {
-		unsubscribe = eventBus.subscribeGameToUi((event) => {
-			if (event.type === 'tile-selected') {
-				selected = event.payload;
-				visible = true;
-			} else if (event.type === 'tile-cleared') {
-				selected = null;
-				visible = false;
-			}
-		});
+		const selectionChanged = !selected || selected.q !== nextSelected.q || selected.r !== nextSelected.r;
+		selected = nextSelected;
+		if (selectionChanged) {
+			visible = true;
+		}
 	});
 
 	onDestroy(() => {
-		if (unsubscribe) unsubscribe();
+		unsubscribe();
 	});
 
 	function onBuild() {
@@ -32,11 +32,14 @@
 		selected = null;
 	}
 
-	function onDestroyClick() {
+	async function onDestroyClick() {
 		if (!selected) return;
-		eventBus.publishUiToGame({ type: 'destroy-requested', q: selected.q, r: selected.r });
+		const result = await gameSessionClient.requestDestroy(selected.q, selected.r);
+		if (!result.ok) {
+			alert(result.reason);
+			return;
+		}
 		visible = false;
-		selected = null;
 	}
 
 	function formatCost(cost: Record<string, number> | undefined): string {
@@ -46,19 +49,19 @@
 			.join(', ');
 	}
 
-	function onUpgradeClick() {
+	async function onUpgradeClick() {
 		if (!selected?.nextUpgradeId) return;
 		const costStr = formatCost(selected.nextUpgradeCost);
 		const timeStr = selected.nextUpgradeTime !== undefined ? `${selected.nextUpgradeTime}s` : '';
 		const ok = confirm(`Upgrade to ${selected.nextUpgradeId}?\nCost: ${costStr}\nTime: ${timeStr}`);
 		if (!ok) return;
 
-		eventBus.publishUiToGame({
-			type: 'upgrade-requested',
-			q: selected.q,
-			r: selected.r,
-			upgradeBuildingId: selected.nextUpgradeId
-		});
+		const result = await gameSessionClient.requestUpgrade(selected.q, selected.r, selected.nextUpgradeId);
+		if (!result.ok) {
+			alert(result.reason);
+			return;
+		}
+		visible = false;
 	}
 </script>
 

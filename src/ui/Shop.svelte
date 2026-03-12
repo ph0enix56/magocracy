@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import { eventBus } from '../eventBus';
+	import { onDestroy } from 'svelte';
 	import { shopModalState } from './uiState';
-	import { shopState } from './gameState';
+	import { buildingCatalogState, shopState } from './gameState';
 	import BuildingCard from './BuildingCard.svelte';
-	import { buildingCatalog } from '../multiplayer/client/buildingCatalog';
 	import type { BuildingCatalogEntry } from '../shared/multiplayer/protocol';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let state: { isOpen: boolean } = { isOpen: false };
 	shopModalState.subscribe(v => (state = v));
@@ -16,7 +15,7 @@
 	let pendingBuySlot: number | null = null;
 	let pendingReroll = false;
 	let purchasableBuildings: BuildingCatalogEntry[] = [];
-	const unsubscribeCatalog = buildingCatalog.subscribe((entries) => {
+	const unsubscribeCatalog = buildingCatalogState.subscribe((entries) => {
 		purchasableBuildings = entries.filter((entry) => !entry.parentId && entry.type !== 'blocking');
 	});
 
@@ -30,38 +29,27 @@
 		return pendingBuySlot === null && !pendingReroll;
 	}
 
-	function requestReroll() {
+	async function requestReroll() {
 		if (!canReroll()) return;
 		pendingReroll = true;
-		eventBus.publishUiToGame({ type: 'shop-reroll-requested' });
+		const result = await gameSessionClient.requestShopReroll();
+		pendingReroll = false;
+		if (!result.ok) {
+			alert(result.reason);
+		}
 	}
 
-	function buy(slotIndex: number) {
+	async function buy(slotIndex: number) {
 		if (pendingBuySlot !== null || pendingReroll) return;
 		pendingBuySlot = slotIndex;
-		eventBus.publishUiToGame({ type: 'shop-buy-requested', slotIndex });
+		const result = await gameSessionClient.requestShopBuy(slotIndex);
+		pendingBuySlot = null;
+		if (!result.ok) {
+			alert(result.reason);
+		}
 	}
 
-	let unsubscribe: (() => void) | null = null;
-
-	onMount(() => {
-		unsubscribe = eventBus.subscribeGameToUi((event) => {
-			if (event.type !== 'shop-action-result') return;
-
-			if (!event.ok) {
-				if (event.reason) alert(event.reason);
-			}
-
-			if (event.action === 'buy') {
-				pendingBuySlot = null;
-			} else if (event.action === 'reroll') {
-				pendingReroll = false;
-			}
-		});
-	});
-
 	onDestroy(() => {
-		if (unsubscribe) unsubscribe();
 		unsubscribeCatalog();
 	});
 

@@ -1,5 +1,4 @@
 import { io, type Socket } from 'socket.io-client';
-import type { UiToGameEvents } from '../../eventBus';
 import type {
 	ClientCommand,
 	ClientToServerEvents,
@@ -118,7 +117,7 @@ export class MultiplayerClient {
 		});
 
 		socket.on('disconnect', (reason: string) => {
-			this.setState({ connectionStatus: 'disconnected', lobby: null, lastError: `Disconnected: ${reason}` });
+			this.setState({ connectionStatus: 'disconnected', lobby: null, game: null, lastError: `Disconnected: ${reason}` });
 		});
 
 		socket.on('connect_error', (error: Error) => {
@@ -165,6 +164,10 @@ export class MultiplayerClient {
 		this.send(command);
 	}
 
+	sendGameAction(action: GameActionCommand, requestId: string): boolean {
+		return this.send({ type: 'game/action', requestId, action });
+	}
+
 	getSelfGameView(game = this.state.game): PlayerGameView | null {
 		const playerId = this.state.playerId;
 		if (!playerId || !game) return null;
@@ -175,18 +178,6 @@ export class MultiplayerClient {
 		return this.state.connectionStatus === 'connected' && this.state.lobby?.status === 'in-game' && this.state.game !== null;
 	}
 
-	handlesUiToGameEvent(event: UiToGameEvents): boolean {
-		if (!this.isAuthoritativeGameplayActive()) return false;
-		return toGameActionCommand(event) !== null;
-	}
-
-	forwardUiToGameEvent(event: UiToGameEvents): boolean {
-		const action = toGameActionCommand(event);
-		if (!action) return false;
-		this.send({ type: 'game/action', action });
-		return true;
-	}
-
 	getSelfPlayer(): LobbyPlayerSnapshot | null {
 		const lobby = this.state.lobby;
 		const playerId = this.state.playerId;
@@ -194,12 +185,13 @@ export class MultiplayerClient {
 		return lobby.players.find((player) => player.playerId === playerId) ?? null;
 	}
 
-	private send(command: ClientCommand): void {
+	private send(command: ClientCommand): boolean {
 		if (!this.socket || !this.socket.connected) {
 			this.setState({ lastError: 'Not connected to the multiplayer server.' });
-			return;
+			return false;
 		}
 		this.socket.emit('command', command);
+		return true;
 	}
 
 	private handleServerEvent(event: ServerEvent): void {
@@ -213,6 +205,9 @@ export class MultiplayerClient {
 				return;
 			case 'lobby/state':
 				this.setState({ lobby: event.lobby, game: event.lobby?.status === 'in-game' ? this.state.game : null, lastError: null });
+				return;
+			case 'command/accepted':
+				this.setState({ lastError: null });
 				return;
 			case 'command/rejected':
 				this.setState({ lastError: event.reason });
@@ -229,28 +224,5 @@ export class MultiplayerClient {
 	private setState(patch: Partial<MultiplayerClientState>): void {
 		this.state = { ...this.state, ...patch };
 		for (const listener of this.listeners) listener(this.state);
-	}
-}
-
-function toGameActionCommand(event: UiToGameEvents): GameActionCommand | null {
-	switch (event.type) {
-		case 'build-requested':
-			return { type: 'build/request', q: event.q, r: event.r, buildingId: event.buildingId };
-		case 'destroy-requested':
-			return { type: 'destroy/request', q: event.q, r: event.r };
-		case 'upgrade-requested':
-			return { type: 'upgrade/request', q: event.q, r: event.r, upgradeBuildingId: event.upgradeBuildingId };
-		case 'shop-buy-requested':
-			return { type: 'shop/buy', slotIndex: event.slotIndex };
-		case 'shop-reroll-requested':
-			return { type: 'shop/reroll' };
-		case 'army-train-requested':
-			return { type: 'army/train', unitEntityId: event.unitEntityId };
-		case 'army-reorder-requested':
-			return { type: 'army/reorder', unitEntityId: event.unitEntityId, direction: event.direction };
-		case 'combat-step-requested':
-			return { type: 'combat/step', steps: event.steps };
-		default:
-			return null;
 	}
 }

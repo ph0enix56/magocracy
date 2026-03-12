@@ -133,7 +133,7 @@ export type ClientCommand =
 	| { type: 'lobby/leave' }
 	| { type: 'lobby/set-ready'; ready: boolean }
 	| { type: 'lobby/start' }
-	| { type: 'game/action'; action: GameActionCommand };
+	| { type: 'game/action'; requestId: string; action: GameActionCommand };
 
 export type ServerEvent =
 	| { type: 'session/connected'; playerId: string }
@@ -141,9 +141,16 @@ export type ServerEvent =
 	| { type: 'lobby/state'; lobby: LobbySnapshot | null }
 	| { type: 'game/snapshot'; game: GameSnapshot }
 	| {
+		type: 'command/accepted';
+		commandType: ClientCommand['type'] | GameActionCommand['type'];
+		actionType?: GameActionCommand['type'];
+		requestId?: string;
+	}
+	| {
 		type: 'command/rejected';
 		commandType: ClientCommand['type'] | GameActionCommand['type'];
 		actionType?: GameActionCommand['type'];
+		requestId?: string;
 		reason: string;
 	}
 	| { type: 'system/error'; message: string };

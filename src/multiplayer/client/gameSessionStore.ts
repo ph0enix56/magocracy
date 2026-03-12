@@ -1,0 +1,294 @@
+import { writable } from 'svelte/store';
+import type {
+	ArmyUnitSnapshot,
+	BlueprintInventorySnapshot,
+	BuildingCatalogEntry,
+	CombatSnapshot,
+	GameActionCommand,
+	KingdomSnapshot,
+	LobbyPlayerSnapshot,
+	PlayerGameView,
+	ResourceSnapshot,
+	ServerEvent,
+	ShopSnapshot
+} from '../../shared/multiplayer/protocol';
+import type { MultiplayerClientState } from './MultiplayerClient';
+import { buildingCatalog } from './buildingCatalog';
+import { multiplayerClient } from './clientSingleton';
+
+export type SelectedTileView = {
+	q: number;
+	r: number;
+	built: boolean;
+	buildingId?: string;
+	buildingStatus?: 'constructing' | 'active' | 'upgrading';
+	constructionProgress?: number;
+	productionMultiplier?: number;
+	nextUpgradeId?: string;
+	nextUpgradeCost?: Record<string, number>;
+	nextUpgradeTime?: number;
+	upgradingToId?: string;
+	upgradeProgress?: number;
+};
+
+export type CommandResult = { ok: true } | { ok: false; reason: string };
+
+export type GameSessionState = MultiplayerClientState & {
+	catalog: BuildingCatalogEntry[];
+	selfPlayer: LobbyPlayerSnapshot | null;
+	selfGameView: PlayerGameView | null;
+	resources: ResourceSnapshot;
+	blueprints: BlueprintInventorySnapshot;
+	shop: ShopSnapshot;
+	army: ArmyUnitSnapshot[];
+	combat: CombatSnapshot;
+	kingdom: KingdomSnapshot;
+	selectedTile: SelectedTileView | null;
+	combatOpenRequest: number;
+};
+
+type PendingRequest = {
+	resolve: (result: CommandResult) => void;
+};
+
+const EMPTY_RESOURCES: ResourceSnapshot = {};
+const EMPTY_SHOP: ShopSnapshot = {
+	offers: [],
+	buyCost: 0,
+	rerollCost: 0
+};
+const EMPTY_COMBAT: CombatSnapshot = {
+	status: 'idle',
+	round: 0,
+	activeSide: 'armyA',
+	armyA: [],
+	armyB: [],
+	log: []
+};
+const EMPTY_KINGDOM: KingdomSnapshot = {
+	tiles: []
+};
+
+let selectedTileCoords: { q: number; r: number } | null = null;
+let combatOpenRequest = 0;
+let lastCombatStatus: CombatSnapshot['status'] = 'idle';
+const pendingRequests = new Map<string, PendingRequest>();
+
+const initialState = buildState(multiplayerClient.getState(), buildingCatalog.getAll());
+let currentState = initialState;
+const store = writable<GameSessionState>(initialState);
+
+multiplayerClient.subscribe((state) => {
+	if (pendingRequests.size > 0 && !multiplayerClient.isAuthoritativeGameplayActive()) {
+		rejectAllPending('Authoritative multiplayer gameplay is not active.');
+	}
+	setState(buildState(state, currentState.catalog));
+});
+
+multiplayerClient.subscribeServerEvents((event) => {
+	handleServerEvent(event);
+});
+
+buildingCatalog.subscribe((entries) => {
+	setState(buildState(multiplayerClient.getState(), entries));
+});
+
+export const gameSessionState = {
+	subscribe: store.subscribe
+};
+
+export const gameSessionClient = {
+	selectTile(q: number, r: number): void {
+		if (selectedTileCoords?.q === q && selectedTileCoords.r === r) return;
+		selectedTileCoords = { q, r };
+		setState(buildState(multiplayerClient.getState(), currentState.catalog));
+	},
+	clearSelectedTile(): void {
+		if (!selectedTileCoords) return;
+		selectedTileCoords = null;
+		setState(buildState(multiplayerClient.getState(), currentState.catalog));
+	},
+	requestBuild(q: number, r: number, buildingId: string): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'build/request', q, r, buildingId });
+	},
+	requestDestroy(q: number, r: number): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'destroy/request', q, r });
+	},
+	requestUpgrade(q: number, r: number, upgradeBuildingId: string): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'upgrade/request', q, r, upgradeBuildingId });
+	},
+	requestShopBuy(slotIndex: number): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'shop/buy', slotIndex });
+	},
+	requestShopReroll(): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'shop/reroll' });
+	},
+	requestArmyTrain(unitEntityId: string): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'army/train', unitEntityId });
+	},
+	requestArmyReorder(unitEntityId: string, direction: 'up' | 'down'): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'army/reorder', unitEntityId, direction });
+	},
+	requestCombatStep(steps = 1): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'combat/step', steps });
+	}
+};
+
+function setState(nextState: GameSessionState): void {
+	currentState = nextState;
+	store.set(nextState);
+}
+
+function buildState(base: MultiplayerClientState, catalog: BuildingCatalogEntry[]): GameSessionState {
+	const selfPlayer = getSelfPlayer(base);
+	const selfGameView = getSelfGameView(base);
+	const nextCombatStatus = selfGameView?.combat.status ?? 'idle';
+
+	if (lastCombatStatus === 'idle' && nextCombatStatus === 'running') {
+		combatOpenRequest += 1;
+	}
+	lastCombatStatus = nextCombatStatus;
+
+	if (!selfGameView) {
+		selectedTileCoords = null;
+	}
+
+	return {
+		...base,
+		catalog,
+		selfPlayer,
+		selfGameView,
+		resources: selfGameView?.resources ?? EMPTY_RESOURCES,
+		blueprints: selfGameView?.blueprints ?? {},
+		shop: selfGameView?.shop ?? EMPTY_SHOP,
+		army: selfGameView?.army ?? [],
+		combat: selfGameView?.combat ?? EMPTY_COMBAT,
+		kingdom: selfGameView?.kingdom ?? EMPTY_KINGDOM,
+		selectedTile: selfGameView && selectedTileCoords
+			? buildSelectedTileView(selectedTileCoords.q, selectedTileCoords.r, selfGameView.kingdom, catalog)
+			: null,
+		combatOpenRequest
+	};
+}
+
+function getSelfPlayer(base: MultiplayerClientState): LobbyPlayerSnapshot | null {
+	if (!base.lobby || !base.playerId) return null;
+	return base.lobby.players.find((player) => player.playerId === base.playerId) ?? null;
+}
+
+function getSelfGameView(base: MultiplayerClientState): PlayerGameView | null {
+	if (!base.game || !base.playerId) return null;
+	return base.game.players.find((player) => player.playerId === base.playerId) ?? null;
+}
+
+function buildSelectedTileView(
+	q: number,
+	r: number,
+	kingdom: KingdomSnapshot,
+	catalog: BuildingCatalogEntry[]
+): SelectedTileView {
+	const tile = kingdom.tiles.find((entry) => entry.q === q && entry.r === r);
+	const built = !!tile?.building;
+
+	let buildingId: string | undefined;
+	let buildingStatus: 'constructing' | 'active' | 'upgrading' | undefined;
+	let constructionProgress: number | undefined;
+	let productionMultiplier: number | undefined;
+	let nextUpgradeId: string | undefined;
+	let nextUpgradeCost: Record<string, number> | undefined;
+	let nextUpgradeTime: number | undefined;
+	let upgradingToId: string | undefined;
+	let upgradeProgress: number | undefined;
+
+	if (tile?.building) {
+		buildingId = tile.building.buildingId;
+		buildingStatus = tile.building.status;
+		const def = catalog.find((entry) => entry.id === buildingId);
+
+		if (tile.building.status === 'constructing' && def) {
+			constructionProgress = toProgressPercent(tile.building.progress, def.buildTime);
+		} else if (tile.building.status === 'upgrading') {
+			upgradingToId = tile.building.upgradeNextId;
+			const targetDef = upgradingToId ? catalog.find((entry) => entry.id === upgradingToId) : undefined;
+			if (targetDef) {
+				upgradeProgress = toProgressPercent(tile.building.progress, targetDef.buildTime);
+			}
+		} else if (tile.building.status === 'active') {
+			productionMultiplier = tile.building.productionMultiplier;
+			const nextUpgrade = catalog.find((entry) => entry.parentId === buildingId);
+			if (nextUpgrade) {
+				nextUpgradeId = nextUpgrade.id;
+				nextUpgradeCost = nextUpgrade.cost;
+				nextUpgradeTime = nextUpgrade.buildTime;
+			}
+		}
+	}
+
+	return {
+		q,
+		r,
+		built,
+		buildingId,
+		buildingStatus,
+		constructionProgress,
+		productionMultiplier,
+		nextUpgradeId,
+		nextUpgradeCost,
+		nextUpgradeTime,
+		upgradingToId,
+		upgradeProgress
+	};
+}
+
+function toProgressPercent(progress: number, total: number): number {
+	if (total <= 0) return 100;
+	return Math.min(100, Math.max(0, (progress / total) * 100));
+}
+
+function sendTrackedAction(action: GameActionCommand): Promise<CommandResult> {
+	if (!multiplayerClient.isAuthoritativeGameplayActive()) {
+		return Promise.resolve({ ok: false, reason: 'Authoritative multiplayer gameplay is not active.' });
+	}
+
+	const requestId = createRequestId();
+
+	return new Promise((resolve) => {
+		pendingRequests.set(requestId, { resolve });
+		const sent = multiplayerClient.sendGameAction(action, requestId);
+		if (!sent) {
+			resolvePending(requestId, { ok: false, reason: 'Not connected to the multiplayer server.' });
+		}
+	});
+}
+
+function handleServerEvent(event: ServerEvent): void {
+	if (event.type === 'command/accepted' && event.requestId) {
+		resolvePending(event.requestId, { ok: true });
+		return;
+	}
+
+	if (event.type === 'command/rejected' && event.requestId) {
+		resolvePending(event.requestId, { ok: false, reason: event.reason });
+	}
+}
+
+function resolvePending(requestId: string, result: CommandResult): void {
+	const pending = pendingRequests.get(requestId);
+	if (!pending) return;
+	pendingRequests.delete(requestId);
+	pending.resolve(result);
+}
+
+function rejectAllPending(reason: string): void {
+	for (const [requestId, pending] of pendingRequests.entries()) {
+		pending.resolve({ ok: false, reason });
+		pendingRequests.delete(requestId);
+	}
+}
+
+function createRequestId(): string {
+	if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+		return crypto.randomUUID();
+	}
+	return `req-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}

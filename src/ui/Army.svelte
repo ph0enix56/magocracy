@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import { eventBus } from '../eventBus';
+	import { onDestroy } from 'svelte';
 	import { armyModalState } from './uiState';
 	import { armyState } from './gameState';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let state: { isOpen: boolean } = { isOpen: false };
 	armyModalState.subscribe(v => (state = v));
@@ -11,7 +11,6 @@
 	armyState.subscribe(v => (units = v));
 
 	let pendingTrain: string | null = null;
-	let unsubscribe: (() => void) | null = null;
 
 	function close() {
 		armyModalState.set({ isOpen: false });
@@ -24,33 +23,24 @@
 			.join(', ');
 	}
 
-	function train(unitEntityId: string) {
+	async function train(unitEntityId: string) {
 		if (pendingTrain) return;
 		pendingTrain = unitEntityId;
-		eventBus.publishUiToGame({ type: 'army-train-requested', unitEntityId });
+		const result = await gameSessionClient.requestArmyTrain(unitEntityId);
+		pendingTrain = null;
+		if (!result.ok) {
+			alert(result.reason);
+		}
 	}
 
-	function reorder(unitEntityId: string, direction: 'up' | 'down') {
-		eventBus.publishUiToGame({ type: 'army-reorder-requested', unitEntityId, direction });
+	async function reorder(unitEntityId: string, direction: 'up' | 'down') {
+		const result = await gameSessionClient.requestArmyReorder(unitEntityId, direction);
+		if (!result.ok) {
+			alert(result.reason);
+		}
 	}
-
-	onMount(() => {
-		unsubscribe = eventBus.subscribeGameToUi((event) => {
-			if (event.type !== 'army-action-result') return;
-			if (event.action === 'train') {
-				pendingTrain = null;
-				if (!event.ok && event.reason) alert(event.reason);
-				return;
-			}
-			if (event.action === 'reorder') {
-				if (!event.ok && event.reason) alert(event.reason);
-				return;
-			}
-		});
-	});
 
 	onDestroy(() => {
-		if (unsubscribe) unsubscribe();
 	});
 </script>
 

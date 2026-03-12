@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
 	import Sidebar from './Sidebar.svelte';
 	import ResourceCounter from './ResourceCounter.svelte';
 	import BuildingSelector from './BuildingSelector.svelte';
@@ -7,7 +6,6 @@
 	import Army from './Army.svelte';
 	import Combat from './Combat.svelte';
 	import MultiplayerPanel from './MultiplayerPanel.svelte';
-	import { multiplayerProjectionBridge } from '../multiplayer/client/MultiplayerProjectionBridge';
 	import { armyModalState, blueprintModalState, shopModalState } from './uiState';
 
 	function openBlueprints() {
@@ -21,14 +19,6 @@
 	function openArmy() {
 		armyModalState.set({ isOpen: true });
 	}
-
-	onMount(() => {
-		multiplayerProjectionBridge.attach();
-	});
-
-	onDestroy(() => {
-		multiplayerProjectionBridge.detach();
-	});
 </script>
 
 <div class="ui-root">

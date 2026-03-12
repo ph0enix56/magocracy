@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import { eventBus } from '../eventBus';
+	import { onDestroy } from 'svelte';
 	import { combatModalState } from './uiState';
-	import { combatState } from './gameState';
+	import { combatOpenRequestState, combatState } from './gameState';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let modal: { isOpen: boolean } = { isOpen: false };
 	const unsubModal = combatModalState.subscribe(v => (modal = v));
@@ -16,15 +16,27 @@
 		log: []
 	} as any;
 	const unsubCombat = combatState.subscribe(v => (state = v as any));
+	let stepPending = false;
+	let lastCombatOpenRequest = 0;
 
-	let unsubscribeResult: (() => void) | null = null;
+	const unsubCombatOpen = combatOpenRequestState.subscribe((requestId) => {
+		if (requestId <= lastCombatOpenRequest) return;
+		lastCombatOpenRequest = requestId;
+		combatModalState.set({ isOpen: true });
+	});
 
 	function close() {
 		combatModalState.set({ isOpen: false });
 	}
 
-	function step() {
-		eventBus.publishUiToGame({ type: 'combat-step-requested', steps: 1 });
+	async function step() {
+		if (stepPending) return;
+		stepPending = true;
+		const result = await gameSessionClient.requestCombatStep(1);
+		stepPending = false;
+		if (!result.ok) {
+			alert(result.reason);
+		}
 	}
 
 	function hpPct(u: any): number {
@@ -33,23 +45,10 @@
 		return Math.min(100, Math.max(0, (u.health / max) * 100));
 	}
 
-	onMount(() => {
-		unsubscribeResult = eventBus.subscribeGameToUi((event) => {
-			if (event.type === 'combat-action-result') {
-				if (!event.ok && event.reason) alert(event.reason);
-				return;
-			}
-			if (event.type === 'combat-ui-open') {
-				combatModalState.set({ isOpen: true });
-				return;
-			}
-		});
-	});
-
 	onDestroy(() => {
 		unsubModal();
 		unsubCombat();
-		if (unsubscribeResult) unsubscribeResult();
+		unsubCombatOpen();
 	});
 </script>
 
@@ -59,7 +58,7 @@
 			<div class="ui-modal-header">
 				<h2 class="ui-modal-title">Combat</h2>
 				<div class="header-actions">
-					<button class="ui-button" on:click={step} disabled={state.status !== 'running'}>Next action</button>
+					<button class="ui-button" on:click={step} disabled={state.status !== 'running' || stepPending}>Next action</button>
 					<button class="ui-close-btn" on:click={close}>X</button>
 				</div>
 			</div>

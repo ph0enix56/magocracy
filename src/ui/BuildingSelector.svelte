@@ -1,11 +1,10 @@
 <script lang="ts">
     import { onDestroy } from 'svelte';
-    import { eventBus } from '../eventBus';
     import { blueprintModalState } from './uiState';
-    import { blueprintInventory } from './gameState';
+    import { blueprintInventory, buildingCatalogState } from './gameState';
     import BuildingCard from './BuildingCard.svelte';
-    import { buildingCatalog } from '../multiplayer/client/buildingCatalog';
     import type { BuildingCatalogEntry } from '../shared/multiplayer/protocol';
+    import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
     // Subscribe to stores
     let state: { isOpen: boolean; mode: 'view' | 'build'; q: number; r: number } = { isOpen: false, mode: 'view', q: 0, r: 0 };
@@ -14,34 +13,21 @@
     let inventory: Record<string, number> = {};
     blueprintInventory.subscribe(v => inventory = v);
     let purchasableBuildings: BuildingCatalogEntry[] = [];
-    const unsubscribeCatalog = buildingCatalog.subscribe((entries) => {
+    const unsubscribeCatalog = buildingCatalogState.subscribe((entries) => {
         purchasableBuildings = entries.filter((entry) => !entry.parentId && entry.type !== 'blocking');
-    });
-
-    // Pending build: used only for correlating build-result.
-    let pendingBuild: { q: number; r: number; buildingId: string } | null = null;
-
-    eventBus.subscribeGameToUi((event) => {
-        if (event.type !== 'build-result') return;
-        if (!pendingBuild) return;
-        if (event.q !== pendingBuild.q || event.r !== pendingBuild.r || event.buildingId !== pendingBuild.buildingId) return;
-
-        if (!event.ok) {
-            if (event.reason) alert(event.reason);
-        }
-        pendingBuild = null;
     });
 
     function close() {
         blueprintModalState.set({ ...state, isOpen: false });
-        pendingBuild = null;
     }
 
-    function build(buildingId: string) {
+    async function build(buildingId: string) {
         if (state.mode !== 'build') return;
-        pendingBuild = { q: state.q, r: state.r, buildingId };
-        eventBus.publishUiToGame({ type: 'build-requested', q: state.q, r: state.r, buildingId });
+        const result = await gameSessionClient.requestBuild(state.q, state.r, buildingId);
         close();
+        if (!result.ok) {
+            alert(result.reason);
+        }
     }
 
     function ownedBlueprints() {

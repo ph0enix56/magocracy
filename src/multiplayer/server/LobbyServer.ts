@@ -106,7 +106,7 @@ export class LobbyServer {
 				this.handleStartLobby(socket.data.playerId as string);
 				return;
 			case 'game/action':
-				this.handleGameAction(socket, socket.data.playerId as string, command.action);
+				this.handleGameAction(socket, socket.data.playerId as string, command);
 				return;
 		}
 	}
@@ -230,26 +230,34 @@ export class LobbyServer {
 		this.broadcastToLobby(lobby.lobbyId, { type: 'game/snapshot', game: runtime.emitSnapshot() });
 	}
 
-	private handleGameAction(socket: MultiplayerSocket, playerId: string, action: GameActionCommand): void {
+	private handleGameAction(
+		socket: MultiplayerSocket,
+		playerId: string,
+		command: Extract<ClientCommand, { type: 'game/action' }>
+	): void {
+		const { action, requestId } = command;
 		const lobby = this.getLobbyForPlayer(playerId);
 		if (!lobby) {
-			this.reject(socket, 'game/action', 'You are not in a lobby.', action.type);
+			this.reject(socket, 'game/action', 'You are not in a lobby.', action.type, requestId);
 			return;
 		}
 		if (lobby.status !== 'in-game') {
-			this.reject(socket, 'game/action', 'The match has not started yet.', action.type);
+			this.reject(socket, 'game/action', 'The match has not started yet.', action.type, requestId);
 			return;
 		}
 		const runtime = this.gameRuntimes.get(lobby.lobbyId);
 		if (!runtime) {
-			this.reject(socket, 'game/action', 'Missing authoritative game runtime.', action.type);
+			this.reject(socket, 'game/action', 'Missing authoritative game runtime.', action.type, requestId);
 			return;
 		}
 
 		const result = runtime.handleAction(playerId, action);
 		if (!result.ok) {
-			this.reject(socket, action.type, result.reason, action.type);
+			this.reject(socket, 'game/action', result.reason, action.type, requestId);
+			return;
 		}
+
+		this.accept(socket, 'game/action', action.type, requestId);
 	}
 
 	private handleDisconnect(playerId: string): void {
@@ -314,9 +322,19 @@ export class LobbyServer {
 		socket: MultiplayerSocket,
 		commandType: ClientCommand['type'] | GameActionCommand['type'],
 		reason: string,
-		actionType?: GameActionCommand['type']
+		actionType?: GameActionCommand['type'],
+		requestId?: string
 	): void {
-		this.emitToSocket(socket, { type: 'command/rejected', commandType, actionType, reason });
+		this.emitToSocket(socket, { type: 'command/rejected', commandType, actionType, requestId, reason });
+	}
+
+	private accept(
+		socket: MultiplayerSocket,
+		commandType: ClientCommand['type'] | GameActionCommand['type'],
+		actionType?: GameActionCommand['type'],
+		requestId?: string
+	): void {
+		this.emitToSocket(socket, { type: 'command/accepted', commandType, actionType, requestId });
 	}
 
 	private emitToSocket(socket: MultiplayerSocket, event: ServerEvent): void {

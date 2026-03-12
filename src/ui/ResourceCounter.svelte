@@ -1,24 +1,18 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import { eventBus } from '../eventBus';
+	import { onDestroy } from 'svelte';
+	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
 
 	export let keyName: string;
 	export let icon: string;
 
 	let value = 0;
 
-	let unsubscribe: (() => void) | null = null;
-
-	onMount(() => {
-		unsubscribe = eventBus.subscribeGameToUi((event) => {
-			if (event.type === 'resource-updated' && event.key === keyName) {
-				value = event.value;
-			}
-		});
+	const unsubscribe = gameSessionState.subscribe((state) => {
+		value = state.resources[keyName] ?? 0;
 	});
 
 	onDestroy(() => {
-		if (unsubscribe) unsubscribe();
+		unsubscribe();
 	});
 </script>
 
