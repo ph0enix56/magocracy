@@ -14,9 +14,60 @@ export class KingdomScene extends Scene {
 	private readonly HEX_SIZE: number = configuration.kingdomView.hexSize;
 	private readonly HEX_STROKE: number = configuration.kingdomView.hexStroke;
 	private readonly GRID_ORIGIN_Y_OFFSET = configuration.kingdomView.gridOriginYOffset;
+	private readonly MIN_CAMERA_ZOOM = 0.6;
+	private readonly MAX_CAMERA_ZOOM = 2.4;
+	private readonly CAMERA_ZOOM_STEP = 0.12;
 	private stateUnsubscribe: (() => void) | null = null;
+	private isPanning = false;
+	private panPointerStart = new Phaser.Math.Vector2();
+	private panCameraStart = new Phaser.Math.Vector2();
+	private spaceKey!: Phaser.Input.Keyboard.Key;
 	private readonly handleResize = () => {
 		this.hexGridSystem.relayout();
+	};
+	private readonly handlePointerDown = (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
+		if (currentlyOver.length === 0) {
+			gameSessionClient.clearSelectedTile();
+		}
+
+		if (_pointer.leftButtonDown() && currentlyOver.length === 0) {
+			this.isPanning = true;
+			this.panPointerStart.set(_pointer.x, _pointer.y);
+			this.panCameraStart.set(this.cameras.main.scrollX, this.cameras.main.scrollY);
+			this.input.setDefaultCursor('grabbing');
+		}
+	};
+	private readonly handlePointerMove = (pointer: Phaser.Input.Pointer) => {
+		if (!this.isPanning || !pointer.isDown) return;
+
+		const camera = this.cameras.main;
+		const dragX = (pointer.x - this.panPointerStart.x) / camera.zoom;
+		const dragY = (pointer.y - this.panPointerStart.y) / camera.zoom;
+		camera.setScroll(this.panCameraStart.x - dragX, this.panCameraStart.y - dragY);
+	};
+	private readonly stopPanning = () => {
+		if (!this.isPanning) return;
+		this.isPanning = false;
+		this.input.setDefaultCursor('');
+	};
+	private readonly handleWheel = (
+		pointer: Phaser.Input.Pointer,
+		_currentlyOver: Phaser.GameObjects.GameObject[],
+		_deltaX: number,
+		deltaY: number
+	) => {
+		if (deltaY === 0) return;
+
+		const camera = this.cameras.main;
+		const zoomMultiplier = deltaY > 0 ? 1 - this.CAMERA_ZOOM_STEP : 1 + this.CAMERA_ZOOM_STEP;
+		const nextZoom = Phaser.Math.Clamp(camera.zoom * zoomMultiplier, this.MIN_CAMERA_ZOOM, this.MAX_CAMERA_ZOOM);
+		if (nextZoom === camera.zoom) return;
+
+		const worldPointBefore = camera.getWorldPoint(pointer.x, pointer.y);
+		camera.setZoom(nextZoom);
+		const worldPointAfter = camera.getWorldPoint(pointer.x, pointer.y);
+		camera.scrollX += worldPointBefore.x - worldPointAfter.x;
+		camera.scrollY += worldPointBefore.y - worldPointAfter.y;
 	};
 
 	constructor() {
@@ -32,6 +83,12 @@ export class KingdomScene extends Scene {
 		this.world = new ProjectionWorld();
 
 		this.cameras.main.setBackgroundColor(configuration.kingdomView.backgroundColor);
+
+		this.spaceKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+		this.spaceKey.on('down', () => {
+			this.cameras.main.setScroll(0, 0);
+			this.cameras.main.setZoom(1);
+		});
 
 		this.renderSystem = new ProjectionRenderSystem(this.world, this);
 		this.hexGridSystem = new ProjectionHexGrid(this.world, this, {
@@ -52,16 +109,21 @@ export class KingdomScene extends Scene {
 		});
 		this.events.once('shutdown', () => {
 			this.scale.off('resize', this.handleResize);
+			this.input.keyboard?.removeKey(this.spaceKey);
+			this.input.off('pointerdown', this.handlePointerDown);
+			this.input.off('pointermove', this.handlePointerMove);
+			this.input.off('pointerup', this.stopPanning);
+			this.input.off('gameout', this.stopPanning);
+			this.input.off('wheel', this.handleWheel);
 			this.stateUnsubscribe?.();
 			this.stateUnsubscribe = null;
 		});
 
-		// notify UI when clicking off any tile
-		this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
-			if (currentlyOver.length === 0) {
-				gameSessionClient.clearSelectedTile();
-			}
-		});
+		this.input.on('pointerdown', this.handlePointerDown);
+		this.input.on('pointermove', this.handlePointerMove);
+		this.input.on('pointerup', this.stopPanning);
+		this.input.on('gameout', this.stopPanning);
+		this.input.on('wheel', this.handleWheel);
 	}
 
 
