@@ -144,6 +144,10 @@ export class MultiplayerClient {
 		this.send({ type: 'lobby/create', playerName: this.state.playerName });
 	}
 
+	createSoloLobby(): void {
+		this.send({ type: 'lobby/solo', playerName: this.state.playerName });
+	}
+
 	joinLobby(lobbyId: string): void {
 		this.send({ type: 'lobby/join', lobbyId: lobbyId.trim().toUpperCase(), playerName: this.state.playerName });
 	}

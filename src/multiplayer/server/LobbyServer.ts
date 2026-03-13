@@ -105,6 +105,9 @@ export class LobbyServer {
 			case 'lobby/start':
 				this.handleStartLobby(socket.data.playerId as string);
 				return;
+			case 'lobby/solo':
+				this.handleSoloLobby(socket, command.playerName);
+				return;
 			case 'game/action':
 				this.handleGameAction(socket, socket.data.playerId as string, command);
 				return;
@@ -196,6 +199,47 @@ export class LobbyServer {
 		if (!player) return;
 		player.isReady = ready;
 		this.broadcastLobbyState(lobby);
+	}
+
+	private handleSoloLobby(socket: MultiplayerSocket, playerName: string): void {
+		const playerId = socket.data.playerId as string;
+		this.handleLeaveLobby(socket, playerId);
+
+		let lobbyId = createLobbyId();
+		while (this.lobbies.has(lobbyId)) {
+			lobbyId = createLobbyId();
+		}
+
+		const lobby: LobbyRecord = {
+			lobbyId,
+			hostPlayerId: playerId,
+			status: 'open',
+			maxPlayers: 1,
+			createdAt: Date.now(),
+			players: new Map()
+		};
+		this.lobbies.set(lobbyId, lobby);
+
+		lobby.players.set(playerId, {
+			playerId,
+			name: playerName.trim() || `Mage-${playerId.slice(0, 4)}`,
+			isReady: true,
+			connected: true,
+			socketId: socket.id
+		});
+		this.playerLobbyIndex.set(playerId, lobby.lobbyId);
+		socket.join(lobby.lobbyId);
+
+		lobby.status = 'in-game';
+		const runtime = new RoomGameRuntime([playerId], {
+			onSnapshot: (snapshot) => {
+				this.broadcastToLobby(lobby.lobbyId, { type: 'game/snapshot', game: snapshot });
+			}
+		});
+		runtime.start();
+		this.gameRuntimes.set(lobby.lobbyId, runtime);
+		this.broadcastLobbyState(lobby);
+		this.broadcastToLobby(lobby.lobbyId, { type: 'game/snapshot', game: runtime.emitSnapshot() });
 	}
 
 	private handleStartLobby(playerId: string): void {
