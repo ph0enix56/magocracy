@@ -6,22 +6,28 @@
 	import Army from './Army.svelte';
 	import Combat from './Combat.svelte';
 	import MultiplayerPanel from './MultiplayerPanel.svelte';
+	import FightPhasePanel from './FightPhasePanel.svelte';
 	import { armyModalState, blueprintModalState, shopModalState } from './uiState';
 	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
 
 	function openBlueprints() {
-		if (!$gameSessionState.canIssueCommands) return;
+		if (!$gameSessionState.canTownInteract) return;
 		blueprintModalState.set({ isOpen: true, mode: 'view', q: 0, r: 0 });
 	}
 
 	function openShop() {
-		if (!$gameSessionState.canIssueCommands) return;
+		if (!$gameSessionState.canTownInteract) return;
 		shopModalState.set({ isOpen: true });
 	}
 
 	function openArmy() {
-		if (!$gameSessionState.canIssueCommands) return;
+		if (!$gameSessionState.canArmyReorder) return;
 		armyModalState.set({ isOpen: true });
+	}
+
+	$: if (!$gameSessionState.canTownInteract) {
+		shopModalState.set({ isOpen: false });
+		blueprintModalState.set({ isOpen: false, mode: 'view', q: 0, r: 0 });
 	}
 </script>
 
@@ -32,18 +38,22 @@
 		<ResourceCounter keyName="food" icon="🍞" />
 		<ResourceCounter keyName="mana" icon="💧" />
 		<ResourceCounter keyName="gold" icon="💰" />
-		<button class="ui-button" disabled={!$gameSessionState.canIssueCommands} on:click={openShop}>Shop</button>
-		<button class="ui-button" disabled={!$gameSessionState.canIssueCommands} on:click={openArmy}>Army</button>
-		<button class="ui-button" disabled={!$gameSessionState.canIssueCommands} on:click={openBlueprints}>Blueprints</button>
+		<ResourceCounter keyName="renown" icon="⭐" />
+		<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={openShop}>Shop</button>
+		<button class="ui-button" disabled={!$gameSessionState.canArmyReorder} on:click={openArmy}>Army</button>
+		<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={openBlueprints}>Blueprints</button>
 		{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
 			<div class="ui-chip scout-chip">Scouting {$gameSessionState.viewedPlayer.name}</div>
 		{/if}
 	</div>
 
 	<MultiplayerPanel />
+	<FightPhasePanel />
 
-	<Sidebar />
-	<BuildingSelector />
+	{#if !$gameSessionState.isFightPhase}
+		<Sidebar />
+		<BuildingSelector />
+	{/if}
 	<Shop />
 	<Army />
 	<Combat />

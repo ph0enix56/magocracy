@@ -15,7 +15,8 @@ export const configuration = {
 			wood: 1000,
 			food: 1000,
 			mana: 1000,
-			gold: 1000
+			gold: 1000,
+			renown: 0
 		},
 		starterBlueprintInventory: {
 			// [WIP] Starter blueprints for testing
@@ -25,6 +26,12 @@ export const configuration = {
 			house: 1,
 			sword_barracks: 1
 		}
+	},
+
+	fightPhase: {
+		encountersPerPhase: 2,
+		secondsPerRound: 60,
+		renownPerWin: 1
 	},
 
 	kingdomView: {

@@ -1,6 +1,43 @@
 export type LobbyStatus = 'open' | 'in-game';
 export type GamePhase = 'setup' | 'build' | 'combat';
 
+export type FightRoundStatus = 'pending' | 'won' | 'lost' | 'draw' | 'bye';
+
+export type FightPairingSnapshot = {
+	matchId: string;
+	roundIndex: number;
+	playerAId: string;
+	playerBId?: string;
+};
+
+export type FightRoundResultSnapshot = {
+	matchId: string;
+	roundIndex: number;
+	playerAId: string;
+	playerBId?: string;
+	winnerPlayerId?: string;
+	status: 'pending' | 'finished';
+};
+
+export type FightPlayerRoundSnapshot = {
+	matchId: string;
+	roundIndex: number;
+	opponentPlayerId?: string;
+	status: FightRoundStatus;
+	replayAvailable: boolean;
+};
+
+export type FightSnapshot = {
+	isActive: boolean;
+	encountersPerPhase: number;
+	secondsPerRound: number;
+	currentRoundIndex: number;
+	secondsToNextRound: number;
+	pairings: FightPairingSnapshot[];
+	results: FightRoundResultSnapshot[];
+	playerRounds: FightPlayerRoundSnapshot[];
+};
+
 export type LobbyPlayerSnapshot = {
 	playerId: string;
 	name: string;
@@ -109,6 +146,7 @@ export type PlayerGameView = {
 	kingdom: KingdomSnapshot;
 	army: ArmyUnitSnapshot[];
 	combat: CombatSnapshot;
+	fight: FightSnapshot;
 };
 
 export type GameSnapshot = {
@@ -125,7 +163,8 @@ export type GameActionCommand =
 	| { type: 'shop/reroll' }
 	| { type: 'army/train'; unitEntityId: string }
 	| { type: 'army/reorder'; unitEntityId: string; direction: 'up' | 'down' }
-	| { type: 'combat/step'; steps?: number };
+	| { type: 'combat/step'; steps?: number }
+	| { type: 'fight/replay-open'; matchId: string };
 
 export type ClientCommand =
 	| { type: 'lobby/create'; playerName: string }
@@ -133,6 +172,7 @@ export type ClientCommand =
 	| { type: 'lobby/leave' }
 	| { type: 'lobby/set-ready'; ready: boolean }
 	| { type: 'lobby/start' }
+	| { type: 'lobby/start-fight' }
 	| { type: 'lobby/solo'; playerName: string }
 	| { type: 'game/action'; requestId: string; action: GameActionCommand };
 

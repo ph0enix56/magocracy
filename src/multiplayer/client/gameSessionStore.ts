@@ -4,7 +4,9 @@ import type {
 	BlueprintInventorySnapshot,
 	BuildingCatalogEntry,
 	CombatSnapshot,
+	FightSnapshot,
 	GameActionCommand,
+	GamePhase,
 	KingdomSnapshot,
 	LobbyPlayerSnapshot,
 	PlayerGameView,
@@ -42,11 +44,17 @@ export type GameSessionState = MultiplayerClientState & {
 	viewedGameView: PlayerGameView | null;
 	isScouting: boolean;
 	canIssueCommands: boolean;
+	canTownInteract: boolean;
+	canArmyReorder: boolean;
+	canCombatStep: boolean;
+	currentPhase: GamePhase;
+	isFightPhase: boolean;
 	resources: ResourceSnapshot;
 	blueprints: BlueprintInventorySnapshot;
 	shop: ShopSnapshot;
 	army: ArmyUnitSnapshot[];
 	combat: CombatSnapshot;
+	fight: FightSnapshot;
 	kingdom: KingdomSnapshot;
 	selectedTile: SelectedTileView | null;
 	combatOpenRequest: number;
@@ -72,6 +80,16 @@ const EMPTY_COMBAT: CombatSnapshot = {
 };
 const EMPTY_KINGDOM: KingdomSnapshot = {
 	tiles: []
+};
+const EMPTY_FIGHT: FightSnapshot = {
+	isActive: false,
+	encountersPerPhase: 1,
+	secondsPerRound: 60,
+	currentRoundIndex: 0,
+	secondsToNextRound: 0,
+	pairings: [],
+	results: [],
+	playerRounds: []
 };
 
 let selectedTileCoords: { q: number; r: number } | null = null;
@@ -151,6 +169,9 @@ export const gameSessionClient = {
 	},
 	requestCombatStep(steps = 1): Promise<CommandResult> {
 		return sendTrackedAction({ type: 'combat/step', steps });
+	},
+	requestFightReplayOpen(matchId: string): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'fight/replay-open', matchId });
 	}
 };
 
@@ -169,10 +190,15 @@ function buildState(base: MultiplayerClientState, catalog: BuildingCatalogEntry[
 	const viewedPlayer = getViewedPlayer(base, resolvedViewedPlayerId);
 	const viewedGameView = getViewedGameView(base, resolvedViewedPlayerId);
 	const isScouting = viewedGameView !== null && selfGameView !== null && viewedGameView.playerId !== selfGameView.playerId;
+	const currentPhase: GamePhase = base.game?.phase ?? 'setup';
+	const isFightPhase = currentPhase === 'combat';
 	const canIssueCommands = !isScouting && selfGameView !== null && base.lobby?.status === 'in-game';
+	const canTownInteract = canIssueCommands && currentPhase === 'build';
+	const canArmyReorder = canIssueCommands;
+	const canCombatStep = canIssueCommands;
 	const nextCombatStatus = selfGameView?.combat.status ?? 'idle';
 
-	if (lastCombatStatus === 'idle' && nextCombatStatus === 'running') {
+	if (lastCombatStatus !== 'running' && nextCombatStatus === 'running') {
 		combatOpenRequest += 1;
 	}
 	lastCombatStatus = nextCombatStatus;
@@ -191,11 +217,17 @@ function buildState(base: MultiplayerClientState, catalog: BuildingCatalogEntry[
 		viewedGameView,
 		isScouting,
 		canIssueCommands,
+		canTownInteract,
+		canArmyReorder,
+		canCombatStep,
+		currentPhase,
+		isFightPhase,
 		resources: viewedGameView?.resources ?? EMPTY_RESOURCES,
 		blueprints: viewedGameView?.blueprints ?? {},
 		shop: viewedGameView?.shop ?? EMPTY_SHOP,
 		army: viewedGameView?.army ?? [],
 		combat: viewedGameView?.combat ?? EMPTY_COMBAT,
+		fight: viewedGameView?.fight ?? EMPTY_FIGHT,
 		kingdom: viewedGameView?.kingdom ?? EMPTY_KINGDOM,
 		selectedTile: viewedGameView && selectedTileCoords
 			? buildSelectedTileView(selectedTileCoords.q, selectedTileCoords.r, viewedGameView.kingdom, catalog)
@@ -299,6 +331,20 @@ function toProgressPercent(progress: number, total: number): number {
 function sendTrackedAction(action: GameActionCommand): Promise<CommandResult> {
 	if (currentState.isScouting) {
 		return Promise.resolve({ ok: false, reason: 'Return to your own town before issuing commands.' });
+	}
+
+	if (currentState.currentPhase !== 'build') {
+		if (action.type === 'build/request' || action.type === 'destroy/request' || action.type === 'upgrade/request') {
+			return Promise.resolve({ ok: false, reason: 'City interactions are disabled during fight phase.' });
+		}
+
+		if (action.type === 'shop/buy' || action.type === 'shop/reroll') {
+			return Promise.resolve({ ok: false, reason: 'Shop is disabled during fight phase.' });
+		}
+
+		if (action.type === 'army/train') {
+			return Promise.resolve({ ok: false, reason: 'Training is disabled during fight phase.' });
+		}
 	}
 
 	if (!multiplayerClient.isAuthoritativeGameplayActive()) {

@@ -30,7 +30,7 @@
 	}
 
 	async function step() {
-		if (stepPending || !$gameSessionState.canIssueCommands) return;
+		if (stepPending || !$gameSessionState.canCombatStep) return;
 		stepPending = true;
 		const result = await gameSessionClient.requestCombatStep(1);
 		stepPending = false;
@@ -58,7 +58,7 @@
 			<div class="ui-modal-header">
 				<h2 class="ui-modal-title">Combat</h2>
 				<div class="header-actions">
-					<button class="ui-button" on:click={step} disabled={state.status !== 'running' || stepPending || !$gameSessionState.canIssueCommands}>Next action</button>
+					<button class="ui-button" on:click={step} disabled={state.status !== 'running' || stepPending || !$gameSessionState.canCombatStep}>Next action</button>
 					<button class="ui-close-btn" on:click={close}>X</button>
 				</div>
 			</div>

@@ -43,12 +43,21 @@
 		multiplayerClient.startLobbyGame();
 	}
 
+	function startFightPhase() {
+		multiplayerClient.startFightPhase();
+	}
+
 	function scoutPlayer(playerId: string) {
 		gameSessionClient.scoutPlayer(playerId);
 	}
 
 	function viewOwnTown() {
 		gameSessionClient.viewOwnTown();
+	}
+
+	function phaseLabel(phase: string): string {
+		if (phase === 'combat') return 'Fight';
+		return phase;
 	}
 </script>
 
@@ -67,7 +76,7 @@
 	{#if $multiplayerState.game}
 		<div class="multiplayer-row">
 			<span>Tick {$multiplayerState.game.tick}</span>
-			<span>Phase {$multiplayerState.game.phase}</span>
+			<span>Phase {phaseLabel($multiplayerState.game.phase)}</span>
 		</div>
 		{#if $multiplayerState.viewedPlayer}
 			<div class="multiplayer-row multiplayer-row--viewing">
@@ -75,6 +84,9 @@
 				<span>{$multiplayerState.viewedPlayer.name}</span>
 			</div>
 		{/if}
+	{/if}
+	{#if selfPlayer?.isHost && $multiplayerState.lobby?.status === 'in-game' && $multiplayerState.game?.phase === 'build'}
+		<button class="ui-button multiplayer-start" on:click={startFightPhase}>Start Fight Phase</button>
 	{/if}
 	{#if $multiplayerState.lastError}
 		<div class="multiplayer-error">{$multiplayerState.lastError}</div>

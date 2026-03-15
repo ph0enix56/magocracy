@@ -26,7 +26,7 @@
 	}
 
 	function canReroll(): boolean {
-		return pendingBuySlot === null && !pendingReroll && $gameSessionState.canIssueCommands;
+		return pendingBuySlot === null && !pendingReroll && $gameSessionState.canTownInteract;
 	}
 
 	async function requestReroll() {
@@ -40,7 +40,7 @@
 	}
 
 	async function buy(slotIndex: number) {
-		if (pendingBuySlot !== null || pendingReroll || !$gameSessionState.canIssueCommands) return;
+		if (pendingBuySlot !== null || pendingReroll || !$gameSessionState.canTownInteract) return;
 		pendingBuySlot = slotIndex;
 		const result = await gameSessionClient.requestShopBuy(slotIndex);
 		pendingBuySlot = null;
@@ -84,7 +84,7 @@
 								def={def}
 								count={null}
 								actionLabel={`Buy (${view.buyCost} gold)`}
-								actionDisabled={pendingBuySlot !== null || pendingReroll || !$gameSessionState.canIssueCommands}
+								actionDisabled={pendingBuySlot !== null || pendingReroll || !$gameSessionState.canTownInteract}
 								on:action={() => buy(i)}
 							/>
 						{:else}

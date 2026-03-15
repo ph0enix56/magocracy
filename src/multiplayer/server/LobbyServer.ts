@@ -105,6 +105,9 @@ export class LobbyServer {
 			case 'lobby/start':
 				this.handleStartLobby(socket.data.playerId as string);
 				return;
+			case 'lobby/start-fight':
+				this.handleStartFightPhase(socket.data.playerId as string);
+				return;
 			case 'lobby/solo':
 				this.handleSoloLobby(socket, command.playerName);
 				return;
@@ -302,6 +305,37 @@ export class LobbyServer {
 		}
 
 		this.accept(socket, 'game/action', action.type, requestId);
+	}
+
+	private handleStartFightPhase(playerId: string): void {
+		const lobby = this.getLobbyForPlayer(playerId);
+		if (!lobby) return;
+		const socket = this.getSocketForPlayer(lobby, playerId);
+		if (!socket) return;
+
+		if (lobby.status !== 'in-game') {
+			this.reject(socket, 'lobby/start-fight', 'The match has not started yet.');
+			return;
+		}
+
+		if (lobby.hostPlayerId !== playerId) {
+			this.reject(socket, 'lobby/start-fight', 'Only the host can start the fight phase.');
+			return;
+		}
+
+		const runtime = this.gameRuntimes.get(lobby.lobbyId);
+		if (!runtime) {
+			this.reject(socket, 'lobby/start-fight', 'Missing authoritative game runtime.');
+			return;
+		}
+
+		const started = runtime.startFightPhase(playerId);
+		if (!started.ok) {
+			this.reject(socket, 'lobby/start-fight', started.reason);
+			return;
+		}
+
+		this.accept(socket, 'lobby/start-fight');
 	}
 
 	private handleDisconnect(playerId: string): void {

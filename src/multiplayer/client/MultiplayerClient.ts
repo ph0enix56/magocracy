@@ -164,6 +164,10 @@ export class MultiplayerClient {
 		this.send({ type: 'lobby/start' });
 	}
 
+	startFightPhase(): void {
+		this.send({ type: 'lobby/start-fight' });
+	}
+
 	sendGameCommand(command: ClientCommand): void {
 		this.send(command);
 	}

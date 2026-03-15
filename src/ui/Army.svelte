@@ -24,7 +24,7 @@
 	}
 
 	async function train(unitEntityId: string) {
-		if (pendingTrain || !$gameSessionState.canIssueCommands) return;
+		if (pendingTrain || !$gameSessionState.canTownInteract) return;
 		pendingTrain = unitEntityId;
 		const result = await gameSessionClient.requestArmyTrain(unitEntityId);
 		pendingTrain = null;
@@ -34,7 +34,7 @@
 	}
 
 	async function reorder(unitEntityId: string, direction: 'up' | 'down') {
-		if (!$gameSessionState.canIssueCommands) return;
+		if (!$gameSessionState.canArmyReorder) return;
 		const result = await gameSessionClient.requestArmyReorder(unitEntityId, direction);
 		if (!result.ok) {
 			alert(result.reason);
@@ -72,10 +72,10 @@
 									{u.name} <span class="lvl">Lv {u.trainingLevel}</span>
 								</div>
 								<div class="reorder">
-									<button class="ui-button ui-button--tiny reorder-btn" disabled={i === 0 || !$gameSessionState.canIssueCommands} on:click={() => reorder(u.entityId, 'up')}>↑</button>
+									<button class="ui-button ui-button--tiny reorder-btn" disabled={i === 0 || !$gameSessionState.canArmyReorder} on:click={() => reorder(u.entityId, 'up')}>↑</button>
 									<button
 										class="ui-button ui-button--tiny reorder-btn"
-										disabled={i === units.length - 1 || !$gameSessionState.canIssueCommands}
+										disabled={i === units.length - 1 || !$gameSessionState.canArmyReorder}
 										on:click={() => reorder(u.entityId, 'down')}
 									>
 										↓
@@ -95,7 +95,7 @@
 								</div>
 								<button
 									class="ui-button"
-									disabled={u.trainingStatus === 'training' || pendingTrain !== null || !$gameSessionState.canIssueCommands}
+									disabled={u.trainingStatus === 'training' || pendingTrain !== null || !$gameSessionState.canTownInteract}
 									on:click={() => train(u.entityId)}
 								>
 									{u.trainingStatus === 'training' ? 'Training…' : 'Train'}

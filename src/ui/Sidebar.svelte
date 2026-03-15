@@ -28,7 +28,7 @@
 
 	function onBuild() {
 		if (!selected) return;
-		if (!$gameSessionState.canIssueCommands) return;
+		if (!$gameSessionState.canTownInteract) return;
 		blueprintModalState.set({ isOpen: true, mode: 'build', q: selected.q, r: selected.r });
 		visible = false;
 		selected = null;
@@ -36,6 +36,7 @@
 
 	async function onDestroyClick() {
 		if (!selected) return;
+		if (!$gameSessionState.canTownInteract) return;
 		const result = await gameSessionClient.requestDestroy(selected.q, selected.r);
 		if (!result.ok) {
 			alert(result.reason);
@@ -53,6 +54,7 @@
 
 	async function onUpgradeClick() {
 		if (!selected?.nextUpgradeId) return;
+		if (!$gameSessionState.canTownInteract) return;
 		const costStr = formatCost(selected.nextUpgradeCost);
 		const timeStr = selected.nextUpgradeTime !== undefined ? `${selected.nextUpgradeTime}s` : '';
 		const ok = confirm(`Upgrade to ${selected.nextUpgradeId}?\nCost: ${costStr}\nTime: ${timeStr}`);
@@ -108,14 +110,14 @@
 				{#if selected.nextUpgradeTime !== undefined}
 					<p>Time: {selected.nextUpgradeTime}s</p>
 				{/if}
-				<button class="ui-button" disabled={!$gameSessionState.canIssueCommands} on:click={onUpgradeClick}>Upgrade</button>
+				<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={onUpgradeClick}>Upgrade</button>
 			</div>
 		{/if}
 
 		{#if selected.built}
-			<button class="ui-button" disabled={!$gameSessionState.canIssueCommands} on:click={onDestroyClick}>Destroy</button>
+			<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={onDestroyClick}>Destroy</button>
 		{:else}
-			<button class="ui-button" disabled={!$gameSessionState.canIssueCommands} on:click={onBuild}>Build</button>
+			<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={onBuild}>Build</button>
 		{/if}
 	</div>
 {/if}

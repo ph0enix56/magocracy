@@ -22,7 +22,7 @@
     }
 
     async function build(buildingId: string) {
-        if (state.mode !== 'build' || !$gameSessionState.canIssueCommands) return;
+        if (state.mode !== 'build' || !$gameSessionState.canTownInteract) return;
         const result = await gameSessionClient.requestBuild(state.q, state.r, buildingId);
         close();
         if (!result.ok) {
@@ -58,7 +58,7 @@
                         def={item.def}
                         count={item.count}
                         actionLabel={state.mode === 'build' ? 'Use' : null}
-                        actionDisabled={state.mode === 'build' && !$gameSessionState.canIssueCommands}
+                        actionDisabled={state.mode === 'build' && !$gameSessionState.canTownInteract}
                         on:action={() => build(item.def.id)}
                     />
                 {/each}
