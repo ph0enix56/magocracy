@@ -3,6 +3,7 @@ import { getBlockingBuildings, getBuildingDef } from './config/buildings';
 import { createInitialKingdomTiles, createRevealTilesAround, kingdomCoordKey } from '../../shared/kingdom/kingdomGrid';
 import type {
 	ArmyUnitSnapshot,
+	FightArmyUnitSummarySnapshot,
 	FightPairingSnapshot,
 	FightPlayerRoundSnapshot,
 	FightRoundResultSnapshot,
@@ -134,7 +135,9 @@ export class RoomGameRuntime {
 						roundIndex,
 						opponentPlayerId: playerBId,
 						status: playerBId ? 'pending' : 'bye',
-						replayAvailable: false
+						replayAvailable: false,
+						selfArmy: [],
+						opponentArmy: []
 					});
 				}
 
@@ -146,7 +149,9 @@ export class RoomGameRuntime {
 							roundIndex,
 							opponentPlayerId: playerAId,
 							status: 'pending',
-							replayAvailable: false
+							replayAvailable: false,
+							selfArmy: [],
+							opponentArmy: []
 						});
 					}
 				}
@@ -271,6 +276,17 @@ export class RoomGameRuntime {
 
 	private buildPlayerFightSnapshot(playerId: string) {
 		const playerRounds = this.fightState.playerRoundsByPlayerId.get(playerId) ?? [];
+		const enrichedPlayerRounds = playerRounds.map((round) => {
+			const selfArmy = this.serializeFightArmyForPlayer(playerId);
+			const opponentArmy = round.opponentPlayerId
+				? this.serializeFightArmyForPlayer(round.opponentPlayerId)
+				: [];
+			return {
+				...round,
+				selfArmy,
+				opponentArmy
+			};
+		});
 		return {
 			isActive: this.fightState.isActive,
 			encountersPerPhase: this.fightState.encountersPerPhase,
@@ -279,8 +295,27 @@ export class RoomGameRuntime {
 			secondsToNextRound: this.fightState.secondsToNextRound,
 			pairings: this.fightState.pairings,
 			results: this.fightState.results,
-			playerRounds
+			playerRounds: enrichedPlayerRounds
 		};
+	}
+
+	private serializeFightArmyForPlayer(playerId: string): FightArmyUnitSummarySnapshot[] {
+		const runtime = this.players.get(playerId);
+		if (!runtime) return [];
+		return runtime.run.ecs
+			.getOrderedArmyUnitEntities()
+			.map((entity) => entity.armyUnit)
+			.filter((unit): unit is ArmyUnitComponent => !!unit)
+			.slice()
+			.sort((a, b) => {
+				if (b.trainingLevel !== a.trainingLevel) return b.trainingLevel - a.trainingLevel;
+				return a.name.localeCompare(b.name);
+			})
+			.map((unit) => ({
+				unitId: unit.unitId,
+				name: unit.name,
+				trainingLevel: unit.trainingLevel
+			}));
 	}
 
 	private advanceFightPhaseTick(): void {

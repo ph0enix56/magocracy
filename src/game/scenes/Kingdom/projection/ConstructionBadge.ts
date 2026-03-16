@@ -79,6 +79,12 @@ export class ConstructionBadge {
 		this.ring.strokePath();
 	}
 
+	setVisible(visible: boolean): void {
+		this.background.setVisible(visible);
+		this.ring.setVisible(visible);
+		this.label.setVisible(visible);
+	}
+
 	destroy(): void {
 		this.background.destroy();
 		this.ring.destroy();

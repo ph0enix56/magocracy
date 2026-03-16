@@ -1,4 +1,4 @@
-import type { ArmyUnitComponent, Entity } from '../model';
+import type { Entity } from '../model';
 import type { ServerEcsWorld } from '../ServerEcsWorld';
 
 function pow(base: number, exp: number): number {

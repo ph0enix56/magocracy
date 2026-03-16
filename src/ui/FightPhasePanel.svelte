@@ -13,10 +13,15 @@
 		return `${mm}:${ss}`;
 	}
 
-	function playerName(playerId: string | undefined): string {
+	function playerName(playerId: string | null | undefined): string {
 		if (!playerId) return 'BYE';
 		const player = $gameSessionState.lobby?.players.find((entry) => entry.playerId === playerId);
 		return player?.name ?? playerId;
+	}
+
+	function formatArmyUnits(units: Array<{ name: string; trainingLevel: number }>): string {
+		if (units.length === 0) return 'No units';
+		return units.map((unit) => `${unit.name} (Lv ${unit.trainingLevel})`).join(', ');
 	}
 
 	function statusLabel(status: string): string {
@@ -72,10 +77,22 @@
 				{#each $fightState.playerRounds as round (round.matchId)}
 					<div class="fight-row">
 						<div class="fight-row-main">
-							<div class="fight-round">R{round.roundIndex + 1}</div>
-							<div class="fight-opponent">vs {playerName(round.opponentPlayerId)}</div>
-							<div class={`fight-status fight-status--${round.status}`}>{statusLabel(round.status)}</div>
-							<div class="fight-result">{resultWinnerLabel(round.matchId)}</div>
+							<div class="fight-row-top">
+								<div class="fight-round">R{round.roundIndex + 1}</div>
+								<div class="fight-opponent">{playerName($gameSessionState.playerId)} vs {playerName(round.opponentPlayerId)}</div>
+								<div class={`fight-status fight-status--${round.status}`}>{statusLabel(round.status)}</div>
+								<div class="fight-result">{resultWinnerLabel(round.matchId)}</div>
+							</div>
+							<div class="fight-armies">
+								<div class="fight-army-line">
+									<span class="fight-army-name">{playerName($gameSessionState.playerId)}:</span>
+									<span>{formatArmyUnits(round.selfArmy)}</span>
+								</div>
+								<div class="fight-army-line">
+									<span class="fight-army-name">{playerName(round.opponentPlayerId)}:</span>
+									<span>{formatArmyUnits(round.opponentArmy)}</span>
+								</div>
+							</div>
 						</div>
 						<button class="ui-button ui-button--ghost replay-btn" disabled={!round.replayAvailable || isOpeningReplay} on:click={() => openReplay(round.matchId)}>
 							Replay
@@ -91,9 +108,11 @@
 	.fight-panel {
 		position: absolute;
 		left: 50%;
-		bottom: 12px;
-		transform: translateX(-50%);
-		width: min(860px, calc(100vw - 24px));
+		top: 50%;
+		transform: translate(-50%, -50%);
+		width: min(980px, calc(100vw - 24px));
+		max-height: calc(100vh - 24px);
+		overflow: auto;
 		padding: 12px;
 		pointer-events: auto;
 	}
@@ -141,6 +160,14 @@
 
 	.fight-row-main {
 		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 8px;
+		flex: 1;
+	}
+
+	.fight-row-top {
+		display: flex;
 		align-items: center;
 		gap: 10px;
 		flex-wrap: wrap;
@@ -152,6 +179,24 @@
 	}
 
 	.fight-opponent {
+		font-weight: 700;
+	}
+
+	.fight-armies {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		font-size: 0.9rem;
+		opacity: 0.9;
+	}
+
+	.fight-army-line {
+		display: flex;
+		gap: 6px;
+		flex-wrap: wrap;
+	}
+
+	.fight-army-name {
 		font-weight: 700;
 	}
 

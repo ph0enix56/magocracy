@@ -9,6 +9,35 @@
 	import FightPhasePanel from './FightPhasePanel.svelte';
 	import { armyModalState, blueprintModalState, shopModalState } from './uiState';
 	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
+import type { GamePhase } from '../shared/multiplayer/protocol';
+import {
+	OVERLAY_BACKGROUND_EVENT,
+	OVERLAY_TOWN_VISIBILITY_EVENT,
+	type OverlayBackground,
+	type OverlayTownVisibility
+} from '../shared/ui/overlayRender';
+
+	type OverlayScreenView = 'overview' | 'town';
+	type OverlayPhaseConfig = {
+		fightPanel: boolean;
+		showTownToggleLabel: string;
+		showOverviewToggleLabel: string;
+		overviewBackgroundColor: number;
+	};
+
+	const OVERLAY_PHASES: Partial<Record<GamePhase, OverlayPhaseConfig>> = {
+		combat: {
+			fightPanel: true,
+			showTownToggleLabel: 'Show Town',
+			showOverviewToggleLabel: 'Show Fight Overview',
+			overviewBackgroundColor: 0xf4c7c7
+		}
+	};
+
+	let overlayScreenView: OverlayScreenView = 'overview';
+	let activeOverlay: OverlayPhaseConfig | null = null;
+	let overlayTownVisibility: OverlayTownVisibility = { hideTownRender: false };
+	let overlayBackground: OverlayBackground = {};
 
 	function openBlueprints() {
 		if (!$gameSessionState.canTownInteract) return;
@@ -29,6 +58,37 @@
 		shopModalState.set({ isOpen: false });
 		blueprintModalState.set({ isOpen: false, mode: 'view', q: 0, r: 0 });
 	}
+
+	$: activeOverlay = OVERLAY_PHASES[$gameSessionState.currentPhase] ?? null;
+
+	$: if (!activeOverlay) {
+		overlayScreenView = 'overview';
+	}
+
+	$: overlayTownVisibility = activeOverlay && overlayScreenView === 'overview'
+		? {
+			hideTownRender: true
+		}
+		: { hideTownRender: false };
+
+	$: overlayBackground = activeOverlay
+		? { backgroundColor: activeOverlay.overviewBackgroundColor }
+		: {};
+
+	function toggleOverlayScreenView() {
+		overlayScreenView = overlayScreenView === 'overview' ? 'town' : 'overview';
+	}
+
+	$: {
+		if (typeof window !== 'undefined') {
+			window.dispatchEvent(new CustomEvent<OverlayTownVisibility>(OVERLAY_TOWN_VISIBILITY_EVENT, {
+				detail: overlayTownVisibility
+			}));
+			window.dispatchEvent(new CustomEvent<OverlayBackground>(OVERLAY_BACKGROUND_EVENT, {
+				detail: overlayBackground
+			}));
+		}
+	}
 </script>
 
 <div class="ui-root">
@@ -48,9 +108,19 @@
 	</div>
 
 	<MultiplayerPanel />
-	<FightPhasePanel />
+	{#if activeOverlay?.fightPanel && overlayScreenView === 'overview'}
+		<FightPhasePanel />
+	{/if}
 
-	{#if !$gameSessionState.isFightPhase}
+	{#if activeOverlay}
+		<div class="fight-toggle-wrap">
+			<button class="ui-button fight-toggle" on:click={toggleOverlayScreenView}>
+				{overlayScreenView === 'overview' ? activeOverlay.showTownToggleLabel : activeOverlay.showOverviewToggleLabel}
+			</button>
+		</div>
+	{/if}
+
+	{#if !activeOverlay}
 		<Sidebar />
 		<BuildingSelector />
 	{/if}
@@ -80,4 +150,17 @@
 		font-weight: 700;
 		background: rgba(168, 84, 28, 0.85);
 	}
+
+	.fight-toggle-wrap {
+		position: absolute;
+		left: 50%;
+		bottom: 12px;
+		transform: translateX(-50%);
+		pointer-events: auto;
+	}
+
+	.fight-toggle {
+		min-width: 200px;
+	}
+
 </style>

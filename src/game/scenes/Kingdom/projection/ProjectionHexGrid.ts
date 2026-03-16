@@ -11,11 +11,21 @@ export type ProjectionHexGridOptions = {
 };
 
 export class ProjectionHexGrid {
+	private visible = true;
+
 	constructor(
 		private readonly world: ProjectionWorld,
 		private readonly scene: Scene,
 		private readonly options: ProjectionHexGridOptions
 	) {}
+
+	setVisible(visible: boolean): void {
+		if (this.visible === visible) return;
+		this.visible = visible;
+		for (const tile of this.world.getTiles()) {
+			tile.render.hex.setVisible(visible);
+		}
+	}
 
 	static preloadHexTexture(scene: Scene, hexSize: number, hexStroke: number): void {
 		const width = Math.sqrt(3) * hexSize + 2 * hexStroke;
@@ -39,6 +49,7 @@ export class ProjectionHexGrid {
 
 		const { x, y } = this.screenPosFor(q, r);
 		const hex = this.scene.add.image(x, y, 'hexTile');
+		hex.setVisible(this.visible);
 		hex.setInteractive(ProjectionHexGrid.getHexagon(this.options.hexSize, hex.width / 2, hex.height / 2), Phaser.Geom.Polygon.Contains);
 
 		const tile: ProjectionTile = {

@@ -2,6 +2,12 @@ import { Scene } from 'phaser';
 import { configuration } from '../../configuration';
 import type { BuildingCatalogSnapshot, KingdomTileSnapshot } from '../../../shared/multiplayer/protocol';
 import { gameSessionClient, gameSessionState } from '../../../multiplayer/client/gameSessionStore';
+import {
+	OVERLAY_BACKGROUND_EVENT,
+	OVERLAY_TOWN_VISIBILITY_EVENT,
+	type OverlayBackground,
+	type OverlayTownVisibility
+} from '../../../shared/ui/overlayRender';
 import { ConstructionBadge } from './projection/ConstructionBadge';
 import { ProjectionRenderSystem } from './projection/ProjectionRenderSystem';
 import { ProjectionHexGrid } from './projection/ProjectionHexGrid';
@@ -22,8 +28,20 @@ export class KingdomScene extends Scene {
 	private panPointerStart = new Phaser.Math.Vector2();
 	private panCameraStart = new Phaser.Math.Vector2();
 	private spaceKey!: Phaser.Input.Keyboard.Key;
+	private hideTownRender = false;
+	private overlayBackgroundColor: number | undefined;
 	private readonly handleResize = () => {
 		this.hexGridSystem.relayout();
+	};
+	private readonly handleOverlayTownVisibilityChanged = (event: Event) => {
+		const detail = (event as CustomEvent<OverlayTownVisibility>).detail;
+		this.hideTownRender = !!detail?.hideTownRender;
+		this.applyOverlayRenderMode();
+	};
+	private readonly handleOverlayBackgroundChanged = (event: Event) => {
+		const detail = (event as CustomEvent<OverlayBackground>).detail;
+		this.overlayBackgroundColor = detail?.backgroundColor;
+		this.applyOverlayRenderMode();
 	};
 	private readonly handlePointerDown = (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
 		if (currentlyOver.length === 0) {
@@ -106,7 +124,10 @@ export class KingdomScene extends Scene {
 			this.loadCatalogAssets({ buildings: state.catalog });
 			this.applyKingdomSnapshot(state.kingdom.tiles);
 			this.hexGridSystem.relayout();
+			this.applyOverlayRenderMode();
 		});
+		window.addEventListener(OVERLAY_TOWN_VISIBILITY_EVENT, this.handleOverlayTownVisibilityChanged as EventListener);
+		window.addEventListener(OVERLAY_BACKGROUND_EVENT, this.handleOverlayBackgroundChanged as EventListener);
 		this.events.once('shutdown', () => {
 			this.scale.off('resize', this.handleResize);
 			this.input.keyboard?.removeKey(this.spaceKey);
@@ -115,6 +136,8 @@ export class KingdomScene extends Scene {
 			this.input.off('pointerup', this.stopPanning);
 			this.input.off('gameout', this.stopPanning);
 			this.input.off('wheel', this.handleWheel);
+			window.removeEventListener(OVERLAY_TOWN_VISIBILITY_EVENT, this.handleOverlayTownVisibilityChanged as EventListener);
+			window.removeEventListener(OVERLAY_BACKGROUND_EVENT, this.handleOverlayBackgroundChanged as EventListener);
 			this.stateUnsubscribe?.();
 			this.stateUnsubscribe = null;
 		});
@@ -187,5 +210,16 @@ export class KingdomScene extends Scene {
 		render.building = undefined;
 		render.constructionBadge?.destroy();
 		render.constructionBadge = undefined;
+	}
+
+	private applyOverlayRenderMode(): void {
+		const hideTown = this.hideTownRender;
+		this.cameras.main.setBackgroundColor(this.overlayBackgroundColor ?? configuration.kingdomView.backgroundColor);
+		this.hexGridSystem.setVisible(!hideTown);
+		this.renderSystem.setVisible(!hideTown);
+		if (hideTown) {
+			this.stopPanning();
+		}
+		this.input.enabled = !hideTown;
 	}
 }

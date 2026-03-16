@@ -5,10 +5,21 @@ import { ConstructionBadge } from './ConstructionBadge';
 import type { ProjectionWorld } from './model';
 
 export class ProjectionRenderSystem {
+	private visible = true;
+
 	constructor(
 		private readonly world: ProjectionWorld,
 		private readonly scene: Scene
 	) {}
+
+	setVisible(visible: boolean): void {
+		if (this.visible === visible) return;
+		this.visible = visible;
+		for (const tile of this.world.getTiles()) {
+			tile.render.building?.setVisible(visible);
+			tile.render.constructionBadge?.setVisible(visible);
+		}
+	}
 
 	update(): void {
 		const buildingCfg = configuration.render.building;
@@ -24,6 +35,7 @@ export class ProjectionRenderSystem {
 					const sprite = this.scene.add.image(render.hex.x, render.hex.y, def.textureId);
 					sprite.setScale(this.getTargetBuildingScale(sprite, buildingCfg.spriteFillScaleMultiplier));
 					sprite.setAlpha(buildingCfg.alpha.initial);
+					sprite.setVisible(this.visible);
 					render.building = sprite;
 				}
 
@@ -47,6 +59,7 @@ export class ProjectionRenderSystem {
 
 					if (!render.constructionBadge) {
 						render.constructionBadge = new ConstructionBadge(this.scene);
+						render.constructionBadge.setVisible(this.visible);
 					}
 
 					render.constructionBadge.setPosition(

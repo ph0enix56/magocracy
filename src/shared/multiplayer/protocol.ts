@@ -19,12 +19,20 @@ export type FightRoundResultSnapshot = {
 	status: 'pending' | 'finished';
 };
 
+export type FightArmyUnitSummarySnapshot = {
+	unitId: string;
+	name: string;
+	trainingLevel: number;
+};
+
 export type FightPlayerRoundSnapshot = {
 	matchId: string;
 	roundIndex: number;
 	opponentPlayerId?: string;
 	status: FightRoundStatus;
 	replayAvailable: boolean;
+	selfArmy: FightArmyUnitSummarySnapshot[];
+	opponentArmy: FightArmyUnitSummarySnapshot[];
 };
 
 export type FightSnapshot = {
