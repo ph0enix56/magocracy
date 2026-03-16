@@ -7,19 +7,21 @@
 	import Combat from './Combat.svelte';
 	import MultiplayerPanel from './MultiplayerPanel.svelte';
 	import FightPhasePanel from './FightPhasePanel.svelte';
+	import AdvancePhasePanel from './AdvancePhasePanel.svelte';
 	import { armyModalState, blueprintModalState, shopModalState } from './uiState';
 	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
-import type { GamePhase } from '../shared/multiplayer/protocol';
-import {
-	OVERLAY_BACKGROUND_EVENT,
-	OVERLAY_TOWN_VISIBILITY_EVENT,
-	type OverlayBackground,
-	type OverlayTownVisibility
-} from '../shared/ui/overlayRender';
+	import type { GamePhase } from '../shared/multiplayer/protocol';
+	import {
+		OVERLAY_BACKGROUND_EVENT,
+		OVERLAY_TOWN_VISIBILITY_EVENT,
+		type OverlayBackground,
+		type OverlayTownVisibility
+	} from '../shared/ui/overlayRender';
 
 	type OverlayScreenView = 'overview' | 'town';
 	type OverlayPhaseConfig = {
 		fightPanel: boolean;
+		advancePanel: boolean;
 		showTownToggleLabel: string;
 		showOverviewToggleLabel: string;
 		overviewBackgroundColor: number;
@@ -28,9 +30,17 @@ import {
 	const OVERLAY_PHASES: Partial<Record<GamePhase, OverlayPhaseConfig>> = {
 		combat: {
 			fightPanel: true,
+			advancePanel: false,
 			showTownToggleLabel: 'Show Town',
 			showOverviewToggleLabel: 'Show Fight Overview',
 			overviewBackgroundColor: 0xf4c7c7
+		},
+		advance: {
+			fightPanel: false,
+			advancePanel: true,
+			showTownToggleLabel: 'Show Town',
+			showOverviewToggleLabel: 'Show Charter Draft',
+			overviewBackgroundColor: 0xe2d5b8
 		}
 	};
 
@@ -110,6 +120,9 @@ import {
 	<MultiplayerPanel />
 	{#if activeOverlay?.fightPanel && overlayScreenView === 'overview'}
 		<FightPhasePanel />
+	{/if}
+	{#if activeOverlay?.advancePanel && overlayScreenView === 'overview'}
+		<AdvancePhasePanel />
 	{/if}
 
 	{#if activeOverlay}

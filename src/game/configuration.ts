@@ -16,7 +16,8 @@ export const configuration = {
 			food: 1000,
 			mana: 1000,
 			gold: 1000,
-			renown: 0
+			renown: 0,
+			expansion: 0
 		},
 		starterBlueprintInventory: {
 			// [WIP] Starter blueprints for testing
@@ -32,6 +33,13 @@ export const configuration = {
 		encountersPerPhase: 2,
 		secondsPerRound: 60,
 		renownPerWin: 1
+	},
+
+	advancePhase: {
+		secondsPerPick: 20,
+		revealSecondsAfterDraft: 8,
+		charterCountBonus: 1,
+		levelByAdvanceIndex: [1, 1, 2, 2, 3, 3, 4]
 	},
 
 	kingdomView: {

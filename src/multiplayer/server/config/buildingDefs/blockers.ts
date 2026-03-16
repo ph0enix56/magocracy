@@ -8,7 +8,7 @@ export const BUILDING_DEFS: BuildingDef[] = [
 		description: 'A cluster of trees blocking construction.',
 		textureId: 'blocker_trees',
 		assetPath: 'board_icons/token.png',
-		cost: { wood: 20, stone: 10 },
+		cost: { expansion: 1 },
 		buildTime: 10
 	},
 	{
@@ -18,7 +18,7 @@ export const BUILDING_DEFS: BuildingDef[] = [
 		description: 'A pile of rocks blocking construction.',
 		textureId: 'blocker_rocks',
 		assetPath: 'board_icons/token.png',
-		cost: { wood: 10, stone: 30 },
+		cost: { expansion: 1 },
 		buildTime: 15
 	},
 	{
@@ -28,7 +28,7 @@ export const BUILDING_DEFS: BuildingDef[] = [
 		description: 'A large tree stump blocking construction.',
 		textureId: 'blocker_stump',
 		assetPath: 'board_icons/token.png',
-		cost: { wood: 15 },
+		cost: { expansion: 1 },
 		buildTime: 25
 	},
 	{
@@ -38,7 +38,7 @@ export const BUILDING_DEFS: BuildingDef[] = [
 		description: 'A small pond blocking construction.',
 		textureId: 'blocker_pond',
 		assetPath: 'board_icons/token.png',
-		cost: { wood: 20, stone: 20 },
+		cost: { expansion: 1 },
 		buildTime: 20
 	}
 ];

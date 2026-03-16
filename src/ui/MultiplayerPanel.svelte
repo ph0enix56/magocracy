@@ -47,6 +47,10 @@
 		multiplayerClient.startFightPhase();
 	}
 
+	function startAdvancePhase() {
+		multiplayerClient.startAdvancePhase();
+	}
+
 	function scoutPlayer(playerId: string) {
 		gameSessionClient.scoutPlayer(playerId);
 	}
@@ -57,6 +61,7 @@
 
 	function phaseLabel(phase: string): string {
 		if (phase === 'combat') return 'Fight';
+		if (phase === 'advance') return 'Advance';
 		return phase;
 	}
 </script>
@@ -86,7 +91,10 @@
 		{/if}
 	{/if}
 	{#if selfPlayer?.isHost && $multiplayerState.lobby?.status === 'in-game' && $multiplayerState.game?.phase === 'build'}
-		<button class="ui-button multiplayer-start" on:click={startFightPhase}>Start Fight Phase</button>
+		<div class="multiplayer-actions multiplayer-phase-actions">
+			<button class="ui-button multiplayer-start" on:click={startFightPhase}>Start Fight Phase</button>
+			<button class="ui-button ui-button--ghost multiplayer-start" on:click={startAdvancePhase}>Start Advance Phase</button>
+		</div>
 	{/if}
 	{#if $multiplayerState.lastError}
 		<div class="multiplayer-error">{$multiplayerState.lastError}</div>

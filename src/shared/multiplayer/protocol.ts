@@ -1,5 +1,39 @@
 export type LobbyStatus = 'open' | 'in-game';
-export type GamePhase = 'setup' | 'build' | 'combat';
+export type GamePhase = 'setup' | 'build' | 'combat' | 'advance';
+
+export type CharterResourceGrantSnapshot = {
+	resource: string;
+	amount: number;
+};
+
+export type CharterBlueprintGrantSnapshot = {
+	buildingId: string;
+	count: number;
+	tier: number;
+	type: 'production' | 'blocking' | 'army';
+	magicSchool?: string;
+};
+
+export type CharterSnapshot = {
+	charterId: string;
+	title: string;
+	level: number;
+	resources: CharterResourceGrantSnapshot[];
+	blueprints: CharterBlueprintGrantSnapshot[];
+	selectedByPlayerId?: string;
+};
+
+export type AdvanceSnapshot = {
+	isActive: boolean;
+	level: number;
+	pickOrderPlayerIds: string[];
+	currentPickerPlayerId?: string;
+	secondsPerPick: number;
+	secondsRemaining: number;
+	revealDelaySeconds: number;
+	secondsToPhaseEnd: number;
+	charters: CharterSnapshot[];
+};
 
 export type FightRoundStatus = 'pending' | 'won' | 'lost' | 'draw' | 'bye';
 
@@ -155,6 +189,7 @@ export type PlayerGameView = {
 	army: ArmyUnitSnapshot[];
 	combat: CombatSnapshot;
 	fight: FightSnapshot;
+	advance: AdvanceSnapshot;
 };
 
 export type GameSnapshot = {
@@ -172,7 +207,8 @@ export type GameActionCommand =
 	| { type: 'army/train'; unitEntityId: string }
 	| { type: 'army/reorder'; unitEntityId: string; direction: 'up' | 'down' }
 	| { type: 'combat/step'; steps?: number }
-	| { type: 'fight/replay-open'; matchId: string };
+	| { type: 'fight/replay-open'; matchId: string }
+	| { type: 'advance/select-charter'; charterId: string };
 
 export type ClientCommand =
 	| { type: 'lobby/create'; playerName: string }
@@ -181,6 +217,7 @@ export type ClientCommand =
 	| { type: 'lobby/set-ready'; ready: boolean }
 	| { type: 'lobby/start' }
 	| { type: 'lobby/start-fight' }
+	| { type: 'lobby/start-advance' }
 	| { type: 'lobby/solo'; playerName: string }
 	| { type: 'game/action'; requestId: string; action: GameActionCommand };
 

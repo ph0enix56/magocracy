@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import type {
+	AdvanceSnapshot,
 	ArmyUnitSnapshot,
 	BlueprintInventorySnapshot,
 	BuildingCatalogEntry,
@@ -49,12 +50,14 @@ export type GameSessionState = MultiplayerClientState & {
 	canCombatStep: boolean;
 	currentPhase: GamePhase;
 	isFightPhase: boolean;
+	isAdvancePhase: boolean;
 	resources: ResourceSnapshot;
 	blueprints: BlueprintInventorySnapshot;
 	shop: ShopSnapshot;
 	army: ArmyUnitSnapshot[];
 	combat: CombatSnapshot;
 	fight: FightSnapshot;
+	advance: AdvanceSnapshot;
 	kingdom: KingdomSnapshot;
 	selectedTile: SelectedTileView | null;
 	combatOpenRequest: number;
@@ -90,6 +93,16 @@ const EMPTY_FIGHT: FightSnapshot = {
 	pairings: [],
 	results: [],
 	playerRounds: []
+};
+const EMPTY_ADVANCE: AdvanceSnapshot = {
+	isActive: false,
+	level: 1,
+	pickOrderPlayerIds: [],
+	secondsPerPick: 1,
+	secondsRemaining: 0,
+	revealDelaySeconds: 0,
+	secondsToPhaseEnd: 0,
+	charters: []
 };
 
 let selectedTileCoords: { q: number; r: number } | null = null;
@@ -172,6 +185,9 @@ export const gameSessionClient = {
 	},
 	requestFightReplayOpen(matchId: string): Promise<CommandResult> {
 		return sendTrackedAction({ type: 'fight/replay-open', matchId });
+	},
+	requestAdvanceSelectCharter(charterId: string): Promise<CommandResult> {
+		return sendTrackedAction({ type: 'advance/select-charter', charterId });
 	}
 };
 
@@ -192,6 +208,7 @@ function buildState(base: MultiplayerClientState, catalog: BuildingCatalogEntry[
 	const isScouting = viewedGameView !== null && selfGameView !== null && viewedGameView.playerId !== selfGameView.playerId;
 	const currentPhase: GamePhase = base.game?.phase ?? 'setup';
 	const isFightPhase = currentPhase === 'combat';
+	const isAdvancePhase = currentPhase === 'advance';
 	const canIssueCommands = !isScouting && selfGameView !== null && base.lobby?.status === 'in-game';
 	const canTownInteract = canIssueCommands && currentPhase === 'build';
 	const canArmyReorder = canIssueCommands;
@@ -222,12 +239,14 @@ function buildState(base: MultiplayerClientState, catalog: BuildingCatalogEntry[
 		canCombatStep,
 		currentPhase,
 		isFightPhase,
+		isAdvancePhase,
 		resources: viewedGameView?.resources ?? EMPTY_RESOURCES,
 		blueprints: viewedGameView?.blueprints ?? {},
 		shop: viewedGameView?.shop ?? EMPTY_SHOP,
 		army: viewedGameView?.army ?? [],
 		combat: viewedGameView?.combat ?? EMPTY_COMBAT,
 		fight: viewedGameView?.fight ?? EMPTY_FIGHT,
+		advance: viewedGameView?.advance ?? EMPTY_ADVANCE,
 		kingdom: viewedGameView?.kingdom ?? EMPTY_KINGDOM,
 		selectedTile: viewedGameView && selectedTileCoords
 			? buildSelectedTileView(selectedTileCoords.q, selectedTileCoords.r, viewedGameView.kingdom, catalog)
@@ -329,21 +348,21 @@ function toProgressPercent(progress: number, total: number): number {
 }
 
 function sendTrackedAction(action: GameActionCommand): Promise<CommandResult> {
-	if (currentState.isScouting) {
+	if (currentState.isScouting && action.type !== 'advance/select-charter') {
 		return Promise.resolve({ ok: false, reason: 'Return to your own town before issuing commands.' });
 	}
 
 	if (currentState.currentPhase !== 'build') {
 		if (action.type === 'build/request' || action.type === 'destroy/request' || action.type === 'upgrade/request') {
-			return Promise.resolve({ ok: false, reason: 'City interactions are disabled during fight phase.' });
+			return Promise.resolve({ ok: false, reason: 'City interactions are disabled outside build phase.' });
 		}
 
 		if (action.type === 'shop/buy' || action.type === 'shop/reroll') {
-			return Promise.resolve({ ok: false, reason: 'Shop is disabled during fight phase.' });
+			return Promise.resolve({ ok: false, reason: 'Shop is disabled outside build phase.' });
 		}
 
 		if (action.type === 'army/train') {
-			return Promise.resolve({ ok: false, reason: 'Training is disabled during fight phase.' });
+			return Promise.resolve({ ok: false, reason: 'Training is disabled outside build phase.' });
 		}
 	}
 
