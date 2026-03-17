@@ -13,10 +13,10 @@ export class ProductionSystem {
 		for (const entity of this.world.getEntitiesWith(['building', 'position'])) {
 			if (entity.building?.status !== 'active') continue;
 			const def = getBuildingDef(entity.building.buildingId);
-			if (!def || def.type !== 'production') continue;
+			if (!def?.production) continue;
 
 			const multiplier = this.calculateMultiplier(entity);
-			for (const [resource, baseAmount] of Object.entries(def.productions)) {
+			for (const [resource, baseAmount] of Object.entries(def.production.productions)) {
 				const amount = baseAmount * multiplier;
 				if (amount <= 0) continue;
 				production.set(resource, (production.get(resource) || 0) + amount);
@@ -32,20 +32,20 @@ export class ProductionSystem {
 	calculateMultiplier(entity: Entity): number {
 		if (!entity.building || !entity.position) return 0;
 		const def = getBuildingDef(entity.building.buildingId);
-		if (!def || def.type !== 'production') return 0;
+		if (!def?.production) return 0;
 
 		let multiplier = 1;
 		const neighbors = this.getNeighbors(entity.position.q, entity.position.r);
 
-		if (def.getSelfProdModifier) {
-			multiplier += def.getSelfProdModifier(entity, neighbors);
+		if (def.production.getSelfProdModifier) {
+			multiplier += def.production.getSelfProdModifier(entity, neighbors);
 		}
 
 		for (const neighbor of neighbors) {
 			if (neighbor.building?.status !== 'active') continue;
 			const neighborDef = getBuildingDef(neighbor.building.buildingId);
-			if (neighborDef?.getOutgoingProdModifier) {
-				multiplier += neighborDef.getOutgoingProdModifier(neighbor, entity);
+			if (neighborDef?.buff?.getOutgoingProdModifier) {
+				multiplier += neighborDef.buff.getOutgoingProdModifier(neighbor, entity);
 			}
 		}
 

@@ -16,7 +16,7 @@
 	let pendingReroll = false;
 	let purchasableBuildings: BuildingCatalogEntry[] = [];
 	const unsubscribeCatalog = buildingCatalogState.subscribe((entries) => {
-		purchasableBuildings = entries.filter((entry) => !entry.parentId && entry.type !== 'blocking');
+		purchasableBuildings = entries.filter((entry) => !entry.parentId && !entry.isBlocker);
 	});
 
 	function close() {

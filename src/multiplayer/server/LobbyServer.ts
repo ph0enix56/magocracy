@@ -461,7 +461,7 @@ export class LobbyServer {
 		return getAllBuildingDefs().map((def) => ({
 			id: def.id,
 			parentId: def.parentId,
-			type: def.type,
+			isBlocker: def.isBlocker,
 			name: def.name,
 			description: def.description,
 			textureId: def.textureId,

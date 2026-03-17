@@ -1,0 +1,141 @@
+import type { UnitDef } from '../buildingTypes';
+
+export const UNIT_DEFS: UnitDef[] = [
+	{
+		id: 'swordsman',
+		name: 'Swordsman',
+		health: 100,
+		drFlat: 5,
+		drPercent: 5,
+		actions: [
+			{ damage: 25, canUpgrade: true, range: 1, targeting: 'first', actionPointCost: 1 }
+		],
+		actionsPerTurn: 1,
+		speed: 2,
+		textureId: 'unit_swordsman',
+		assetPath: 'game_icons/sword-brandish.svg',
+	},
+	{
+		id: 'archer',
+		name: 'Archer',
+		health: 50,
+		drFlat: 0,
+		drPercent: 0,
+		actions: [
+			{ damage: 15, canUpgrade: true, range: 5, targeting: 'last', actionPointCost: 1 }
+		],
+		actionsPerTurn: 1,
+		speed: 3,
+		textureId: 'unit_archer',
+		assetPath: 'game_icons/high-shot.svg',
+	},
+	{
+		id: 'defender',
+		name: 'Defender',
+		health: 150,
+		drFlat: 10,
+		drPercent: 10,
+		actions: [
+			{ damage: 10, canUpgrade: true, range: 1, targeting: 'first', actionPointCost: 1 },
+			{ damage: 0, canUpgrade: false, range: 0, targeting: 'first', actionPointCost: 1 }
+		],
+		actionsPerTurn: 1,
+		speed: 1,
+		textureId: 'unit_defender',
+		assetPath: 'game_icons/vibrating-shield.svg',
+	},
+	{
+		id: 'earth_mage',
+		name: 'Earth Mage',
+		health: 80,
+		drFlat: 0,
+		drPercent: 0,
+		actions: [
+			{ damage: 30, canUpgrade: true, range: 100, targeting: 'all', actionPointCost: 2 }
+		],
+		actionsPerTurn: 2,
+		speed: 2,
+		textureId: 'unit_earth_mage',
+		assetPath: 'game_icons/earth-crack.svg',
+	},
+	{
+		id: 'magic_archer',
+		name: 'Magic Archer',
+		health: 60,
+		drFlat: 10,
+		drPercent: 0,
+		actions: [
+			{ damage: 20, canUpgrade: true, range: 15, targeting: 'first', actionPointCost: 1 },
+			{ damage: 20, canUpgrade: true, range: 30, targeting: 'last', actionPointCost: 1 }
+		],
+		actionsPerTurn: 2,
+		speed: 3,
+		textureId: 'unit_magic_archer',
+		assetPath: 'game_icons/double-shot.svg',
+	},
+	{
+		id: 'crossbowman',
+		name: 'Crossbowman',
+		health: 70,
+		drFlat: 0,
+		drPercent: 0,
+		actions: [
+			{ damage: 20, canUpgrade: true, range: 5, targeting: 'first', actionPointCost: 1 },
+			{ damage: 20, canUpgrade: true, range: 5, targeting: 'first', actionPointCost: 1 },
+			{ damage: 20, canUpgrade: true, range: 5, targeting: 'first', actionPointCost: 1 }
+		],
+		actionsPerTurn: 3,
+		speed: 3,
+		textureId: 'unit_crossbowman',
+		assetPath: 'game_icons/crossbow.svg',
+	},
+	{
+		id: 'assassin',
+		name: 'Assassin',
+		health: 30,
+		drFlat: 10,
+		drPercent: 0,
+		actions: [
+			{ damage: 15, canUpgrade: true, range: 5, targeting: 'weak', actionPointCost: 1 }
+		],
+		actionsPerTurn: 1,
+		speed: 5,
+		textureId: 'unit_assassin',
+		assetPath: 'game_icons/backstab.svg',
+	},
+	{
+		id: 'death_mage',
+		name: 'Death Mage',
+		health: 50,
+		drFlat: 0,
+		drPercent: 0,
+		actions: [
+			{ damage: 0, canUpgrade: false, range: 0, targeting: 'first', actionPointCost: 1 },
+			{ damage: 0, canUpgrade: false, range: 0, targeting: 'first', actionPointCost: 1 },
+			{ damage: 0, canUpgrade: false, range: 0, targeting: 'first', actionPointCost: 1 },
+			{ damage: 0, canUpgrade: false, range: 0, targeting: 'first', actionPointCost: 1 },
+			{ damage: 0, canUpgrade: false, range: 0, targeting: 'first', actionPointCost: 1 },
+			{ damage: 9999, canUpgrade: false, range: 5, targeting: 'first', actionPointCost: 1 }
+		],
+		actionsPerTurn: 1,
+		speed: 1,
+		textureId: 'unit_death_mage',
+		assetPath: 'game_icons/disintegrate.svg',
+	},
+	{
+		id: 'champion',
+		name: 'Champion',
+		health: 100,
+		drFlat: 10,
+		drPercent: 5,
+		actions: [
+			{ damage: 20, canUpgrade: true, range: 1, targeting: 'first', actionPointCost: 1 },
+			{ damage: 10, canUpgrade: true, range: 2, targeting: 'first', actionPointCost: 1 },
+			{ damage: 40, canUpgrade: true, range: 4, targeting: 'last', actionPointCost: 2 }
+		],
+		actionsPerTurn: 2,
+		speed: 2,
+		textureId: 'unit_champion',
+		assetPath: 'game_icons/brutal-helm.svg',
+	},
+];

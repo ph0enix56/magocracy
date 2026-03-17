@@ -39,7 +39,7 @@ class ClientBuildingCatalog {
 	}
 
 	getPurchasable(): BuildingCatalogEntry[] {
-		return this.entries.filter((entry) => !entry.parentId && entry.type !== 'blocking');
+		return this.entries.filter((entry) => !entry.parentId && !entry.isBlocker);
 	}
 
 	getNextUpgrade(currentBuildingId: string): BuildingCatalogEntry | undefined {

@@ -1,149 +1,55 @@
-import type { ServerEcsWorld } from '../gameplay/ServerEcsWorld';
-import type { Entity } from '../gameplay/model';
-import { BUILDING_DEFS as ARMY_BUILDING_DEFS } from './buildingDefs/army';
-import { BUILDING_DEFS as BLOCKER_BUILDING_DEFS } from './buildingDefs/blockers';
-import { BUILDING_DEFS as CORE_BUILDING_DEFS } from './buildingDefs/core';
+import type { BuildingDef, UnitDef } from './buildingTypes';
+import { ALL_BUILDING_DEFS, UNIT_DEFS } from './buildingDefs/index';
 
-export type BuildingCompleteContext = {
-	world: ServerEcsWorld;
-	entity: Entity;
-	buildingId: string;
-	previousStatus: 'constructing' | 'upgrading';
+// Re-export all types so callers only need to import from this file.
+export type {
+	BuildingDef,
+	UnitDef,
+	UnitAttackDef,
+	UnitTrainDef,
+	ProductionComponent,
+	ArmyComponent,
+	BuffComponent,
+	BuildingCompleteContext,
+} from './buildingTypes';
+
+/**
+ * The single hardcoded blocker def.
+ * All blocker tiles share this id; visual variation is stored on the tile snapshot.
+ * Removal always costs one `expansion` resource and takes a fixed number of ticks.
+ */
+export const BLOCKER_DEF: BuildingDef & { isBlocker: true } = {
+	id: 'blocker',
+	name: 'Obstacle',
+	description: 'A natural obstacle blocking construction. Costs one expansion to remove.',
+	textureId: 'blocker',
+	assetPath: 'board_icons/token.png',
+	cost: { expansion: 1 },
+	buildTime: 15,
+	isBlocker: true,
 };
 
-export interface BaseBuildingDef {
-	// Unique identifier for this building/upgrade.
-	id: string;
-	// If set, this building cannot be obtained directly; it is an upgrade of the parent building.
-	parentId?: string;
-	// Building type, set in the sub-interfaces.
-	type: string;
-	// In-game display name.
-	name: string;
-	// In-game building card description.
-	description: string;
-	// Phaser texture key (can be the same as id)
-	textureId: string;
-	// Path relative to public/assets/ for the building icon, loaded into Phaser under textureId
-	assetPath: string;
-	// Resource cost to build/upgrade into this. For blockers, this is the cost to remove instead.
-	cost: Record<string, number>;
-	// Time required to build/upgrade this building, in game ticks. For blockers, this is the time to remove instead.
-	buildTime: number;
-	// An additive bonus to the target's production multiplier (e.g. 0.1 for +10%).
-	// TODO: for now evaluted only on neighboring production buildings; could be extended later.
-	getOutgoingProdModifier?: (self: Entity, neighbors: Entity) => number;
-	// Optional hook executed when this building finishes construction or upgrade.
-	onComplete?: (ctx: BuildingCompleteContext) => void;
-}
-
-// Buildings that produce resources over time.
-export interface ProductionBuildingDef extends BaseBuildingDef {
-	type: 'production';
-	// Resource productions per game tick.
-	productions: Record<string, number>;
-	// Returns an additive bonus to self production multiplier.
-	// TODO: for now evaluted only on neighbors; could be extended later.
-	getSelfProdModifier?: (self: Entity, neighbors: Entity[]) => number;
-}
-
-// Pre-placed pseudo-buildings that block placement of other buildings until removed.
-export interface BlockingBuildingDef extends BaseBuildingDef {
-	type: 'blocking';
-}
-
-export interface ArmyBuildingDef extends BaseBuildingDef {
-	type: 'army';
-	unit: UnitDef;
-	trainCostBase: Record<string, number>;
-	trainCostMult: number;
-	trainTime: number;
-	trainDef: UnitTrainDef;
-}
-
-export interface UnitDef {
-	// Unique identifier for this unit.
-	id: string;
-	// In-game display name.
-	name: string;
-	// Health points (damage capacity) before being defeated.
-	health: number;
-	// Flat damage reduction applied to each incoming attack.
-	drFlat: number;
-	// Percentual damage reduction applied to each incoming attack.
-	drPercent: number;
-	// Action queue/cycle of this unit.
-	actions: UnitAttackDef[];
-	// Actions taken per turn in combat.
-	actionsPerTurn: number;
-	// Travel speed on the world map.
-	speed: number;
-	// Phaser texture key (can be the same as id)
-	textureId: string;
-	// Path relative to public/assets/ for the unit icon, loaded into Phaser under textureId
-	assetPath: string;
-}
-
-export interface UnitTrainDef {
-	health: number;
-	attackDamage: number;
-	drFlat: number;
-}
-
-export interface UnitAttackDef {
-	// Attack damage dealt to target(s).
-	damage: number;
-	// Whether this attack's damage can be upgraded.
-	canUpgrade: boolean;
-	// How many units across can be targeted by this attack.
-	range: number;
-	// Targeting logic among possible targets.
-	targeting: 'first' | 'last' | 'weak' | 'all';
-	// Action point cost to perform this attack (for multiple attacks or one per x turns).
-	actionPointCost: number;
-}
-
-export type BuildingDef = ProductionBuildingDef | BlockingBuildingDef | ArmyBuildingDef;
-
 function loadAllBuildings(): Record<string, BuildingDef> {
-	const rawBuildings: Record<string, BuildingDef> = {};
-	const modules: Array<{ modulePath: string; defs: BuildingDef[] }> = [
-		{ modulePath: './buildingDefs/core', defs: CORE_BUILDING_DEFS },
-		{ modulePath: './buildingDefs/army', defs: ARMY_BUILDING_DEFS },
-		{ modulePath: './buildingDefs/blockers', defs: BLOCKER_BUILDING_DEFS }
-	];
-
-	for (const { modulePath, defs } of modules) {
-		for (const def of defs) {
-			if (!def?.id) {
-				throw new Error(`Invalid building def in ${modulePath}: missing id`);
-			}
-			if (rawBuildings[def.id]) {
-				throw new Error(`Duplicate building id '${def.id}' (from ${modulePath})`);
-			}
-			rawBuildings[def.id] = def;
-		}
+	const out: Record<string, BuildingDef> = {};
+	for (const def of [BLOCKER_DEF, ...ALL_BUILDING_DEFS]) {
+		if (!def?.id) throw new Error(`Building def missing id`);
+		if (out[def.id]) throw new Error(`Duplicate building id '${def.id}'`);
+		out[def.id] = def;
 	}
+	return out;
+}
 
-	return rawBuildings;
+function loadAllUnits(): Record<string, UnitDef> {
+	const out: Record<string, UnitDef> = {};
+	for (const u of UNIT_DEFS) {
+		if (!u?.id) throw new Error(`Unit def missing id`);
+		if (out[u.id]) throw new Error(`Duplicate unit id '${u.id}'`);
+		out[u.id] = u;
+	}
+	return out;
 }
 
 const BUILDINGS: Record<string, BuildingDef> = loadAllBuildings();
-
-function loadAllUnits(): Record<string, UnitDef> {
-	const units: Record<string, UnitDef> = {};
-	for (const b of Object.values(BUILDINGS)) {
-		if (b.type !== 'army') continue;
-		const u = b.unit;
-		if (!u?.id) continue;
-		if (units[u.id]) {
-			throw new Error(`Duplicate unit id '${u.id}' (from building '${b.id}')`);
-		}
-		units[u.id] = u;
-	}
-	return units;
-}
-
 const UNITS: Record<string, UnitDef> = loadAllUnits();
 
 export function getBuildingDef(id: string): BuildingDef | undefined {
@@ -154,11 +60,9 @@ export function getUnitDef(unitId: string): UnitDef | undefined {
 	return UNITS[unitId];
 }
 
-// currently, only one upgrade per building is defined
+/** Returns the next upgrade def for the given building id, if one exists. */
 export function getNextUpgradeDef(currentBuildingId: string): BuildingDef | undefined {
-	const candidates = Object.values(BUILDINGS).filter(b => b.parentId === currentBuildingId);
-	if (candidates.length === 0) return undefined;
-	return candidates[0];
+	return Object.values(BUILDINGS).find(b => b.parentId === currentBuildingId);
 }
 
 export function getAllBuildingDefs(): BuildingDef[] {
@@ -169,10 +73,7 @@ export function getAllUnitDefs(): UnitDef[] {
 	return Object.values(UNITS);
 }
 
+/** Returns all root (non-upgrade, non-blocker) buildings available for purchase. */
 export function getPurchasableBuildings(): BuildingDef[] {
-	return Object.values(BUILDINGS).filter(b => !b.parentId && b.type !== 'blocking');
-}
-
-export function getBlockingBuildings(): BuildingDef[] {
-	return Object.values(BUILDINGS).filter(b => b.type === 'blocking');
+	return Object.values(BUILDINGS).filter(b => !b.parentId && !b.isBlocker);
 }

@@ -1,6 +1,6 @@
 import { configuration } from '../../game/configuration';
 import { CHARTER_TEMPLATES, type CharterTemplateDef } from './config/charters';
-import { getAllBuildingDefs, getBlockingBuildings, getBuildingDef, type BuildingDef } from './config/buildings';
+import { getAllBuildingDefs, getBuildingDef, BLOCKER_DEF, type BuildingDef } from './config/buildings';
 import { createInitialKingdomTiles, createRevealTilesAround, kingdomCoordKey } from '../../shared/kingdom/kingdomGrid';
 import type {
 	AdvanceSnapshot,
@@ -224,7 +224,7 @@ export class RoomGameRuntime {
 					const entity = runtime.run.ecs.getEntity(kingdomCoordKey(action.q, action.r));
 					if (!entity?.building) return { ok: false, reason: 'No building on that tile.' };
 					const buildingDef = getBuildingDef(entity.building.buildingId);
-					const wasBlocker = buildingDef?.type === 'blocking';
+					const wasBlocker = buildingDef?.isBlocker === true;
 					runtime.buildSystem.destroyBuilding(entity);
 					if (wasBlocker) {
 						this.revealNeighbors(runtime, action.q, action.r);
@@ -707,7 +707,7 @@ export class RoomGameRuntime {
 					buildingId: picked.id,
 					count: 1,
 					tier: tierByBuildingId.get(picked.id) ?? 1,
-					type: picked.type,
+				type: picked.army ? 'army' : 'production',
 					magicSchool: rule.magicSchool
 				});
 			}
@@ -722,15 +722,16 @@ export class RoomGameRuntime {
 		rule: NonNullable<CharterTemplateDef['blueprints']>[number]
 	): BuildingDef | null {
 		const filterByRule = (building: BuildingDef, strictTier: boolean): boolean => {
-			if (building.type === 'blocking') return false;
-			if (rule.buildingType && building.type !== rule.buildingType) return false;
+			if (building.isBlocker) return false;
+			if (rule.buildingType === 'production' && !building.production) return false;
+			if (rule.buildingType === 'army' && !building.army) return false;
 			if (strictTier && (tierByBuildingId.get(building.id) ?? 1) !== Math.max(1, Math.floor(rule.tier))) return false;
 			return true;
 		};
 
 		let candidates = allBuildings.filter((building) => filterByRule(building, true));
 		if (candidates.length === 0) candidates = allBuildings.filter((building) => filterByRule(building, false));
-		if (candidates.length === 0) candidates = allBuildings.filter((building) => building.type !== 'blocking');
+		if (candidates.length === 0) candidates = allBuildings.filter((building) => !building.isBlocker);
 		if (candidates.length === 0) return null;
 		return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
 	}
@@ -793,11 +794,7 @@ export class RoomGameRuntime {
 		}
 	}
 
-	private pickBlockerId = (): string => {
-		const blockers = getBlockingBuildings();
-		if (blockers.length === 0) throw new Error('No blocker building defs found.');
-		return blockers[Math.floor(Math.random() * blockers.length)]!.id;
-	};
+	private pickBlockerId = (): string => BLOCKER_DEF.id;
 }
 
 function serializeResources(resources: Map<string, number>): ResourceSnapshot {

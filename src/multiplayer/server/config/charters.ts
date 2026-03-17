@@ -8,7 +8,7 @@ export type CharterBlueprintRuleDef = {
 	tier: number;
 	countMin: number;
 	countMax: number;
-	buildingType?: 'production' | 'blocking' | 'army';
+	buildingType?: 'production' | 'army';
 	magicSchool?: string;
 };
 

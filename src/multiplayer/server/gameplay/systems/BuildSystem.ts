@@ -1,4 +1,4 @@
-import { getBuildingDef, getNextUpgradeDef } from '../../config/buildings';
+import { getBuildingDef, getNextUpgradeDef, getUnitDef } from '../../config/buildings';
 import type { Entity } from '../model';
 import type { ServerEcsWorld } from '../ServerEcsWorld';
 
@@ -38,28 +38,31 @@ export class BuildSystem {
 				previousStatus
 			});
 
-			if (previousStatus === 'constructing' && targetDef.type === 'army') {
+			if (previousStatus === 'constructing' && targetDef.army) {
+				const army = targetDef.army;
+				const unit = getUnitDef(army.unitId);
+				if (!unit) throw new Error(`Unknown unitId '${army.unitId}' for building '${targetId}'`);
 				this.world.spawnArmyUnit({
-					unitId: targetDef.unit.id,
-					name: targetDef.unit.name,
-					textureId: targetDef.unit.textureId,
-					assetPath: targetDef.unit.assetPath,
-					speed: targetDef.unit.speed,
-					health: targetDef.unit.health,
-					drFlat: targetDef.unit.drFlat,
-					drPercent: targetDef.unit.drPercent,
-					actionsPerTurn: targetDef.unit.actionsPerTurn,
+					unitId: unit.id,
+					name: unit.name,
+					textureId: unit.textureId,
+					assetPath: unit.assetPath,
+					speed: unit.speed,
+					health: unit.health,
+					drFlat: unit.drFlat,
+					drPercent: unit.drPercent,
+					actionsPerTurn: unit.actionsPerTurn,
 					trainingLevel: 0,
 					training: {
 						status: 'idle',
 						progress: 0,
-						costBase: targetDef.trainCostBase,
-						costMult: targetDef.trainCostMult,
-						time: targetDef.trainTime,
+						costBase: army.trainCostBase,
+						costMult: army.trainCostMult,
+						time: army.trainTime,
 						def: {
-							health: targetDef.trainDef.health,
-							drFlat: targetDef.trainDef.drFlat,
-							attackDamage: targetDef.trainDef.attackDamage
+							health: army.trainDef.health,
+							drFlat: army.trainDef.drFlat,
+							attackDamage: army.trainDef.attackDamage
 						}
 					}
 				});
@@ -101,7 +104,7 @@ export class BuildSystem {
 		if (!entity.building) throw new Error('Entity has no building to destroy');
 		const def = getBuildingDef(entity.building.buildingId);
 		if (!def) throw new Error(`Invalid buildingId: ${entity.building.buildingId}`);
-		if (def.type === 'blocking') {
+		if (def.isBlocker) {
 			this.deductCostWithThrow(def.cost);
 		}
 		delete entity.building;

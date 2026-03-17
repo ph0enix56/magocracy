@@ -10,7 +10,7 @@ export type CharterBlueprintGrantSnapshot = {
 	buildingId: string;
 	count: number;
 	tier: number;
-	type: 'production' | 'blocking' | 'army';
+	type: 'production' | 'army';
 	magicSchool?: string;
 };
 
@@ -103,7 +103,7 @@ export type BlueprintInventorySnapshot = Record<string, number>;
 export type BuildingCatalogEntry = {
 	id: string;
 	parentId?: string;
-	type: 'production' | 'blocking' | 'army';
+	isBlocker?: true;
 	name: string;
 	description: string;
 	textureId: string;
