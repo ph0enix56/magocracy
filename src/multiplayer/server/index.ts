@@ -1,4 +1,4 @@
-import { LobbyServer } from './LobbyServer';
+import { LobbyServer } from './LobbyServer.ts';
 
 const DEFAULT_PORT = 3001;
 const requestedPort = Number.parseInt(process.env['PORT'] ?? `${DEFAULT_PORT}`, 10);

@@ -102,6 +102,8 @@ export type BlueprintInventorySnapshot = Record<string, number>;
 
 export type BuildingCatalogEntry = {
 	id: string;
+	school: string;
+	tier: number;
 	parentId?: string;
 	isBlocker?: true;
 	name: string;

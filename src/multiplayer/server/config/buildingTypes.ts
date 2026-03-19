@@ -1,12 +1,30 @@
-import type { ServerEcsWorld } from '../gameplay/ServerEcsWorld';
-import type { Entity } from '../gameplay/model';
+export const BUILDING_SCHOOLS = {
+	neutral: 'neutral',
+	sylvan: 'sylvan',
+	geomancy: 'geomancy',
+	pyromancy: 'pyromancy',
+	hydromancy: 'hydromancy',
+	necromancy: 'necromancy',
+	arcane: 'arcane'
+} as const;
 
-export type BuildingCompleteContext = {
-	world: ServerEcsWorld;
-	entity: Entity;
-	buildingId: string;
-	previousStatus: 'constructing' | 'upgrading';
-};
+export type BuildingSchool = keyof typeof BUILDING_SCHOOLS;
+
+export type EffectTarget = 'self-if' | 'self-foreach' | 'neighbor';
+export type EffectApply = 'add' | 'mult';
+export type EffectStat =
+	| 'prod:all'
+	| `prod:${string}`
+	| 'army:traincost'
+	| 'unit:hp'
+	| 'unit:drflat'
+	| 'unit:drpercent'
+	| 'unit:ap'
+	| 'unit:initiative'
+	| 'unit:damage';
+
+/** Serialized DSL string: "<target>; <cond>; <stat>; <apply>; <value>" */
+export type BuildingEffectDef = string;
 
 // --- Building components (attach to BuildingDef as optional fields) ---
 
@@ -14,8 +32,6 @@ export type BuildingCompleteContext = {
 export interface ProductionComponent {
 	/** Resource productions per game tick. */
 	productions: Record<string, number>;
-	/** Returns an additive bonus to self production multiplier, evaluated against neighbors. */
-	getSelfProdModifier?: (self: Entity, neighbors: Entity[]) => number;
 }
 
 /** Attached to buildings that train and manage an army unit type. */
@@ -28,17 +44,15 @@ export interface ArmyComponent {
 	trainDef: UnitTrainDef;
 }
 
-/** Attached to buildings that grant passive bonuses to neighboring buildings. */
-export interface BuffComponent {
-	/** Additive bonus to a neighboring building's production multiplier (e.g. 0.1 for +10%). */
-	getOutgoingProdModifier?: (self: Entity, target: Entity) => number;
-}
-
 // --- Building def ---
 
 export interface BuildingDef {
 	/** Unique identifier for this building/upgrade. */
 	id: string;
+	/** Magic school used for effects and categorization. */
+	school: BuildingSchool;
+	/** Building tier for progression and effect conditions. */
+	tier: number;
 	/** If set, this building cannot be obtained directly; it is an upgrade of the parent. */
 	parentId?: string;
 	/** In-game display name. */
@@ -59,10 +73,10 @@ export interface BuildingDef {
 	production?: ProductionComponent;
 	/** Attached army component. */
 	army?: ArmyComponent;
-	/** Attached buff component. */
-	buff?: BuffComponent;
-	/** Optional hook executed when this building finishes construction or upgrade. */
-	onComplete?: (ctx: BuildingCompleteContext) => void;
+	/** Neighbor interaction effects written in the serialized DSL. */
+	effects?: BuildingEffectDef[];
+	/** Resource grants awarded once when construction/upgrade completes. */
+	onCompleteGrants?: Record<string, number>;
 }
 
 // --- Unit defs ---

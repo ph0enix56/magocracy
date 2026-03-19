@@ -1,9 +1,9 @@
 import type { Entity } from '../model';
+import { getBuildingDef } from '../../config/buildings';
+import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
+import { computeNextTrainCost, getTrainCostEffectsForUnit } from '../army/trainCost';
+import { getHousingBuildingForUnit, recomputeAllHousedArmyUnits, recomputeHousedArmyUnit } from './armyRuntime';
 import type { ServerEcsWorld } from '../ServerEcsWorld';
-
-function pow(base: number, exp: number): number {
-	return Math.pow(base, exp);
-}
 
 export class ArmySystem {
 	constructor(private readonly world: ServerEcsWorld) {}
@@ -11,6 +11,8 @@ export class ArmySystem {
 	update(_delta: number, _time: number): void {}
 
 	advanceTick(): void {
+		recomputeAllHousedArmyUnits(this.world);
+
 		for (const entity of this.world.getEntitiesWith(['armyUnit'])) {
 			const unit = entity.armyUnit!;
 			if (unit.training.status !== 'training') continue;
@@ -21,8 +23,9 @@ export class ArmySystem {
 			unit.training.progress = unit.training.time;
 			unit.training.status = 'idle';
 			unit.trainingLevel += 1;
-			unit.health += unit.training.def.health;
-			unit.drFlat += unit.training.def.drFlat;
+
+			const housing = getHousingBuildingForUnit(this.world, entity.id);
+			if (housing) recomputeHousedArmyUnit(this.world, housing.id);
 		}
 	}
 
@@ -32,19 +35,24 @@ export class ArmySystem {
 		const unit = entity.armyUnit;
 		if (unit.training.status === 'training') throw new Error('Unit is already training.');
 
-		const cost = this.getTrainCost(unit);
+		const cost = this.getTrainCost(unitEntityId, unit);
 		this.deductCostWithThrow(cost);
 		unit.training.status = 'training';
 		unit.training.progress = 0;
 	}
 
-	private getTrainCost(unit: NonNullable<Entity['armyUnit']>): Record<string, number> {
-		const levelMult = pow(unit.training.costMult, unit.trainingLevel);
-		const out: Record<string, number> = {};
-		for (const [resource, base] of Object.entries(unit.training.costBase)) {
-			out[resource] = Math.ceil(base * levelMult);
-		}
-		return out;
+	private getTrainCost(unitEntityId: string, unit: NonNullable<Entity['armyUnit']>): Record<string, number> {
+		const costEffects = this.getTrainCostEffects(unitEntityId);
+		return computeNextTrainCost(unit, costEffects);
+	}
+
+	private getTrainCostEffects(unitEntityId: string): { add: number; mult: number } {
+		return getTrainCostEffectsForUnit({
+			unitEntityId,
+			findHousingByUnitId: (entityId) => getHousingBuildingForUnit(this.world, entityId),
+			resolveBuildingDef: getBuildingDef,
+			getNeighbors: (q, r) => getNeighborsFromWorld(this.world, q, r)
+		});
 	}
 
 	private deductCostWithThrow(cost: Record<string, number>): void {

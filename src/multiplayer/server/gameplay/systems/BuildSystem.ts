@@ -1,4 +1,5 @@
 import { getBuildingDef, getNextUpgradeDef, getUnitDef } from '../../config/buildings';
+import { recomputeHousedArmyUnit } from './armyRuntime';
 import type { Entity } from '../model';
 import type { ServerEcsWorld } from '../ServerEcsWorld';
 
@@ -31,18 +32,19 @@ export class BuildSystem {
 			}
 			building.status = 'active';
 
-			targetDef.onComplete?.({
-				world: this.world,
-				entity,
-				buildingId: targetId,
-				previousStatus
-			});
+			if (targetDef.onCompleteGrants) {
+				for (const [resource, amount] of Object.entries(targetDef.onCompleteGrants)) {
+					const current = this.world.resources.get(resource) || 0;
+					this.world.resources.set(resource, current + Math.max(0, Math.floor(amount)));
+				}
+			}
 
 			if (previousStatus === 'constructing' && targetDef.army) {
 				const army = targetDef.army;
 				const unit = getUnitDef(army.unitId);
 				if (!unit) throw new Error(`Unknown unitId '${army.unitId}' for building '${targetId}'`);
-				this.world.spawnArmyUnit({
+
+				const spawnedUnitEntity = this.world.spawnArmyUnit({
 					unitId: unit.id,
 					name: unit.name,
 					textureId: unit.textureId,
@@ -52,6 +54,7 @@ export class BuildSystem {
 					drFlat: unit.drFlat,
 					drPercent: unit.drPercent,
 					actionsPerTurn: unit.actionsPerTurn,
+					actions: unit.actions.map((action) => ({ ...action })),
 					trainingLevel: 0,
 					training: {
 						status: 'idle',
@@ -66,6 +69,9 @@ export class BuildSystem {
 						}
 					}
 				});
+
+				building.housedUnitEntityId = spawnedUnitEntity.id;
+				recomputeHousedArmyUnit(this.world, entity.id);
 			}
 		}
 	}
@@ -107,6 +113,7 @@ export class BuildSystem {
 		if (def.isBlocker) {
 			this.deductCostWithThrow(def.cost);
 		}
+		delete entity.building.housedUnitEntityId;
 		delete entity.building;
 	}
 
@@ -128,4 +135,5 @@ export class BuildSystem {
 		if (next <= 0) this.world.blueprintInventory.delete(buildingId);
 		else this.world.blueprintInventory.set(buildingId, next);
 	}
+
 }

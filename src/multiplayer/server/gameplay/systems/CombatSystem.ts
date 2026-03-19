@@ -1,4 +1,3 @@
-import { getUnitDef } from '../../config/buildings';
 import {
 	CombatSession,
 	resolveCombat,
@@ -15,9 +14,6 @@ function clampInt(value: number): number {
 }
 
 function toCombatUnit(unit: ArmyUnitComponent): CombatUnit {
-	const def = getUnitDef(unit.unitId);
-	if (!def) throw new Error(`Missing unit def for unitId '${unit.unitId}'`);
-
 	return {
 		unitId: unit.unitId,
 		name: unit.name,
@@ -27,7 +23,7 @@ function toCombatUnit(unit: ArmyUnitComponent): CombatUnit {
 		drFlat: unit.drFlat,
 		drPercent: unit.drPercent,
 		actionsPerTurn: unit.actionsPerTurn,
-		actions: def.actions,
+		actions: unit.actions,
 		trainingLevel: unit.trainingLevel,
 		trainingAttackDamagePerLevel: unit.training?.def?.attackDamage ?? 0
 	};

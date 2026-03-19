@@ -1,4 +1,6 @@
 import { getBuildingDef } from '../../config/buildings';
+import { accumulateEffectsForTargetStat } from '../effects/effectDsl';
+import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
 import type { Entity } from '../model';
 import type { ServerEcsWorld } from '../ServerEcsWorld';
 
@@ -14,10 +16,8 @@ export class ProductionSystem {
 			if (entity.building?.status !== 'active') continue;
 			const def = getBuildingDef(entity.building.buildingId);
 			if (!def?.production) continue;
-
-			const multiplier = this.calculateMultiplier(entity);
 			for (const [resource, baseAmount] of Object.entries(def.production.productions)) {
-				const amount = baseAmount * multiplier;
+				const amount = this.calculateResourceAmount(entity, resource, baseAmount);
 				if (amount <= 0) continue;
 				production.set(resource, (production.get(resource) || 0) + amount);
 			}
@@ -34,36 +34,40 @@ export class ProductionSystem {
 		const def = getBuildingDef(entity.building.buildingId);
 		if (!def?.production) return 0;
 
-		let multiplier = 1;
-		const neighbors = this.getNeighbors(entity.position.q, entity.position.r);
+		const effects = accumulateEffectsForTargetStat({
+			targetEntity: entity,
+			targetBuildingDef: def,
+			targetStat: 'prod:all',
+			resolveBuildingDef: getBuildingDef,
+			getNeighbors: (q, r) => getNeighborsFromWorld(this.world, q, r)
+		});
 
-		if (def.production.getSelfProdModifier) {
-			multiplier += def.production.getSelfProdModifier(entity, neighbors);
-		}
-
-		for (const neighbor of neighbors) {
-			if (neighbor.building?.status !== 'active') continue;
-			const neighborDef = getBuildingDef(neighbor.building.buildingId);
-			if (neighborDef?.buff?.getOutgoingProdModifier) {
-				multiplier += neighborDef.buff.getOutgoingProdModifier(neighbor, entity);
-			}
-		}
-
-		return multiplier;
+		return Math.max(0, 1 + effects.mult);
 	}
 
-	private getNeighbors(q: number, r: number): Entity[] {
-		const doubledDirections = [
-			{ dq: 1, dr: 1 },
-			{ dq: 2, dr: 0 },
-			{ dq: 1, dr: -1 },
-			{ dq: -1, dr: -1 },
-			{ dq: -2, dr: 0 },
-			{ dq: -1, dr: 1 }
-		];
+	private calculateResourceAmount(entity: Entity, resource: string, baseAmount: number): number {
+		if (!entity.building) return 0;
+		const def = getBuildingDef(entity.building.buildingId);
+		if (!def?.production) return 0;
 
-		return doubledDirections
-			.map(({ dq, dr }) => this.world.getEntitiesWith(['position']).find((entity) => entity.position?.q === q + dq && entity.position?.r === r + dr))
-			.filter((entity): entity is Entity => !!entity);
+		const allEffects = accumulateEffectsForTargetStat({
+			targetEntity: entity,
+			targetBuildingDef: def,
+			targetStat: 'prod:all',
+			resolveBuildingDef: getBuildingDef,
+			getNeighbors: (q, r) => getNeighborsFromWorld(this.world, q, r)
+		});
+
+		const resourceEffects = accumulateEffectsForTargetStat({
+			targetEntity: entity,
+			targetBuildingDef: def,
+			targetStat: `prod:${resource}`,
+			resolveBuildingDef: getBuildingDef,
+			getNeighbors: (q, r) => getNeighborsFromWorld(this.world, q, r)
+		});
+
+		const add = allEffects.add + resourceEffects.add;
+		const mult = allEffects.mult + resourceEffects.mult;
+		return Math.max(0, (baseAmount + add) * (1 + mult));
 	}
 }

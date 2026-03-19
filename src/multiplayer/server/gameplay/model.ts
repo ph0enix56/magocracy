@@ -8,6 +8,15 @@ export interface BuildingComponent {
 	status: 'constructing' | 'active' | 'upgrading';
 	progress: number;
 	upgradeNextId?: string;
+	housedUnitEntityId?: string;
+}
+
+export interface ArmyUnitAction {
+	damage: number;
+	canUpgrade: boolean;
+	range: number;
+	targeting: 'first' | 'last' | 'weak' | 'all';
+	actionPointCost: number;
 }
 
 export interface ArmyUnitTrainingState {
@@ -38,6 +47,7 @@ export interface ArmyUnitComponent {
 	drFlat: number;
 	drPercent: number;
 	actionsPerTurn: number;
+	actions: ArmyUnitAction[];
 	trainingLevel: number;
 	training: ArmyUnitTrainingConfig & ArmyUnitTrainingState;
 }
