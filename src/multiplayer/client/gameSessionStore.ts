@@ -18,17 +18,18 @@ import type {
 import type { MultiplayerClientState } from './MultiplayerClient';
 import { buildingCatalog } from './buildingCatalog';
 import { multiplayerClient } from './clientSingleton';
+import type { BuildingStatus, ResourceMap } from '../../shared/domain/types';
 
 export type SelectedTileView = {
 	q: number;
 	r: number;
 	built: boolean;
 	buildingId?: string;
-	buildingStatus?: 'constructing' | 'active' | 'upgrading';
+	buildingStatus?: BuildingStatus;
 	constructionProgress?: number;
 	productionMultiplier?: number;
 	nextUpgradeId?: string;
-	nextUpgradeCost?: Record<string, number>;
+	nextUpgradeCost?: ResourceMap;
 	nextUpgradeTime?: number;
 	upgradingToId?: string;
 	upgradeProgress?: number;
@@ -293,11 +294,11 @@ function buildSelectedTileView(
 	const built = !!tile?.building;
 
 	let buildingId: string | undefined;
-	let buildingStatus: 'constructing' | 'active' | 'upgrading' | undefined;
+	let buildingStatus: BuildingStatus | undefined;
 	let constructionProgress: number | undefined;
 	let productionMultiplier: number | undefined;
 	let nextUpgradeId: string | undefined;
-	let nextUpgradeCost: Record<string, number> | undefined;
+	let nextUpgradeCost: ResourceMap | undefined;
 	let nextUpgradeTime: number | undefined;
 	let upgradingToId: string | undefined;
 	let upgradeProgress: number | undefined;

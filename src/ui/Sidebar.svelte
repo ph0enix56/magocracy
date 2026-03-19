@@ -2,6 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import { blueprintModalState } from './uiState';
 	import { selectedTileState } from './gameState';
+	import type { ResourceMap } from '../shared/domain/types';
 	import { gameSessionClient, type SelectedTileView } from '../multiplayer/client/gameSessionStore';
 	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
 
@@ -45,7 +46,7 @@
 		visible = false;
 	}
 
-	function formatCost(cost: Record<string, number> | undefined): string {
+	function formatCost(cost: ResourceMap | undefined): string {
 		if (!cost) return '';
 		return Object.entries(cost)
 			.map(([res, amount]) => `${amount} ${res}`)

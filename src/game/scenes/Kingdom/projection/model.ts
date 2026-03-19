@@ -1,13 +1,12 @@
 import type { ConstructionBadge } from './ConstructionBadge';
+import type { BuildingStatus } from '../../../../shared/domain/types';
+import type { KingdomCoord } from '../../../../shared/kingdom/kingdomGrid';
 
-export interface ProjectionPosition {
-	q: number;
-	r: number;
-}
+export type ProjectionPosition = KingdomCoord;
 
 export interface ProjectionBuilding {
 	buildingId: string;
-	status: 'constructing' | 'active' | 'upgrading';
+	status: BuildingStatus;
 	progress: number;
 	upgradeNextId?: string;
 	productionMultiplier?: number;

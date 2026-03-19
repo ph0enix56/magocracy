@@ -1,3 +1,12 @@
+import type { BuildingKind } from '../domain/types';
+import type { BuildingStatus, ResourceMap, TrainingStatus } from '../domain/types';
+import type {
+	CombatLogEntryView,
+	CombatSnapshotView,
+	CombatUnitView
+} from '../domain/combatTypes';
+import type { KingdomCoord } from '../kingdom/kingdomGrid';
+
 export type LobbyStatus = 'open' | 'in-game';
 export type GamePhase = 'setup' | 'build' | 'combat' | 'advance';
 
@@ -10,7 +19,7 @@ export type CharterBlueprintGrantSnapshot = {
 	buildingId: string;
 	count: number;
 	tier: number;
-	type: 'production' | 'army';
+	type: BuildingKind;
 	magicSchool?: string;
 };
 
@@ -97,8 +106,8 @@ export type LobbySnapshot = {
 	createdAt: number;
 };
 
-export type ResourceSnapshot = Record<string, number>;
-export type BlueprintInventorySnapshot = Record<string, number>;
+export type ResourceSnapshot = ResourceMap;
+export type BlueprintInventorySnapshot = ResourceMap;
 
 export type BuildingCatalogEntry = {
 	id: string;
@@ -110,7 +119,7 @@ export type BuildingCatalogEntry = {
 	description: string;
 	textureId: string;
 	assetPath: string;
-	cost: Record<string, number>;
+	cost: ResourceMap;
 	buildTime: number;
 };
 
@@ -126,15 +135,13 @@ export type ShopSnapshot = {
 
 export type KingdomBuildingSnapshot = {
 	buildingId: string;
-	status: 'constructing' | 'active' | 'upgrading';
+	status: BuildingStatus;
 	progress: number;
 	upgradeNextId?: string;
 	productionMultiplier?: number;
 };
 
-export type KingdomTileSnapshot = {
-	q: number;
-	r: number;
+export type KingdomTileSnapshot = KingdomCoord & {
 	building?: KingdomBuildingSnapshot;
 };
 
@@ -153,34 +160,17 @@ export type ArmyUnitSnapshot = {
 	drPercent: number;
 	actionsPerTurn: number;
 	trainingLevel: number;
-	trainingStatus: 'idle' | 'training';
+	trainingStatus: TrainingStatus;
 	trainingProgress: number;
-	nextTrainCost: Record<string, number>;
+	nextTrainCost: ResourceMap;
 	trainTime: number;
 };
 
-export type CombatUnitSnapshot = {
-	unitId: string;
-	name: string;
-	assetPath: string;
-	health: number;
-	maxHealth: number;
-};
+export type CombatUnitSnapshot = CombatUnitView;
 
-export type CombatLogEntrySnapshot = {
-	seq: number;
-	text: string;
-};
+export type CombatLogEntrySnapshot = CombatLogEntryView;
 
-export type CombatSnapshot = {
-	status: 'idle' | 'running' | 'finished';
-	winner?: 'armyA' | 'armyB' | 'draw';
-	round: number;
-	activeSide: 'armyA' | 'armyB';
-	armyA: CombatUnitSnapshot[];
-	armyB: CombatUnitSnapshot[];
-	log: CombatLogEntrySnapshot[];
-};
+export type CombatSnapshot = CombatSnapshotView;
 
 export type PlayerGameView = {
 	playerId: string;

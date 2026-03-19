@@ -1,37 +1,27 @@
-export interface PositionComponent {
-	q: number;
-	r: number;
-}
+import type { KingdomCoord } from '../../../shared/kingdom/kingdomGrid';
+import type { AttackAction, BuildingStatus, ResourceMap, TrainingDelta, TrainingStatus } from '../../../shared/domain/types';
+
+export type PositionComponent = KingdomCoord;
 
 export interface BuildingComponent {
 	buildingId: string;
-	status: 'constructing' | 'active' | 'upgrading';
+	status: BuildingStatus;
 	progress: number;
 	upgradeNextId?: string;
 	housedUnitEntityId?: string;
 }
 
-export interface ArmyUnitAction {
-	damage: number;
-	canUpgrade: boolean;
-	range: number;
-	targeting: 'first' | 'last' | 'weak' | 'all';
-	actionPointCost: number;
-}
+export type ArmyUnitAction = AttackAction;
 
 export interface ArmyUnitTrainingState {
-	status: 'idle' | 'training';
+	status: TrainingStatus;
 	progress: number;
 }
 
-export interface ArmyUnitTrainDef {
-	health: number;
-	attackDamage: number;
-	drFlat: number;
-}
+export type ArmyUnitTrainDef = TrainingDelta;
 
 export interface ArmyUnitTrainingConfig {
-	costBase: Record<string, number>;
+	costBase: ResourceMap;
 	costMult: number;
 	time: number;
 	def: ArmyUnitTrainDef;
@@ -57,9 +47,4 @@ export interface Entity {
 	position?: PositionComponent;
 	building?: BuildingComponent;
 	armyUnit?: ArmyUnitComponent;
-}
-
-export interface System {
-	update(delta: number, time: number): void;
-	advanceTick(): void;
 }

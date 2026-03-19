@@ -4,7 +4,7 @@ import { getAllBuildingDefs, getBlockingBuildingDefs, getBuildingDef } from './c
 import { kingdomCoordKey } from '../../shared/kingdom/kingdomGrid';
 import type {
 	AdvanceSnapshot,
-	CharterSnapshot,
+	CombatSnapshot,
 	FightPlayerRoundSnapshot,
 	GameActionCommand,
 	GamePhase,
@@ -12,10 +12,10 @@ import type {
 	PlayerGameView
 } from '../../shared/multiplayer/protocol';
 import { ServerGameState } from './gameplay/ServerGameState';
-import { BuildSystem } from './gameplay/systems/BuildSystem';
-import { ArmySystem } from './gameplay/systems/ArmySystem';
-import { ProductionSystem } from './gameplay/systems/ProductionSystem';
-import { ShopSystem } from './gameplay/systems/ShopSystem';
+import { BuildService } from './gameplay/services/BuildService';
+import { ArmyService } from './gameplay/services/ArmyService';
+import { ProductionService } from './gameplay/services/ProductionService';
+import { ShopService } from './gameplay/services/ShopService';
 import type { ArmyUnitComponent } from './gameplay/model';
 import {
 	advancePhaseTimers,
@@ -26,6 +26,8 @@ import {
 	skipAdvancePick,
 	type AdvancePhaseStateData
 } from './gameplay/advance/advancePhase';
+import type { CharterDraftOption } from './gameplay/advance/charterModel';
+import { toCharterSnapshot } from './gameplay/advance/charterMappers';
 import { resolveAdvanceLevel, pickCharterTemplatesForDraft, materializeCharter } from './gameplay/advance/charterDraft';
 import { initializeKingdomGrid, revealNeighborTiles } from './gameplay/board/kingdomBoard';
 import {
@@ -36,14 +38,16 @@ import {
 } from './gameplay/fight/fightPhase';
 import { buildFightSnapshotForPlayer } from './gameplay/fight/fightSnapshots';
 import { buildRoundRobinCycle } from './gameplay/fight/roundRobin';
+import { CombatReplaySession } from './gameplay/fight/CombatReplaySession';
 import { serializeArmy, serializeInventory, serializeKingdom, serializeResources } from './gameplay/snapshots/playerSnapshot';
+import { routeGameAction } from './gameplay/actions/gameActionRouter';
 
 type PlayerRuntime = {
 	run: ServerGameState;
-	buildSystem: BuildSystem;
-	armySystem: ArmySystem;
-	productionSystem: ProductionSystem;
-	shopSystem: ShopSystem;
+	buildService: BuildService;
+	armyService: ArmyService;
+	productionService: ProductionService;
+	shopService: ShopService;
 };
 
 type RuntimeOptions = {
@@ -67,6 +71,7 @@ export class RoomGameRuntime {
 	private firstCycleOpeningSignature: string | null = null;
 	private fightState!: FightRuntimeState;
 	private advanceState!: AdvanceRuntimeState;
+	private readonly combatReplayByPlayerId = new Map<string, CombatReplaySession>();
 	private advancePhaseIndex = 0;
 
 	constructor(playerIds: string[], options: RuntimeOptions) {
@@ -85,7 +90,7 @@ export class RoomGameRuntime {
 			this.tick += 1;
 			if (this.phase === 'build') {
 				for (const runtime of this.players.values()) {
-					runtime.run.advanceTick();
+					this.advanceBuildPhaseTick(runtime);
 				}
 			} else if (this.phase === 'combat') {
 				this.advanceFightPhaseTick();
@@ -115,9 +120,7 @@ export class RoomGameRuntime {
 		const encountersPerPhase = clampIntInRange(configuration.fightPhase.encountersPerPhase, 1, 3);
 		const secondsPerRound = Math.max(1, Math.floor(configuration.fightPhase.secondsPerRound));
 
-		for (const playerId of this.playerIds) {
-			this.players.get(playerId)?.run.combatSystem.resetCombat();
-		}
+		this.combatReplayByPlayerId.clear();
 
 		this.phase = 'combat';
 		this.fightState = createFightPhaseState({
@@ -147,79 +150,40 @@ export class RoomGameRuntime {
 		if (!runtime) return { ok: false, reason: 'Unknown player game state.' };
 
 		try {
-			switch (action.type) {
-				case 'build/request': {
-					if (this.phase !== 'build') return { ok: false, reason: 'Build actions are disabled outside build phase.' };
-					const entity = runtime.run.ecs.getEntity(kingdomCoordKey(action.q, action.r));
-					if (!entity) return { ok: false, reason: 'Unknown tile.' };
-					runtime.buildSystem.startBuild(entity, action.buildingId);
-					break;
-				}
-				case 'destroy/request': {
-					if (this.phase !== 'build') return { ok: false, reason: 'Destroy actions are disabled outside build phase.' };
-					const entity = runtime.run.ecs.getEntity(kingdomCoordKey(action.q, action.r));
-					if (!entity?.building) return { ok: false, reason: 'No building on that tile.' };
-					const buildingDef = getBuildingDef(entity.building.buildingId);
-					const wasBlocker = buildingDef?.isBlocker === true;
-					runtime.buildSystem.destroyBuilding(entity);
-					if (wasBlocker) {
-						this.revealNeighbors(runtime, action.q, action.r);
-					}
-					break;
-				}
-				case 'upgrade/request': {
-					if (this.phase !== 'build') return { ok: false, reason: 'Upgrade actions are disabled outside build phase.' };
-					const entity = runtime.run.ecs.getEntity(kingdomCoordKey(action.q, action.r));
-					if (!entity) return { ok: false, reason: 'Unknown tile.' };
-					runtime.buildSystem.startUpgrade(entity, action.upgradeBuildingId);
-					break;
-				}
-				case 'shop/buy':
-					if (this.phase !== 'build') return { ok: false, reason: 'Shop is disabled outside build phase.' };
-					runtime.shopSystem.buyWithThrow(action.slotIndex);
-					break;
-				case 'shop/reroll':
-					if (this.phase !== 'build') return { ok: false, reason: 'Shop is disabled outside build phase.' };
-					runtime.shopSystem.rerollWithThrow();
-					break;
-				case 'army/train':
-					if (this.phase !== 'build') return { ok: false, reason: 'Training is disabled outside build phase.' };
-					runtime.armySystem.startTrainingWithThrow(action.unitEntityId);
-					break;
-				case 'army/reorder':
-					runtime.run.ecs.reorderArmyUnitWithThrow(action.unitEntityId, action.direction);
-					break;
-				case 'combat/step':
-					runtime.run.combatSystem.stepCombat(action.steps ?? 1);
-					break;
-				case 'fight/replay-open':
-					return this.openFightReplay(playerId, runtime, action.matchId);
-				case 'advance/select-charter':
-					return this.selectAdvanceCharter(playerId, action.charterId);
+			const routed = routeGameAction(action, {
+				onBuildRequest: (command) => this.handleBuildRequest(runtime, command),
+				onDestroyRequest: (command) => this.handleDestroyRequest(runtime, command),
+				onUpgradeRequest: (command) => this.handleUpgradeRequest(runtime, command),
+				onShopBuy: (command) => this.handleShopBuy(runtime, command),
+				onShopReroll: () => this.handleShopReroll(runtime),
+				onArmyTrain: (command) => this.handleArmyTrain(runtime, command),
+				onArmyReorder: (command) => this.handleArmyReorder(runtime, command),
+				onCombatStep: (command) => this.handleCombatStep(playerId, command),
+				onFightReplayOpen: (command) => this.openFightReplay(playerId, command.matchId),
+				onAdvanceSelectCharter: (command) => this.selectAdvanceCharter(playerId, command.charterId)
+			});
+
+			if (!routed.ok) return routed;
+			if (routed.emitSnapshot) {
+				this.emitSnapshot();
 			}
+			return { ok: true };
 		} catch (error) {
 			return { ok: false, reason: error instanceof Error ? error.message : String(error) };
 		}
-
-		this.emitSnapshot();
-		return { ok: true };
 	}
 
 	private createPlayerRuntime(): PlayerRuntime {
 		const run = new ServerGameState(Date.now() ^ Math.floor(Math.random() * 0xffffffff));
-		const buildSystem = new BuildSystem(run.ecs);
-		const productionSystem = new ProductionSystem(run.ecs);
-		const shopSystem = new ShopSystem(run.ecs);
-		const armySystem = new ArmySystem(run.ecs);
+		const buildService = new BuildService(run.world);
+		const productionService = new ProductionService(run.world);
+		const shopService = new ShopService(run.world);
+		const armyService = new ArmyService(run.world);
 
-		run.ecs.addSystem(buildSystem);
-		run.ecs.addSystem(productionSystem);
-		run.ecs.addSystem(shopSystem);
-		run.ecs.addSystem(armySystem);
-		shopSystem.rerollFree();
-		initializeKingdomGrid(run.ecs, this.pickBlockerId);
+		shopService.rerollFree();
+		initializeKingdomGrid(run.world, this.pickBlockerId);
 
-		return { run, buildSystem, armySystem, productionSystem, shopSystem };
+		return { run, buildService, armyService, productionService, shopService };
 	}
 
 	private buildSnapshot(): GameSnapshot {
@@ -230,19 +194,114 @@ export class RoomGameRuntime {
 		};
 	}
 
+	private advanceBuildPhaseTick(runtime: PlayerRuntime): void {
+		runtime.buildService.advanceTick();
+		runtime.productionService.advanceTick();
+		runtime.shopService.advanceTick();
+		runtime.armyService.advanceTick();
+	}
+
+	private handleBuildRequest(
+		runtime: PlayerRuntime,
+		action: Extract<GameActionCommand, { type: 'build/request' }>
+	): { ok: true } | { ok: false; reason: string } {
+		if (this.phase !== 'build') return { ok: false, reason: 'Build actions are disabled outside build phase.' };
+		const entity = runtime.run.world.getEntity(kingdomCoordKey(action.q, action.r));
+		if (!entity) return { ok: false, reason: 'Unknown tile.' };
+		runtime.buildService.startBuild(entity, action.buildingId);
+		return { ok: true };
+	}
+
+	private handleDestroyRequest(
+		runtime: PlayerRuntime,
+		action: Extract<GameActionCommand, { type: 'destroy/request' }>
+	): { ok: true } | { ok: false; reason: string } {
+		if (this.phase !== 'build') return { ok: false, reason: 'Destroy actions are disabled outside build phase.' };
+		const entity = runtime.run.world.getEntity(kingdomCoordKey(action.q, action.r));
+		if (!entity?.building) return { ok: false, reason: 'No building on that tile.' };
+		const buildingDef = getBuildingDef(entity.building.buildingId);
+		const wasBlocker = buildingDef?.isBlocker === true;
+		runtime.buildService.destroyBuilding(entity);
+		if (wasBlocker) {
+			this.revealNeighbors(runtime, action.q, action.r);
+		}
+		return { ok: true };
+	}
+
+	private handleUpgradeRequest(
+		runtime: PlayerRuntime,
+		action: Extract<GameActionCommand, { type: 'upgrade/request' }>
+	): { ok: true } | { ok: false; reason: string } {
+		if (this.phase !== 'build') return { ok: false, reason: 'Upgrade actions are disabled outside build phase.' };
+		const entity = runtime.run.world.getEntity(kingdomCoordKey(action.q, action.r));
+		if (!entity) return { ok: false, reason: 'Unknown tile.' };
+		runtime.buildService.startUpgrade(entity, action.upgradeBuildingId);
+		return { ok: true };
+	}
+
+	private handleShopBuy(
+		runtime: PlayerRuntime,
+		action: Extract<GameActionCommand, { type: 'shop/buy' }>
+	): { ok: true } | { ok: false; reason: string } {
+		if (this.phase !== 'build') return { ok: false, reason: 'Shop is disabled outside build phase.' };
+		runtime.shopService.buyWithThrow(action.slotIndex);
+		return { ok: true };
+	}
+
+	private handleShopReroll(runtime: PlayerRuntime): { ok: true } | { ok: false; reason: string } {
+		if (this.phase !== 'build') return { ok: false, reason: 'Shop is disabled outside build phase.' };
+		runtime.shopService.rerollWithThrow();
+		return { ok: true };
+	}
+
+	private handleArmyTrain(
+		runtime: PlayerRuntime,
+		action: Extract<GameActionCommand, { type: 'army/train' }>
+	): { ok: true } | { ok: false; reason: string } {
+		if (this.phase !== 'build') return { ok: false, reason: 'Training is disabled outside build phase.' };
+		runtime.armyService.startTrainingWithThrow(action.unitEntityId);
+		return { ok: true };
+	}
+
+	private handleArmyReorder(
+		runtime: PlayerRuntime,
+		action: Extract<GameActionCommand, { type: 'army/reorder' }>
+	): { ok: true } | { ok: false; reason: string } {
+		runtime.run.world.reorderArmyUnitWithThrow(action.unitEntityId, action.direction);
+		return { ok: true };
+	}
+
+	private handleCombatStep(
+		playerId: string,
+		action: Extract<GameActionCommand, { type: 'combat/step' }>
+	): { ok: true } | { ok: false; reason: string } {
+		const replay = this.combatReplayByPlayerId.get(playerId);
+		if (!replay) return { ok: false, reason: 'No active combat replay.' };
+		replay.step(action.steps ?? 1);
+		return { ok: true };
+	}
+
+	private getCombatSnapshotForPlayer(playerId: string): CombatSnapshot {
+		const replay = this.combatReplayByPlayerId.get(playerId);
+		if (!replay) {
+			return { status: 'idle', round: 0, activeSide: 'armyA', armyA: [], armyB: [], log: [] };
+		}
+		return replay.getSnapshot();
+	}
+
 	private buildPlayerView(playerId: string, runtime: PlayerRuntime): PlayerGameView {
-		const positionedEntities = runtime.run.ecs.getEntitiesWith(['position']);
+		const positionedEntities = runtime.run.world.getEntitiesWith(['position']);
 		return {
 			playerId,
-			resources: serializeResources(runtime.run.ecs.resources),
-			blueprints: serializeInventory(runtime.run.ecs.blueprintInventory),
-			shop: runtime.shopSystem.getState(),
-			kingdom: serializeKingdom(positionedEntities, runtime.productionSystem),
+			resources: serializeResources(runtime.run.world.resources),
+			blueprints: serializeInventory(runtime.run.world.blueprintInventory),
+			shop: runtime.shopService.getState(),
+			kingdom: serializeKingdom(positionedEntities, runtime.productionService),
 			army: serializeArmy(
-				runtime.run.ecs.getOrderedArmyUnitEntities().map((entity) => ({ entityId: entity.id, unit: entity.armyUnit! })),
+				runtime.run.world.getOrderedArmyUnitEntities().map((entity) => ({ entityId: entity.id, unit: entity.armyUnit! })),
 				positionedEntities
 			),
-			combat: runtime.run.combatSystem.getSnapshot(),
+			combat: this.getCombatSnapshotForPlayer(playerId),
 			fight: buildFightSnapshotForPlayer({
 				playerId,
 				state: this.fightState,
@@ -263,14 +322,14 @@ export class RoomGameRuntime {
 			secondsRemaining: this.advanceState.secondsRemaining,
 			revealDelaySeconds: this.advanceState.revealDelaySeconds,
 			secondsToPhaseEnd: this.advanceState.secondsToPhaseEnd,
-			charters: this.advanceState.charters
+			charters: this.advanceState.charters.map(toCharterSnapshot)
 		};
 	}
 
 	private getArmyForPlayer(playerId: string): ArmyUnitComponent[] {
 		const runtime = this.players.get(playerId);
 		if (!runtime) return [];
-		return runtime.run.ecs
+		return runtime.run.world
 			.getOrderedArmyUnitEntities()
 			.map((entity) => entity.armyUnit)
 			.filter((unit): unit is ArmyUnitComponent => !!unit)
@@ -325,20 +384,23 @@ export class RoomGameRuntime {
 	private grantRenown(playerId: string): void {
 		const runtime = this.players.get(playerId);
 		if (!runtime) return;
-		const current = runtime.run.ecs.resources.get('renown') ?? 0;
-		runtime.run.ecs.resources.set('renown', current + Math.max(0, Math.floor(configuration.fightPhase.renownPerWin)));
+		const current = runtime.run.world.resources.get('renown') ?? 0;
+		runtime.run.world.resources.set('renown', current + Math.max(0, Math.floor(configuration.fightPhase.renownPerWin)));
 	}
 
 	private openFightReplay(
 		playerId: string,
-		runtime: PlayerRuntime,
 		matchId: string
 	): { ok: true } | { ok: false; reason: string } {
 		return openFightReplayForPlayer({
 			playerId,
 			matchId,
 			state: this.fightState,
-			startCombat: (selfArmy, opponentArmy) => runtime.run.combatSystem.startCombat(selfArmy, opponentArmy)
+			startCombat: (selfArmy, opponentArmy) => {
+				const replay = new CombatReplaySession();
+				replay.start(selfArmy, opponentArmy);
+				this.combatReplayByPlayerId.set(playerId, replay);
+			}
 		});
 	}
 
@@ -389,7 +451,7 @@ export class RoomGameRuntime {
 	}
 
 	private revealNeighbors(runtime: PlayerRuntime, q: number, r: number): void {
-		revealNeighborTiles(runtime.run.ecs, q, r, this.pickBlockerId);
+		revealNeighborTiles(runtime.run.world, q, r, this.pickBlockerId);
 	}
 
 	private beginAdvancePhase(): void {
@@ -399,8 +461,8 @@ export class RoomGameRuntime {
 		const allBuildings = getAllBuildingDefs();
 		const charters = charterTemplates.map((template, index) => materializeCharter(template, index + 1, allBuildings));
 		const pickOrderPlayerIds = [...this.playerIds].sort((a, b) => {
-			const aRenown = this.players.get(a)?.run.ecs.resources.get('renown') ?? 0;
-			const bRenown = this.players.get(b)?.run.ecs.resources.get('renown') ?? 0;
+			const aRenown = this.players.get(a)?.run.world.resources.get('renown') ?? 0;
+			const bRenown = this.players.get(b)?.run.world.resources.get('renown') ?? 0;
 			if (aRenown !== bRenown) return aRenown - bRenown;
 			return this.playerIds.indexOf(a) - this.playerIds.indexOf(b);
 		});
@@ -436,18 +498,18 @@ export class RoomGameRuntime {
 		this.selectAdvanceCharter(playerId, charterId);
 	}
 
-	private applyCharterRewards(playerId: string, charter: CharterSnapshot): void {
+	private applyCharterRewards(playerId: string, charter: CharterDraftOption): void {
 		const runtime = this.players.get(playerId);
 		if (!runtime) return;
 
 		for (const grant of charter.resources) {
-			const current = runtime.run.ecs.resources.get(grant.resource) ?? 0;
-			runtime.run.ecs.resources.set(grant.resource, current + Math.max(0, Math.floor(grant.amount)));
+			const current = runtime.run.world.resources.get(grant.resource) ?? 0;
+			runtime.run.world.resources.set(grant.resource, current + Math.max(0, Math.floor(grant.amount)));
 		}
 
 		for (const blueprint of charter.blueprints) {
-			const current = runtime.run.ecs.blueprintInventory.get(blueprint.buildingId) ?? 0;
-			runtime.run.ecs.blueprintInventory.set(blueprint.buildingId, current + Math.max(0, Math.floor(blueprint.count)));
+			const current = runtime.run.world.blueprintInventory.get(blueprint.buildingId) ?? 0;
+			runtime.run.world.blueprintInventory.set(blueprint.buildingId, current + Math.max(0, Math.floor(blueprint.count)));
 		}
 	}
 

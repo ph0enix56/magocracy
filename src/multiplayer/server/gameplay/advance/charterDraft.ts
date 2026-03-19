@@ -1,6 +1,6 @@
 import type { CharterTemplateDef } from '../../config/charters';
 import type { BuildingDef } from '../../config/buildings';
-import type { CharterBlueprintGrantSnapshot, CharterSnapshot } from '../../../../shared/multiplayer/protocol';
+import type { CharterBlueprintGrant, CharterDraftOption } from './charterModel';
 
 export function resolveAdvanceLevel(advancePhaseIndex: number, levels: readonly number[]): number {
 	const level = levels[Math.min(advancePhaseIndex, levels.length - 1)] ?? levels[levels.length - 1] ?? 1;
@@ -55,7 +55,7 @@ export function materializeCharter(
 	template: CharterTemplateDef,
 	serial: number,
 	allBuildings: BuildingDef[]
-): CharterSnapshot {
+): CharterDraftOption {
 	const resources = template.resources
 		.map((resourceDef) => ({
 			resource: resourceDef.resource,
@@ -73,12 +73,12 @@ export function materializeCharter(
 	};
 }
 
-function generateBlueprintRewards(template: CharterTemplateDef, allBuildings: BuildingDef[]): CharterBlueprintGrantSnapshot[] {
+function generateBlueprintRewards(template: CharterTemplateDef, allBuildings: BuildingDef[]): CharterBlueprintGrant[] {
 	const blueprintRules = template.blueprints ?? [];
 	if (blueprintRules.length === 0) return [];
 
 	const tierByBuildingId = buildTierByBuildingId(allBuildings);
-	const aggregated = new Map<string, CharterBlueprintGrantSnapshot>();
+	const aggregated = new Map<string, CharterBlueprintGrant>();
 
 	for (const rule of blueprintRules) {
 		const count = randomIntInRange(rule.countMin, rule.countMax);

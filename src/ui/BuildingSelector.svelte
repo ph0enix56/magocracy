@@ -3,6 +3,7 @@
     import { blueprintModalState } from './uiState';
     import { blueprintInventory, buildingCatalogState } from './gameState';
     import BuildingCard from './BuildingCard.svelte';
+    import type { ResourceMap } from '../shared/domain/types';
     import type { BuildingCatalogEntry } from '../shared/multiplayer/protocol';
     import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
 
@@ -10,7 +11,7 @@
     let state: { isOpen: boolean; mode: 'view' | 'build'; q: number; r: number } = { isOpen: false, mode: 'view', q: 0, r: 0 };
     blueprintModalState.subscribe(v => state = v);
 
-    let inventory: Record<string, number> = {};
+    let inventory: ResourceMap = {};
     blueprintInventory.subscribe(v => inventory = v);
     let purchasableBuildings: BuildingCatalogEntry[] = [];
     const unsubscribeCatalog = buildingCatalogState.subscribe((entries) => {

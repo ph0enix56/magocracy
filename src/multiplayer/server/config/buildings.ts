@@ -1,6 +1,7 @@
 import { BUILDING_SCHOOLS, type BuildingDef, type UnitDef } from './buildingTypes';
 import BUILDING_DEFS_JSON from './buildingDefs/buildings.json';
 import UNIT_DEFS_JSON from './buildingDefs/units.json';
+import type { ResourceMap } from '../../../shared/domain/types';
 
 // Re-export all types so callers only need to import from this file.
 export type {
@@ -53,11 +54,11 @@ function asStringArray(value: unknown, path: string): string[] {
 	return value.map((entry, index) => asString(entry, `${path}[${index}]`));
 }
 
-function asNumberRecord(value: unknown, path: string): Record<string, number> {
+function asNumberRecord(value: unknown, path: string): ResourceMap {
 	if (!isObject(value)) {
 		throw new Error(`${path} must be an object`);
 	}
-	const out: Record<string, number> = {};
+	const out: ResourceMap = {};
 	for (const [key, raw] of Object.entries(value)) {
 		if (key.length === 0) throw new Error(`${path} contains an empty key`);
 		out[key] = asNumber(raw, `${path}.${key}`);

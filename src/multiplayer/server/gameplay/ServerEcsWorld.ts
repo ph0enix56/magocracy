@@ -1,9 +1,8 @@
 import { configuration } from '../../../game/configuration';
-import type { ArmyUnitComponent, Entity, System } from './model';
+import type { ArmyUnitComponent, Entity } from './model';
 
-export class ServerEcsWorld {
+export class WorldStore {
 	private readonly entities = new Map<string, Entity>();
-	private readonly systems: System[] = [];
 	readonly resources = new Map<string, number>();
 	readonly blueprintInventory = new Map<string, number>();
 	shopOffers: Array<string | null> = Array.from({ length: configuration.shop.size }, () => null);
@@ -69,22 +68,6 @@ export class ServerEcsWorld {
 		components: K[]
 	): Entity[] {
 		return this.getEntities().filter((entity) => components.every((component) => !!entity[component]));
-	}
-
-	addSystem(system: System): void {
-		this.systems.push(system);
-	}
-
-	update(time: number, delta: number): void {
-		for (const system of this.systems) {
-			system.update(delta, time);
-		}
-	}
-
-	advanceTick(): void {
-		for (const system of this.systems) {
-			system.advanceTick();
-		}
 	}
 
 	private ensureArmyUnitOrderSynced(): void {

@@ -3,10 +3,11 @@ import { getBuildingDef } from '../../config/buildings';
 import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
 import { computeNextTrainCost, getTrainCostEffectsForUnit } from '../army/trainCost';
 import { getHousingBuildingForUnit, recomputeAllHousedArmyUnits, recomputeHousedArmyUnit } from './armyRuntime';
-import type { ServerEcsWorld } from '../ServerEcsWorld';
+import type { WorldStore } from '../ServerEcsWorld';
+import type { ResourceMap } from '../../../../shared/domain/types';
 
-export class ArmySystem {
-	constructor(private readonly world: ServerEcsWorld) {}
+export class ArmyService {
+	constructor(private readonly world: WorldStore) {}
 
 	update(_delta: number, _time: number): void {}
 
@@ -41,7 +42,7 @@ export class ArmySystem {
 		unit.training.progress = 0;
 	}
 
-	private getTrainCost(unitEntityId: string, unit: NonNullable<Entity['armyUnit']>): Record<string, number> {
+	private getTrainCost(unitEntityId: string, unit: NonNullable<Entity['armyUnit']>): ResourceMap {
 		const costEffects = this.getTrainCostEffects(unitEntityId);
 		return computeNextTrainCost(unit, costEffects);
 	}
@@ -55,7 +56,7 @@ export class ArmySystem {
 		});
 	}
 
-	private deductCostWithThrow(cost: Record<string, number>): void {
+	private deductCostWithThrow(cost: ResourceMap): void {
 		for (const [resource, amount] of Object.entries(cost)) {
 			const current = this.world.resources.get(resource) || 0;
 			if (current < amount) throw new Error(`Not enough ${resource}`);

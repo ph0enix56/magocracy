@@ -1,9 +1,9 @@
 import { configuration } from '../../../../game/configuration';
 import { getPurchasableBuildings, type BuildingDef } from '../../config/buildings';
-import type { ServerEcsWorld } from '../ServerEcsWorld';
+import type { WorldStore } from '../ServerEcsWorld';
 
-export class ShopSystem {
-	constructor(private readonly world: ServerEcsWorld) {}
+export class ShopService {
+	constructor(private readonly world: WorldStore) {}
 
 	update(_delta: number, _time: number): void {}
 	advanceTick(): void {}

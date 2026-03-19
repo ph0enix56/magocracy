@@ -1,12 +1,16 @@
-export type CombatWinner = 'armyA' | 'armyB' | 'draw';
+import type { AttackAction } from '../domain/types';
+import type {
+	CombatSnapshotView,
+	CombatUnitView,
+	CombatLogEntryView,
+	CombatWinner as SharedCombatWinner,
+	CombatStatus,
+	CombatActiveSide
+} from '../domain/combatTypes';
 
-export type CombatAttack = {
-	damage: number;
-	canUpgrade: boolean;
-	range: number;
-	targeting: 'first' | 'last' | 'weak' | 'all';
-	actionPointCost: number;
-};
+export type CombatWinner = SharedCombatWinner;
+
+export type CombatAttack = AttackAction;
 
 export type CombatUnit = {
 	unitId: string;
@@ -22,13 +26,7 @@ export type CombatUnit = {
 	trainingAttackDamagePerLevel: number;
 };
 
-export type CombatResultUnit = {
-	unitId: string;
-	name: string;
-	assetPath: string;
-	health: number;
-	maxHealth: number;
-};
+export type CombatResultUnit = CombatUnitView;
 
 export type CombatResult = {
 	winner: CombatWinner;
@@ -37,20 +35,9 @@ export type CombatResult = {
 	armyB: CombatResultUnit[];
 };
 
-export type CombatLogEntry = {
-	seq: number;
-	text: string;
-};
+export type CombatLogEntry = CombatLogEntryView;
 
-export type CombatSnapshot = {
-	status: 'idle' | 'running' | 'finished';
-	winner?: CombatWinner;
-	round: number;
-	activeSide: 'armyA' | 'armyB';
-	armyA: CombatResultUnit[];
-	armyB: CombatResultUnit[];
-	log: CombatLogEntry[];
-};
+export type CombatSnapshot = CombatSnapshotView;
 
 export type CombatOptions = {
 	maxRounds?: number;
@@ -61,7 +48,7 @@ type CombatUnitState = CombatUnit & {
 };
 
 type CombatPhase = {
-	side: 'armyA' | 'armyB';
+	side: CombatActiveSide;
 	unitIndex: number;
 	remainingAp: number;
 };
@@ -186,7 +173,7 @@ function pickTargetIndicesInRange(enemyArmy: CombatUnitState[], maxEnemiesInRang
 	}
 }
 
-function fmtSide(side: 'armyA' | 'armyB'): string {
+function fmtSide(side: CombatActiveSide): string {
 	return side === 'armyA' ? 'A' : 'B';
 }
 
@@ -232,7 +219,7 @@ export class CombatSession {
 	}
 
 	getSnapshot(): CombatSnapshot {
-		const status: CombatSnapshot['status'] = this.finishedWinner ? 'finished' : 'running';
+		const status: CombatStatus = this.finishedWinner ? 'finished' : 'running';
 		return {
 			status,
 			winner: this.finishedWinner,

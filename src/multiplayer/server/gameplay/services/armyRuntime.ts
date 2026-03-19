@@ -2,11 +2,11 @@ import { getBuildingDef, getUnitDef } from '../../config/buildings';
 import { accumulateEffectsForTargetStat } from '../effects/effectDsl';
 import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
 import type { Entity } from '../model';
-import type { ServerEcsWorld } from '../ServerEcsWorld';
+import type { WorldStore } from '../ServerEcsWorld';
 
 type UnitEffectStat = 'unit:hp' | 'unit:drflat' | 'unit:drpercent' | 'unit:ap' | 'unit:initiative' | 'unit:damage';
 
-export function recomputeHousedArmyUnit(world: ServerEcsWorld, housingEntityId: string): void {
+export function recomputeHousedArmyUnit(world: WorldStore, housingEntityId: string): void {
 	const housingEntity = world.getEntity(housingEntityId);
 	if (!housingEntity?.building || !housingEntity.position) return;
 	const housedUnitEntityId = housingEntity.building.housedUnitEntityId;
@@ -46,14 +46,14 @@ export function recomputeHousedArmyUnit(world: ServerEcsWorld, housingEntityId: 
 	unitEntity.armyUnit.actions = actions;
 }
 
-export function getHousingBuildingForUnit(world: ServerEcsWorld, unitEntityId: string): Entity | undefined {
+export function getHousingBuildingForUnit(world: WorldStore, unitEntityId: string): Entity | undefined {
 	for (const entity of world.getEntitiesWith(['building'])) {
 		if (entity.building?.housedUnitEntityId === unitEntityId) return entity;
 	}
 	return undefined;
 }
 
-export function recomputeAllHousedArmyUnits(world: ServerEcsWorld): void {
+export function recomputeAllHousedArmyUnits(world: WorldStore): void {
 	for (const entity of world.getEntitiesWith(['building'])) {
 		if (entity.building?.status !== 'active') continue;
 		if (!entity.building.housedUnitEntityId) continue;
@@ -62,7 +62,7 @@ export function recomputeAllHousedArmyUnits(world: ServerEcsWorld): void {
 }
 
 function applyIntStatEffects(
-	world: ServerEcsWorld,
+	world: WorldStore,
 	targetEntity: Entity,
 	targetBuildingDef: NonNullable<ReturnType<typeof getBuildingDef>>,
 	stat: UnitEffectStat,

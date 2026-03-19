@@ -1,4 +1,4 @@
-import type { BuildingCatalogEntry, LobbyPlayerSnapshot, LobbySnapshot } from '../../../shared/multiplayer/protocol';
+import type { BuildingCatalogEntry, LobbyPlayerSnapshot, LobbySnapshot, LobbyStatus } from '../../../shared/multiplayer/protocol';
 import { getAllBuildingDefs } from '../config/buildings';
 
 type LobbyPlayerLike = {
@@ -10,7 +10,7 @@ type LobbyPlayerLike = {
 
 type LobbyLike = {
 	lobbyId: string;
-	status: 'open' | 'in-game';
+	status: LobbyStatus;
 	hostPlayerId: string;
 	maxPlayers: number;
 	createdAt: number;

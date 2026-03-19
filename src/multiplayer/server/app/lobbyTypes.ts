@@ -1,4 +1,4 @@
-import type { ServerEvent } from '../../../shared/multiplayer/protocol';
+import type { LobbyStatus, ServerEvent } from '../../../shared/multiplayer/protocol';
 
 export type PlayerRecord = {
 	playerId: string;
@@ -11,7 +11,7 @@ export type PlayerRecord = {
 export type LobbyRecord = {
 	lobbyId: string;
 	hostPlayerId: string;
-	status: 'open' | 'in-game';
+	status: LobbyStatus;
 	maxPlayers: number;
 	createdAt: number;
 	players: Map<string, PlayerRecord>;

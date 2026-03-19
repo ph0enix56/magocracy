@@ -1,10 +1,11 @@
 import { getBuildingDef, getNextUpgradeDef, getUnitDef } from '../../config/buildings';
 import { recomputeHousedArmyUnit } from './armyRuntime';
 import type { Entity } from '../model';
-import type { ServerEcsWorld } from '../ServerEcsWorld';
+import type { WorldStore } from '../ServerEcsWorld';
+import type { ResourceMap } from '../../../../shared/domain/types';
 
-export class BuildSystem {
-	constructor(private readonly world: ServerEcsWorld) {}
+export class BuildService {
+	constructor(private readonly world: WorldStore) {}
 
 	update(_delta: number, _time: number): void {}
 
@@ -117,7 +118,7 @@ export class BuildSystem {
 		delete entity.building;
 	}
 
-	private deductCostWithThrow(cost: Record<string, number>): void {
+	private deductCostWithThrow(cost: ResourceMap): void {
 		for (const [resource, amount] of Object.entries(cost)) {
 			const current = this.world.resources.get(resource) || 0;
 			if (current < amount) throw new Error(`Not enough ${resource}`);

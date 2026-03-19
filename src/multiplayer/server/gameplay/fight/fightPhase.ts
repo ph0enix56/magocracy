@@ -1,6 +1,6 @@
 import type { FightPairingSnapshot, FightPlayerRoundSnapshot, FightRoundResultSnapshot } from '../../../../shared/multiplayer/protocol';
 import type { ArmyUnitComponent } from '../model';
-import { CombatSystem } from '../systems/CombatSystem';
+import { CombatService } from '../services/CombatService';
 
 export type FightReplayRecord = {
 	matchId: string;
@@ -115,7 +115,7 @@ export function resolveFightRound(params: {
 
 		const armyA = cloneArmy(armyAOriginal);
 		const armyB = cloneArmy(armyBOriginal);
-		const combat = CombatSystem.resolveCombat(armyA, armyB);
+		const combat = CombatService.resolveCombat(armyA, armyB);
 
 		result.status = 'finished';
 		if (combat.winner === 'armyA') {

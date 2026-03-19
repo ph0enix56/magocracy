@@ -2,10 +2,10 @@ import { getBuildingDef } from '../../config/buildings';
 import { accumulateEffectsForTargetStat } from '../effects/effectDsl';
 import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
 import type { Entity } from '../model';
-import type { ServerEcsWorld } from '../ServerEcsWorld';
+import type { WorldStore } from '../ServerEcsWorld';
 
-export class ProductionSystem {
-	constructor(private readonly world: ServerEcsWorld) {}
+export class ProductionService {
+	constructor(private readonly world: WorldStore) {}
 
 	update(_delta: number, _time: number): void {}
 

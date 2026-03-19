@@ -1,4 +1,4 @@
-import type { CharterSnapshot } from '../../../../shared/multiplayer/protocol';
+import type { CharterDraftOption } from './charterModel';
 
 export type AdvancePhaseStateData = {
 	isActive: boolean;
@@ -9,7 +9,7 @@ export type AdvancePhaseStateData = {
 	secondsRemaining: number;
 	revealDelaySeconds: number;
 	secondsToPhaseEnd: number;
-	charters: CharterSnapshot[];
+	charters: CharterDraftOption[];
 };
 
 export function createEmptyAdvanceState(params: {
@@ -32,7 +32,7 @@ export function createEmptyAdvanceState(params: {
 export function createActiveAdvanceState(params: {
 	level: number;
 	pickOrderPlayerIds: string[];
-	charters: CharterSnapshot[];
+	charters: CharterDraftOption[];
 	secondsPerPick: number;
 	revealDelaySeconds: number;
 }): AdvancePhaseStateData {
@@ -78,7 +78,7 @@ export function selectAdvanceCharterInState(
 	state: AdvancePhaseStateData,
 	playerId: string,
 	charterId: string
-): { ok: true; selectedCharter: CharterSnapshot } | { ok: false; reason: string } {
+): { ok: true; selectedCharter: CharterDraftOption } | { ok: false; reason: string } {
 	if (!state.isActive) {
 		return { ok: false, reason: 'Advance draft is not active.' };
 	}

@@ -1,6 +1,7 @@
 import { accumulateEffectsForTargetStat } from '../effects/effectDsl';
 import type { BuildingDef } from '../../config/buildings';
 import type { ArmyUnitComponent, Entity } from '../model';
+import type { ResourceMap } from '../../../../shared/domain/types';
 
 export interface TrainCostContext {
 	unitEntityId: string;
@@ -30,9 +31,9 @@ export function getTrainCostEffectsForUnit(context: TrainCostContext): { add: nu
 export function computeNextTrainCost(
 	unit: Pick<ArmyUnitComponent, 'training' | 'trainingLevel'>,
 	effects: { add: number; mult: number }
-): Record<string, number> {
+): ResourceMap {
 	const levelMult = Math.pow(unit.training.costMult, unit.trainingLevel);
-	const out: Record<string, number> = {};
+	const out: ResourceMap = {};
 	for (const [resource, base] of Object.entries(unit.training.costBase)) {
 		const scaled = Math.ceil(base * levelMult);
 		const withAdd = scaled + effects.add;

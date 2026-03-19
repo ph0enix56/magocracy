@@ -1,9 +1,10 @@
 import type { ArmyUnitSnapshot, KingdomSnapshot, ResourceSnapshot } from '../../../../shared/multiplayer/protocol';
+import type { ResourceMap } from '../../../../shared/domain/types';
 import { getBuildingDef } from '../../config/buildings';
 import { computeNextTrainCost, getTrainCostEffectsForUnit } from '../army/trainCost';
 import { getNeighborsFromPositionedEntities } from '../kingdom/neighborLookup';
 import type { ArmyUnitComponent, Entity } from '../model';
-import { ProductionSystem } from '../systems/ProductionSystem';
+import { ProductionService } from '../services/ProductionService';
 
 export function serializeResources(resources: Map<string, number>): ResourceSnapshot {
 	const out: ResourceSnapshot = {};
@@ -13,15 +14,15 @@ export function serializeResources(resources: Map<string, number>): ResourceSnap
 	return out;
 }
 
-export function serializeInventory(inventory: Map<string, number>): Record<string, number> {
-	const out: Record<string, number> = {};
+export function serializeInventory(inventory: Map<string, number>): ResourceMap {
+	const out: ResourceMap = {};
 	for (const [key, value] of inventory.entries()) {
 		if (value > 0) out[key] = value;
 	}
 	return out;
 }
 
-export function serializeKingdom(entities: Entity[], productionSystem: ProductionSystem): KingdomSnapshot {
+export function serializeKingdom(entities: Entity[], productionService: ProductionService): KingdomSnapshot {
 	return {
 		tiles: entities
 			.filter((entity): entity is Entity & { position: NonNullable<Entity['position']> } => !!entity.position)
@@ -34,7 +35,7 @@ export function serializeKingdom(entities: Entity[], productionSystem: Productio
 						status: entity.building.status,
 						progress: entity.building.progress,
 						upgradeNextId: entity.building.upgradeNextId,
-						productionMultiplier: entity.building.status === 'active' ? productionSystem.calculateMultiplier(entity) : undefined
+						productionMultiplier: entity.building.status === 'active' ? productionService.calculateMultiplier(entity) : undefined
 					}
 					: undefined
 			}))
@@ -60,7 +61,7 @@ export function serializeArmy(units: Array<{ entityId: string; unit: ArmyUnitCom
 	}));
 }
 
-function computeSnapshotNextTrainCost(unitEntityId: string, unit: ArmyUnitComponent, positionedEntities: Entity[]): Record<string, number> {
+function computeSnapshotNextTrainCost(unitEntityId: string, unit: ArmyUnitComponent, positionedEntities: Entity[]): ResourceMap {
 	const effects = getTrainCostEffectsForUnit({
 		unitEntityId,
 		findHousingByUnitId: (entityId) => positionedEntities.find((entity) => entity.building?.housedUnitEntityId === entityId),

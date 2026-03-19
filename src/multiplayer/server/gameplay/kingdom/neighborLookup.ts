@@ -1,5 +1,5 @@
 import type { Entity } from '../model';
-import type { ServerEcsWorld } from '../ServerEcsWorld';
+import type { WorldStore } from '../ServerEcsWorld';
 
 const DOUBLED_DIRECTIONS = [
 	{ dq: 1, dr: 1 },
@@ -16,6 +16,6 @@ export function getNeighborsFromPositionedEntities(positionedEntities: Entity[],
 		.filter((entity): entity is Entity => !!entity);
 }
 
-export function getNeighborsFromWorld(world: ServerEcsWorld, q: number, r: number): Entity[] {
+export function getNeighborsFromWorld(world: WorldStore, q: number, r: number): Entity[] {
 	return getNeighborsFromPositionedEntities(world.getEntitiesWith(['position']), q, r);
 }

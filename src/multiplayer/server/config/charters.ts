@@ -1,3 +1,5 @@
+import type { BuildingKind } from '../../../shared/domain/types';
+
 export type CharterResourceRangeDef = {
 	resource: string;
 	min: number;
@@ -8,7 +10,7 @@ export type CharterBlueprintRuleDef = {
 	tier: number;
 	countMin: number;
 	countMax: number;
-	buildingType?: 'production' | 'army';
+	buildingType?: BuildingKind;
 	magicSchool?: string;
 };
 

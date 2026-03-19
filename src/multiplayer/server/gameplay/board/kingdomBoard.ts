@@ -1,15 +1,15 @@
 import { createInitialKingdomTiles, createRevealTilesAround, kingdomCoordKey } from '../../../../shared/kingdom/kingdomGrid';
 import type { Entity } from '../model';
-import type { ServerEcsWorld } from '../ServerEcsWorld';
+import type { WorldStore } from '../ServerEcsWorld';
 
-export function initializeKingdomGrid(ecs: ServerEcsWorld, pickBlockerId: () => string): void {
+export function initializeKingdomGrid(world: WorldStore, pickBlockerId: () => string): void {
 	for (const tile of createInitialKingdomTiles(pickBlockerId)) {
-		ecs.addEntity(buildTileEntity(tile.q, tile.r, tile.blockerId));
+		world.addEntity(buildTileEntity(tile.q, tile.r, tile.blockerId));
 	}
 }
 
-export function revealNeighborTiles(ecs: ServerEcsWorld, q: number, r: number, pickBlockerId: () => string): void {
-	const known = new Set(ecs.getEntitiesWith(['position']).map((entity) => kingdomCoordKey(entity.position!.q, entity.position!.r)));
+export function revealNeighborTiles(world: WorldStore, q: number, r: number, pickBlockerId: () => string): void {
+	const known = new Set(world.getEntitiesWith(['position']).map((entity) => kingdomCoordKey(entity.position!.q, entity.position!.r)));
 	const revealed = createRevealTilesAround(
 		q,
 		r,
@@ -18,7 +18,7 @@ export function revealNeighborTiles(ecs: ServerEcsWorld, q: number, r: number, p
 	);
 
 	for (const tile of revealed) {
-		ecs.addEntity(buildTileEntity(tile.q, tile.r, tile.blockerId));
+		world.addEntity(buildTileEntity(tile.q, tile.r, tile.blockerId));
 	}
 }
 

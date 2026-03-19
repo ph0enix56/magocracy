@@ -1,3 +1,5 @@
+import type { AttackAction, ResourceMap, TrainingDelta } from '../../../shared/domain/types';
+
 export const BUILDING_SCHOOLS = {
 	neutral: 'neutral',
 	sylvan: 'sylvan',
@@ -31,14 +33,14 @@ export type BuildingEffectDef = string;
 /** Attached to buildings that produce resources over time. */
 export interface ProductionComponent {
 	/** Resource productions per game tick. */
-	productions: Record<string, number>;
+	productions: ResourceMap;
 }
 
 /** Attached to buildings that train and manage an army unit type. */
 export interface ArmyComponent {
 	/** The unit type this building trains, referenced by id. */
 	unitId: string;
-	trainCostBase: Record<string, number>;
+	trainCostBase: ResourceMap;
 	trainCostMult: number;
 	trainTime: number;
 	trainDef: UnitTrainDef;
@@ -64,7 +66,7 @@ export interface BuildingDef {
 	/** Path relative to public/assets/ for the building icon. */
 	assetPath: string;
 	/** Resource cost to build/upgrade. For blockers this is the removal cost instead. */
-	cost: Record<string, number>;
+	cost: ResourceMap;
 	/** Time to build/upgrade in game ticks. For blockers this is removal time instead. */
 	buildTime: number;
 	/** If true, this is a pre-placed obstacle — not purchasable, removed by paying expansion. */
@@ -76,7 +78,7 @@ export interface BuildingDef {
 	/** Neighbor interaction effects written in the serialized DSL. */
 	effects?: BuildingEffectDef[];
 	/** Resource grants awarded once when construction/upgrade completes. */
-	onCompleteGrants?: Record<string, number>;
+	onCompleteGrants?: ResourceMap;
 }
 
 // --- Unit defs ---
@@ -104,21 +106,6 @@ export interface UnitDef {
 	assetPath: string;
 }
 
-export interface UnitTrainDef {
-	health: number;
-	attackDamage: number;
-	drFlat: number;
-}
+export type UnitTrainDef = TrainingDelta;
 
-export interface UnitAttackDef {
-	/** Attack damage dealt to target(s). */
-	damage: number;
-	/** Whether this attack's damage can be upgraded. */
-	canUpgrade: boolean;
-	/** How many units across can be targeted by this attack. */
-	range: number;
-	/** Targeting logic among possible targets. */
-	targeting: 'first' | 'last' | 'weak' | 'all';
-	/** Action point cost to perform this attack. */
-	actionPointCost: number;
-}
+export type UnitAttackDef = AttackAction;

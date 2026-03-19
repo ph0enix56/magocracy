@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
+	import type { ResourceMap } from '../shared/domain/types';
 	import { armyModalState } from './uiState';
 	import { armyState } from './gameState';
 	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
@@ -17,7 +18,7 @@
 		pendingTrain = null;
 	}
 
-	function formatCost(cost: Record<string, number>): string {
+	function formatCost(cost: ResourceMap): string {
 		return Object.entries(cost)
 			.map(([res, amount]) => `${amount} ${res}`)
 			.join(', ');
