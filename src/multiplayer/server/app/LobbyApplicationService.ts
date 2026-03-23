@@ -2,26 +2,57 @@ import type { ClientCommand, GameActionCommand } from '../../../shared/multiplay
 import { RoomGameRuntime } from '../RoomGameRuntime';
 import { buildBuildingCatalog, toLobbySnapshot } from '../lobby/lobbyProjection';
 import { routeClientCommand } from './CommandRouter';
-import { createLobbyId } from './lobbyId';
-import type { GatewayPort, LobbyRecord, PlayerRecord } from './lobbyTypes';
+import type { ServerEventGateway, LobbyRecord, PlayerRecord } from './lobbyTypes';
 
 const MAX_PLAYERS_PER_LOBBY = 8;
 const MIN_PLAYERS_TO_START = 2;
 
+/**
+ * The main application service for the multiplayer server, responsible for managing lobbies, player connections and game runtimes.
+ * It responds to client commands received via the {@link SocketGateway}, and uses the gateway to emit server events back to clients and lobbies as needed.
+ * Based on the events, it communicates with the {@link RoomGameRuntime} instances that manage the actual game logic and state for active matches
+ * happening within their lobbies.
+ */
 export class LobbyApplicationService {
 	private readonly lobbies = new Map<string, LobbyRecord>();
 	private readonly playerLobbyIndex = new Map<string, string>();
 	private readonly gameRuntimes = new Map<string, RoomGameRuntime>();
 
-	constructor(private readonly gateway: GatewayPort) {}
+	constructor(private readonly gateway: ServerEventGateway) {}
 
-	handleConnected(params: { playerId: string; socketId: string }): void {
-		this.gateway.emitToSocket(params.socketId, { type: 'session/connected', playerId: params.playerId });
-		this.gateway.emitToSocket(params.socketId, { type: 'catalog/snapshot', catalog: { buildings: buildBuildingCatalog() } });
+	/**
+	 * Callback for when a new player connects to the server. Registers the player and sends them a snapshot
+	 * of the current building catalog, defined on the server.
+	 * @param playerId ID of the newly connected player.
+	 * @param socketId ID of the player's socket, used to identify their connection.
+	 */
+	handleConnected(playerId: string, socketId: string): void {
+		this.gateway.emitToClient(socketId, { type: 'session/connected', playerId });
+		this.gateway.emitToClient(socketId, { type: 'catalog/snapshot', catalog: { buildings: buildBuildingCatalog() } });
+	}
+	
+	/**
+	 * Callback for when a player disconnects from the server. Informs other players in the same lobby and updates the lobby state accordingly.
+	 * @param playerId ID of the player who disconnected.
+	 */
+	handleDisconnected(playerId: string): void {
+		const lobby = this.getLobbyForPlayer(playerId);
+		if (!lobby) return;
+		const player = lobby.players.get(playerId);
+		if (!player) return;
+		player.connected = false;
+		player.isReady = false;
+		this.broadcastLobbyState(lobby);
 	}
 
-	handleCommand(params: { playerId: string; socketId: string; command: ClientCommand }): void {
-		const { playerId, socketId, command } = params;
+	/**
+	 * Callback for incoming client commands. For each command type, a handler method is registered with corresponding
+	 * player/socket IDs bound, so that the router can invoke them with the correct context. See {@link CommandRouter} for details on command routing.
+	 * @param playerId ID of the player who sent the command.
+	 * @param socketId ID of the player's socket, used to identify their connection for sending responses.
+	 * @param command The client command that was sent, containing the type and relevant payload.
+	 */
+	handleCommand(playerId: string, socketId: string, command: ClientCommand): void {
 		routeClientCommand(command, {
 			onCreate: (playerName) => this.handleCreateLobby(playerId, socketId, playerName),
 			onJoin: (lobbyId, playerName) => this.handleJoinLobby(playerId, socketId, lobbyId, playerName),
@@ -35,15 +66,7 @@ export class LobbyApplicationService {
 		});
 	}
 
-	handleDisconnected(params: { playerId: string }): void {
-		const lobby = this.getLobbyForPlayer(params.playerId);
-		if (!lobby) return;
-		const player = lobby.players.get(params.playerId);
-		if (!player) return;
-		player.connected = false;
-		player.isReady = false;
-		this.broadcastLobbyState(lobby);
-	}
+	// COMMAND HANDLERS //
 
 	private handleCreateLobby(playerId: string, socketId: string, playerName: string): void {
 		this.handleLeaveLobby(playerId, socketId);
@@ -86,7 +109,7 @@ export class LobbyApplicationService {
 
 		const record = lobby.players.get(playerId);
 		if (record) {
-			this.gateway.leaveSocketFromLobby(record.socketId, lobbyId);
+			this.gateway.leaveFromLobby(record.socketId, lobbyId);
 		}
 		lobby.players.delete(playerId);
 		this.playerLobbyIndex.delete(playerId);
@@ -127,7 +150,7 @@ export class LobbyApplicationService {
 			socketId
 		});
 		this.playerLobbyIndex.set(playerId, lobby.lobbyId);
-		this.gateway.joinSocketToLobby(socketId, lobby.lobbyId);
+		this.gateway.joinToLobby(socketId, lobby.lobbyId);
 
 		this.startRuntimeForLobby(lobby, [playerId]);
 	}
@@ -209,6 +232,8 @@ export class LobbyApplicationService {
 		});
 	}
 
+	// HELPER METHODS //
+
 	private addOrUpdatePlayer(playerId: string, socketId: string, lobby: LobbyRecord, playerName: string): void {
 		lobby.players.set(playerId, {
 			playerId,
@@ -218,14 +243,23 @@ export class LobbyApplicationService {
 			socketId
 		});
 		this.playerLobbyIndex.set(playerId, lobby.lobbyId);
-		this.gateway.joinSocketToLobby(socketId, lobby.lobbyId);
+		this.gateway.joinToLobby(socketId, lobby.lobbyId);
 		this.broadcastLobbyState(lobby);
 	}
 
+	private createLobbyId(): string {
+		const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+		let out = '';
+		for (let i = 0; i < 6; i += 1) {
+			out += alphabet[Math.floor(Math.random() * alphabet.length)] ?? 'X';
+		}
+		return out;
+	}
+
 	private createOpenLobbyRecord(hostPlayerId: string, maxPlayers: number): LobbyRecord {
-		let lobbyId = createLobbyId();
+		let lobbyId = this.createLobbyId();
 		while (this.lobbies.has(lobbyId)) {
-			lobbyId = createLobbyId();
+			lobbyId = this.createLobbyId();
 		}
 
 		const lobby: LobbyRecord = {
@@ -306,7 +340,7 @@ export class LobbyApplicationService {
 		actionType?: GameActionCommand['type'],
 		requestId?: string
 	): void {
-		this.gateway.emitToSocket(socketId, { type: 'command/rejected', commandType, actionType, requestId, reason });
+		this.gateway.emitToClient(socketId, { type: 'command/rejected', commandType, actionType, requestId, reason });
 	}
 
 	private accept(
@@ -315,6 +349,6 @@ export class LobbyApplicationService {
 		actionType?: GameActionCommand['type'],
 		requestId?: string
 	): void {
-		this.gateway.emitToSocket(socketId, { type: 'command/accepted', commandType, actionType, requestId });
+		this.gateway.emitToClient(socketId, { type: 'command/accepted', commandType, actionType, requestId });
 	}
 }

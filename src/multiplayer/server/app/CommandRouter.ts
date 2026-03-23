@@ -1,5 +1,9 @@
 import type { ClientCommand } from '../../../shared/multiplayer/protocol';
 
+/**
+ * Shape of the command handlers that are registered for processing client commands. Each handler corresponds to a specific client command type,
+ * with game actions being fully processed in the lobby's game runtime.
+ */
 type CommandHandlerMap = {
 	onCreate(playerName: string): void;
 	onJoin(lobbyId: string, playerName: string): void;
@@ -12,6 +16,12 @@ type CommandHandlerMap = {
 	onGameAction(command: Extract<ClientCommand, { type: 'game/action' }>): void;
 };
 
+/**
+ * Centralized router for incoming client commands. It delegates each command to the appropriate handler based on its type, and ensures command
+ * parameters are correctly passed to it. The handlers are implemented and registered in {@link LobbyApplicationService}.
+ * @param command The incoming client command, with its type and payload.
+ * @param handlers The map of registered handlers for each command type, provided by the app service.
+ */
 export function routeClientCommand(command: ClientCommand, handlers: CommandHandlerMap): void {
 	switch (command.type) {
 		case 'lobby/create':

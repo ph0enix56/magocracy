@@ -3,21 +3,25 @@ import { randomUUID } from 'node:crypto';
 import { Server, type Socket } from 'socket.io';
 import type { ClientCommand, ClientToServerEvents, ServerEvent, ServerToClientEvents } from '../../../shared/multiplayer/protocol';
 import type { LobbyApplicationService } from './LobbyApplicationService';
-import type { GatewayPort } from './lobbyTypes';
+import type { ServerEventGateway } from './lobbyTypes';
 
 type MultiplayerSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 
-export class SocketGateway implements GatewayPort {
+/**
+ * A Socket.IO-based gateway implementation that handles client connections, as well as
+ * sending client commands to the server app and emitting server events back to lobbies or individual clients.
+ * It acts as the transport layer for the multiplayer server, while logic and game state are managed by the {@link LobbyApplicationService}.
+ */
+export class SocketGateway implements ServerEventGateway {
 	private readonly httpServer: HttpServer;
 	private readonly io: Server<ClientToServerEvents, ServerToClientEvents>;
 	private application: LobbyApplicationService | null = null;
 
+	// Creates a raw HTTP server and a Socket.IO server on top, and sets up a handler for new client connections.
 	constructor() {
 		this.httpServer = createServer();
 		this.io = new Server<ClientToServerEvents, ServerToClientEvents>(this.httpServer, {
-			cors: {
-				origin: '*'
-			}
+			cors: { origin: '*' }
 		});
 		this.io.on('connection', (socket: MultiplayerSocket) => this.handleConnection(socket));
 	}
@@ -32,8 +36,8 @@ export class SocketGateway implements GatewayPort {
 		});
 	}
 
-	emitToSocket(socketId: string, event: ServerEvent): void {
-		const socket = this.io.sockets.sockets.get(socketId) as MultiplayerSocket | undefined;
+	emitToClient(socketId: string, event: ServerEvent): void {
+		const socket: MultiplayerSocket | undefined = this.io.sockets.sockets.get(socketId);
 		socket?.emit('event', event);
 	}
 
@@ -41,30 +45,31 @@ export class SocketGateway implements GatewayPort {
 		this.io.to(lobbyId).emit('event', event);
 	}
 
-	joinSocketToLobby(socketId: string, lobbyId: string): void {
-		const socket = this.io.sockets.sockets.get(socketId) as MultiplayerSocket | undefined;
+	joinToLobby(socketId: string, lobbyId: string): void {
+		const socket: MultiplayerSocket | undefined = this.io.sockets.sockets.get(socketId);
 		socket?.join(lobbyId);
 	}
 
-	leaveSocketFromLobby(socketId: string, lobbyId: string): void {
-		const socket = this.io.sockets.sockets.get(socketId) as MultiplayerSocket | undefined;
+	leaveFromLobby(socketId: string, lobbyId: string): void {
+		const socket: MultiplayerSocket | undefined = this.io.sockets.sockets.get(socketId);
 		socket?.leave(lobbyId);
 	}
 
+	// Register a new player with the app service, and set up handler for incoming client commands and disconnections.
 	private handleConnection(socket: MultiplayerSocket): void {
 		if (!this.application) {
-			socket.emit('event', { type: 'system/error', message: 'Lobby application service is not configured.' });
+			socket.emit('event', { type: 'system/error', message: 'Startup failure: Lobby application service is not configured.' });
 			socket.disconnect(true);
 			return;
 		}
 
 		const playerId = randomUUID();
 		socket.data.playerId = playerId;
-		this.application.handleConnected({ playerId, socketId: socket.id });
+		this.application.handleConnected(playerId, socket.id);
 
 		socket.on('command', (command: ClientCommand) => {
 			try {
-				this.application?.handleCommand({ playerId, socketId: socket.id, command });
+				this.application?.handleCommand(playerId, socket.id, command);
 			} catch (error) {
 				const message = error instanceof Error ? error.message : String(error);
 				socket.emit('event', { type: 'system/error', message });
@@ -72,7 +77,7 @@ export class SocketGateway implements GatewayPort {
 		});
 
 		socket.on('disconnect', () => {
-			this.application?.handleDisconnected({ playerId });
+			this.application?.handleDisconnected(playerId);
 		});
 	}
 }
