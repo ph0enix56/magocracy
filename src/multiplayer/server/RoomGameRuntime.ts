@@ -1,22 +1,22 @@
 import { configuration } from '../../game/configuration';
 import { CHARTER_TEMPLATES } from './config/charters';
-import { getAllBuildingDefs, getBlockingBuildingDefs, getBuildingDef } from './config/buildings';
+import { getAllBuildingDefs, getBlockingBuildingDefs, getBuildingDef, getUnitDef } from './config/buildings';
 import { kingdomCoordKey } from '../../shared/kingdom/kingdomGrid';
+import type { CombatSnapshot } from '../../shared/domain/combatTypes';
+import type { GameActionCommand } from '../../shared/multiplayer/contracts/commands';
 import type {
 	AdvanceSnapshot,
-	CombatSnapshot,
 	FightPlayerRoundSnapshot,
-	GameActionCommand,
 	GamePhase,
 	GameSnapshot,
 	PlayerGameView
-} from '../../shared/multiplayer/protocol';
+} from '../../shared/multiplayer/contracts/snapshots';
 import { ServerGameState } from './gameplay/ServerGameState';
 import { BuildService } from './gameplay/services/BuildService';
 import { ArmyService } from './gameplay/services/ArmyService';
 import { ProductionService } from './gameplay/services/ProductionService';
 import { ShopService } from './gameplay/services/ShopService';
-import type { ArmyUnitComponent } from './gameplay/model';
+import type { ArmyUnitState } from './gameplay/model';
 import {
 	advancePhaseTimers,
 	createActiveAdvanceState,
@@ -26,8 +26,7 @@ import {
 	skipAdvancePick,
 	type AdvancePhaseStateData
 } from './gameplay/advance/advancePhase';
-import type { CharterDraftOption } from './gameplay/advance/charterModel';
-import { toCharterSnapshot } from './gameplay/advance/charterMappers';
+import type { CharterOption as CharterDraftOption } from '../../shared/domain/charter';
 import { resolveAdvanceLevel, pickCharterTemplatesForDraft, materializeCharter } from './gameplay/advance/charterDraft';
 import { initializeKingdomGrid, revealNeighborTiles } from './gameplay/board/kingdomBoard';
 import {
@@ -206,9 +205,9 @@ export class RoomGameRuntime {
 		action: Extract<GameActionCommand, { type: 'build/request' }>
 	): { ok: true } | { ok: false; reason: string } {
 		if (this.phase !== 'build') return { ok: false, reason: 'Build actions are disabled outside build phase.' };
-		const entity = runtime.run.world.getEntity(kingdomCoordKey(action.q, action.r));
-		if (!entity) return { ok: false, reason: 'Unknown tile.' };
-		runtime.buildService.startBuild(entity, action.buildingId);
+		const tileId = kingdomCoordKey(action.q, action.r);
+		if (!runtime.run.world.getKingdomTile(tileId)) return { ok: false, reason: 'Unknown tile.' };
+		runtime.buildService.startBuild(tileId, action.buildingId);
 		return { ok: true };
 	}
 
@@ -217,11 +216,12 @@ export class RoomGameRuntime {
 		action: Extract<GameActionCommand, { type: 'destroy/request' }>
 	): { ok: true } | { ok: false; reason: string } {
 		if (this.phase !== 'build') return { ok: false, reason: 'Destroy actions are disabled outside build phase.' };
-		const entity = runtime.run.world.getEntity(kingdomCoordKey(action.q, action.r));
-		if (!entity?.building) return { ok: false, reason: 'No building on that tile.' };
-		const buildingDef = getBuildingDef(entity.building.buildingId);
+		const tileId = kingdomCoordKey(action.q, action.r);
+		const tile = runtime.run.world.getKingdomTile(tileId);
+		if (!tile?.building) return { ok: false, reason: 'No building on that tile.' };
+		const buildingDef = getBuildingDef(tile.building.buildingId);
 		const wasBlocker = buildingDef?.isBlocker === true;
-		runtime.buildService.destroyBuilding(entity);
+		runtime.buildService.destroyBuilding(tileId);
 		if (wasBlocker) {
 			this.revealNeighbors(runtime, action.q, action.r);
 		}
@@ -233,9 +233,9 @@ export class RoomGameRuntime {
 		action: Extract<GameActionCommand, { type: 'upgrade/request' }>
 	): { ok: true } | { ok: false; reason: string } {
 		if (this.phase !== 'build') return { ok: false, reason: 'Upgrade actions are disabled outside build phase.' };
-		const entity = runtime.run.world.getEntity(kingdomCoordKey(action.q, action.r));
-		if (!entity) return { ok: false, reason: 'Unknown tile.' };
-		runtime.buildService.startUpgrade(entity, action.upgradeBuildingId);
+		const tileId = kingdomCoordKey(action.q, action.r);
+		if (!runtime.run.world.getKingdomTile(tileId)) return { ok: false, reason: 'Unknown tile.' };
+		runtime.buildService.startUpgrade(tileId, action.upgradeBuildingId);
 		return { ok: true };
 	}
 
@@ -290,22 +290,23 @@ export class RoomGameRuntime {
 	}
 
 	private buildPlayerView(playerId: string, runtime: PlayerRuntime): PlayerGameView {
-		const positionedEntities = runtime.run.world.getEntitiesWith(['position']);
+		const tiles = runtime.run.world.getKingdomTiles();
 		return {
 			playerId,
 			resources: serializeResources(runtime.run.world.resources),
 			blueprints: serializeInventory(runtime.run.world.blueprintInventory),
 			shop: runtime.shopService.getState(),
-			kingdom: serializeKingdom(positionedEntities, runtime.productionService),
+			kingdom: serializeKingdom(tiles, runtime.productionService),
 			army: serializeArmy(
-				runtime.run.world.getOrderedArmyUnitEntities().map((entity) => ({ entityId: entity.id, unit: entity.armyUnit! })),
-				positionedEntities
+				runtime.run.world.getOrderedArmyUnits(),
+				tiles
 			),
 			combat: this.getCombatSnapshotForPlayer(playerId),
 			fight: buildFightSnapshotForPlayer({
 				playerId,
 				state: this.fightState,
-				getArmyForPlayer: (targetPlayerId) => this.getArmyForPlayer(targetPlayerId)
+				getArmyForPlayer: (targetPlayerId) => this.getArmyForPlayer(targetPlayerId),
+				resolveUnitName: (unitDefId) => getUnitDef(unitDefId)?.name ?? unitDefId
 			}),
 			advance: this.buildPlayerAdvanceSnapshot()
 		};
@@ -322,18 +323,14 @@ export class RoomGameRuntime {
 			secondsRemaining: this.advanceState.secondsRemaining,
 			revealDelaySeconds: this.advanceState.revealDelaySeconds,
 			secondsToPhaseEnd: this.advanceState.secondsToPhaseEnd,
-			charters: this.advanceState.charters.map(toCharterSnapshot)
+			charters: this.advanceState.charters
 		};
 	}
 
-	private getArmyForPlayer(playerId: string): ArmyUnitComponent[] {
+	private getArmyForPlayer(playerId: string): ArmyUnitState[] {
 		const runtime = this.players.get(playerId);
 		if (!runtime) return [];
-		return runtime.run.world
-			.getOrderedArmyUnitEntities()
-			.map((entity) => entity.armyUnit)
-			.filter((unit): unit is ArmyUnitComponent => !!unit)
-			.slice();
+		return runtime.run.world.getOrderedArmyUnits().slice();
 	}
 
 	private advanceFightPhaseTick(): void {

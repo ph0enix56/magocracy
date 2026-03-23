@@ -1,6 +1,6 @@
 import type { CharterTemplateDef } from '../../config/charters';
 import type { BuildingDef } from '../../config/buildings';
-import type { CharterBlueprintGrant, CharterDraftOption } from './charterModel';
+import type { CharterBlueprintGrant, CharterOption as CharterDraftOption } from '../../../../shared/domain/charter';
 
 export function resolveAdvanceLevel(advancePhaseIndex: number, levels: readonly number[]): number {
 	const level = levels[Math.min(advancePhaseIndex, levels.length - 1)] ?? levels[levels.length - 1] ?? 1;

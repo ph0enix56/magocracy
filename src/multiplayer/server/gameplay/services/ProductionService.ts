@@ -1,7 +1,7 @@
 import { getBuildingDef } from '../../config/buildings';
 import { accumulateEffectsForTargetStat } from '../effects/effectDsl';
 import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
-import type { Entity } from '../model';
+import type { KingdomTileState } from '../model';
 import type { WorldStore } from '../ServerEcsWorld';
 
 export class ProductionService {
@@ -12,12 +12,12 @@ export class ProductionService {
 	advanceTick(): void {
 		const production = new Map<string, number>();
 
-		for (const entity of this.world.getEntitiesWith(['building', 'position'])) {
-			if (entity.building?.status !== 'active') continue;
-			const def = getBuildingDef(entity.building.buildingId);
+		for (const tile of this.world.getKingdomTilesWithBuildings()) {
+			if (tile.building?.status !== 'active') continue;
+			const def = getBuildingDef(tile.building.buildingId);
 			if (!def?.production) continue;
 			for (const [resource, baseAmount] of Object.entries(def.production.productions)) {
-				const amount = this.calculateResourceAmount(entity, resource, baseAmount);
+				const amount = this.calculateResourceAmount(tile, resource, baseAmount);
 				if (amount <= 0) continue;
 				production.set(resource, (production.get(resource) || 0) + amount);
 			}
@@ -29,13 +29,14 @@ export class ProductionService {
 		}
 	}
 
-	calculateMultiplier(entity: Entity): number {
-		if (!entity.building || !entity.position) return 0;
-		const def = getBuildingDef(entity.building.buildingId);
+	calculateMultiplier(tileId: string): number {
+		const tile = this.world.getKingdomTile(tileId);
+		if (!tile?.building) return 0;
+		const def = getBuildingDef(tile.building.buildingId);
 		if (!def?.production) return 0;
 
 		const effects = accumulateEffectsForTargetStat({
-			targetEntity: entity,
+			targetTile: tile,
 			targetBuildingDef: def,
 			targetStat: 'prod:all',
 			resolveBuildingDef: getBuildingDef,
@@ -45,13 +46,13 @@ export class ProductionService {
 		return Math.max(0, 1 + effects.mult);
 	}
 
-	private calculateResourceAmount(entity: Entity, resource: string, baseAmount: number): number {
-		if (!entity.building) return 0;
-		const def = getBuildingDef(entity.building.buildingId);
+	private calculateResourceAmount(tile: KingdomTileState, resource: string, baseAmount: number): number {
+		if (!tile.building) return 0;
+		const def = getBuildingDef(tile.building.buildingId);
 		if (!def?.production) return 0;
 
 		const allEffects = accumulateEffectsForTargetStat({
-			targetEntity: entity,
+			targetTile: tile,
 			targetBuildingDef: def,
 			targetStat: 'prod:all',
 			resolveBuildingDef: getBuildingDef,
@@ -59,7 +60,7 @@ export class ProductionService {
 		});
 
 		const resourceEffects = accumulateEffectsForTargetStat({
-			targetEntity: entity,
+			targetTile: tile,
 			targetBuildingDef: def,
 			targetStat: `prod:${resource}`,
 			resolveBuildingDef: getBuildingDef,

@@ -4,7 +4,7 @@
     import { blueprintInventory, buildingCatalogState } from './gameState';
     import BuildingCard from './BuildingCard.svelte';
     import type { ResourceMap } from '../shared/domain/types';
-    import type { BuildingCatalogEntry } from '../shared/multiplayer/protocol';
+    import type { BuildingCatalogEntry } from '../shared/multiplayer/contracts/snapshots';
     import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
 
     // Subscribe to stores

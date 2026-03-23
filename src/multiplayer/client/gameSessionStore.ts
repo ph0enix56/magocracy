@@ -1,24 +1,24 @@
 import { writable } from 'svelte/store';
 import type {
+	GameActionCommand
+} from '../../shared/multiplayer/contracts/commands';
+import type { ServerEvent } from '../../shared/multiplayer/contracts/events';
+import type {
 	AdvanceSnapshot,
-	ArmyUnitSnapshot,
-	BlueprintInventorySnapshot,
 	BuildingCatalogEntry,
-	CombatSnapshot,
 	FightSnapshot,
-	GameActionCommand,
 	GamePhase,
 	KingdomSnapshot,
 	LobbyPlayerSnapshot,
 	PlayerGameView,
-	ResourceSnapshot,
-	ServerEvent,
 	ShopSnapshot
-} from '../../shared/multiplayer/protocol';
+} from '../../shared/multiplayer/contracts/snapshots';
 import type { MultiplayerClientState } from './MultiplayerClient';
 import { buildingCatalog } from './buildingCatalog';
 import { multiplayerClient } from './clientSingleton';
 import type { BuildingStatus, ResourceMap } from '../../shared/domain/types';
+import type { ArmyUnit } from '../../shared/domain/gameViews';
+import type { CombatSnapshot } from '../../shared/domain/combatTypes';
 
 export type SelectedTileView = {
 	q: number;
@@ -52,10 +52,10 @@ export type GameSessionState = MultiplayerClientState & {
 	currentPhase: GamePhase;
 	isFightPhase: boolean;
 	isAdvancePhase: boolean;
-	resources: ResourceSnapshot;
-	blueprints: BlueprintInventorySnapshot;
+	resources: ResourceMap;
+	blueprints: ResourceMap;
 	shop: ShopSnapshot;
-	army: ArmyUnitSnapshot[];
+	army: ArmyUnit[];
 	combat: CombatSnapshot;
 	fight: FightSnapshot;
 	advance: AdvanceSnapshot;
@@ -68,7 +68,7 @@ type PendingRequest = {
 	resolve: (result: CommandResult) => void;
 };
 
-const EMPTY_RESOURCES: ResourceSnapshot = {};
+const EMPTY_RESOURCES: ResourceMap = {};
 const EMPTY_SHOP: ShopSnapshot = {
 	offers: [],
 	buyCost: 0,

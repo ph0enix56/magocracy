@@ -1,7 +1,8 @@
 import { createServer, type Server as HttpServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { Server, type Socket } from 'socket.io';
-import type { ClientCommand, ClientToServerEvents, ServerEvent, ServerToClientEvents } from '../../../shared/multiplayer/protocol';
+import type { ClientCommand } from '../../../shared/multiplayer/contracts/commands';
+import type { ClientToServerEvents, ServerEvent, ServerToClientEvents } from '../../../shared/multiplayer/contracts/events';
 import type { LobbyApplicationService } from './LobbyApplicationService';
 import type { ServerEventGateway } from './lobbyTypes';
 

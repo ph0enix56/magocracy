@@ -1,50 +1,34 @@
 import type { KingdomCoord } from '../../../shared/kingdom/kingdomGrid';
-import type { AttackAction, BuildingStatus, ResourceMap, TrainingDelta, TrainingStatus } from '../../../shared/domain/types';
+import type { BuildingStatus, TrainingStatus } from '../../../shared/domain/types';
 
-export type PositionComponent = KingdomCoord;
-
-export interface BuildingComponent {
+export interface BuildingState {
 	buildingId: string;
 	status: BuildingStatus;
 	progress: number;
 	upgradeNextId?: string;
-	housedUnitEntityId?: string;
+	housedUnitId?: string;
 }
-
-export type ArmyUnitAction = AttackAction;
 
 export interface ArmyUnitTrainingState {
 	status: TrainingStatus;
 	progress: number;
 }
 
-export type ArmyUnitTrainDef = TrainingDelta;
-
-export interface ArmyUnitTrainingConfig {
-	costBase: ResourceMap;
-	costMult: number;
-	time: number;
-	def: ArmyUnitTrainDef;
-}
-
-export interface ArmyUnitComponent {
-	unitId: string;
-	name: string;
-	textureId: string;
-	assetPath: string;
-	speed: number;
+export interface ArmyUnitState {
+	armyUnitId: string;
+	unitDefId: string;
+	initiative: number;
 	health: number;
 	drFlat: number;
 	drPercent: number;
-	actionsPerTurn: number;
-	actions: ArmyUnitAction[];
+	actionPoints: number;
+	bonusAttackDamage: number;
 	trainingLevel: number;
-	training: ArmyUnitTrainingConfig & ArmyUnitTrainingState;
+	training: ArmyUnitTrainingState;
 }
 
-export interface Entity {
-	id: string;
-	position?: PositionComponent;
-	building?: BuildingComponent;
-	armyUnit?: ArmyUnitComponent;
+export interface KingdomTileState {
+	tileId: string;
+	coord: KingdomCoord;
+	building?: BuildingState;
 }

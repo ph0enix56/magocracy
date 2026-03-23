@@ -1,18 +1,18 @@
 import { accumulateEffectsForTargetStat } from '../effects/effectDsl';
 import type { BuildingDef } from '../../config/buildings';
-import type { ArmyUnitComponent, Entity } from '../model';
+import type { ArmyUnitState, KingdomTileState } from '../model';
 import type { ResourceMap } from '../../../../shared/domain/types';
 
 export interface TrainCostContext {
 	unitEntityId: string;
-	findHousingByUnitId: (unitEntityId: string) => Entity | undefined;
+	findHousingByUnitId: (unitEntityId: string) => KingdomTileState | undefined;
 	resolveBuildingDef: (buildingId: string) => BuildingDef | undefined;
-	getNeighbors: (q: number, r: number) => Entity[];
+	getNeighbors: (q: number, r: number) => KingdomTileState[];
 }
 
 export function getTrainCostEffectsForUnit(context: TrainCostContext): { add: number; mult: number } {
 	const housing = context.findHousingByUnitId(context.unitEntityId);
-	if (!housing?.building || housing.building.status !== 'active' || !housing.position) {
+	if (!housing?.building || housing.building.status !== 'active') {
 		return { add: 0, mult: 0 };
 	}
 
@@ -20,7 +20,7 @@ export function getTrainCostEffectsForUnit(context: TrainCostContext): { add: nu
 	if (!housingDef?.army) return { add: 0, mult: 0 };
 
 	return accumulateEffectsForTargetStat({
-		targetEntity: housing,
+		targetTile: housing,
 		targetBuildingDef: housingDef,
 		targetStat: 'army:traincost',
 		resolveBuildingDef: context.resolveBuildingDef,
@@ -29,12 +29,14 @@ export function getTrainCostEffectsForUnit(context: TrainCostContext): { add: nu
 }
 
 export function computeNextTrainCost(
-	unit: Pick<ArmyUnitComponent, 'training' | 'trainingLevel'>,
+	unit: Pick<ArmyUnitState, 'trainingLevel'>,
+	baseCost: ResourceMap,
+	costMult: number,
 	effects: { add: number; mult: number }
 ): ResourceMap {
-	const levelMult = Math.pow(unit.training.costMult, unit.trainingLevel);
+	const levelMult = Math.pow(costMult, unit.trainingLevel);
 	const out: ResourceMap = {};
-	for (const [resource, base] of Object.entries(unit.training.costBase)) {
+	for (const [resource, base] of Object.entries(baseCost)) {
 		const scaled = Math.ceil(base * levelMult);
 		const withAdd = scaled + effects.add;
 		const withMult = withAdd * (1 + effects.mult);

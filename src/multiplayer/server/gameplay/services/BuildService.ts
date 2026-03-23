@@ -1,6 +1,6 @@
 import { getBuildingDef, getNextUpgradeDef, getUnitDef } from '../../config/buildings';
 import { recomputeHousedArmyUnit } from './armyRuntime';
-import type { Entity } from '../model';
+import type { KingdomTileState } from '../model';
 import type { WorldStore } from '../ServerEcsWorld';
 import type { ResourceMap } from '../../../../shared/domain/types';
 
@@ -10,8 +10,8 @@ export class BuildService {
 	update(_delta: number, _time: number): void {}
 
 	advanceTick(): void {
-		for (const entity of this.world.getEntitiesWith(['building'])) {
-			const building = entity.building;
+		for (const tile of this.world.getKingdomTilesWithBuildings()) {
+			const building = tile.building;
 			if (!building) continue;
 			if (building.status !== 'constructing' && building.status !== 'upgrading') continue;
 
@@ -42,43 +42,20 @@ export class BuildService {
 
 			if (previousStatus === 'constructing' && targetDef.army) {
 				const army = targetDef.army;
-				const unit = getUnitDef(army.unitId);
-				if (!unit) throw new Error(`Unknown unitId '${army.unitId}' for building '${targetId}'`);
+				const unit = getUnitDef(army.unitDefId);
+				if (!unit) throw new Error(`Unknown unitDefId '${army.unitDefId}' for building '${targetId}'`);
 
-				const spawnedUnitEntity = this.world.spawnArmyUnit({
-					unitId: unit.id,
-					name: unit.name,
-					textureId: unit.textureId,
-					assetPath: unit.assetPath,
-					speed: unit.speed,
-					health: unit.health,
-					drFlat: unit.drFlat,
-					drPercent: unit.drPercent,
-					actionsPerTurn: unit.actionsPerTurn,
-					actions: unit.actions.map((action) => ({ ...action })),
-					trainingLevel: 0,
-					training: {
-						status: 'idle',
-						progress: 0,
-						costBase: army.trainCostBase,
-						costMult: army.trainCostMult,
-						time: army.trainTime,
-						def: {
-							health: army.trainDef.health,
-							drFlat: army.trainDef.drFlat,
-							attackDamage: army.trainDef.attackDamage
-						}
-					}
-				});
+				const spawnedUnit = this.world.spawnArmyUnit(army.unitDefId);
 
-				building.housedUnitEntityId = spawnedUnitEntity.id;
-				recomputeHousedArmyUnit(this.world, entity.id);
+				building.housedUnitId = spawnedUnit.armyUnitId;
+				recomputeHousedArmyUnit(this.world, tile.tileId);
 			}
 		}
 	}
 
-	startBuild(entity: Entity, buildingId: string): void {
-		if (entity.building) throw new Error('Entity already has a building');
+	startBuild(tileId: string, buildingId: string): void {
+		const tile = this.getTileWithThrow(tileId);
+		if (tile.building) throw new Error('Tile already has a building');
 
 		const def = getBuildingDef(buildingId);
 		if (!def) throw new Error(`Invalid buildingId: ${buildingId}`);
@@ -87,35 +64,43 @@ export class BuildService {
 		this.deductCostWithThrow(def.cost);
 		this.consumeBlueprintWithThrow(buildingId);
 
-		entity.building = {
+		tile.building = {
 			buildingId,
 			status: 'constructing',
 			progress: 0
 		};
 	}
 
-	startUpgrade(entity: Entity, targetBuildingId: string): void {
-		if (!entity.building) throw new Error('Entity has no building to upgrade');
-		if (entity.building.status !== 'active') throw new Error('Building is not active');
+	startUpgrade(tileId: string, targetBuildingId: string): void {
+		const tile = this.getTileWithThrow(tileId);
+		if (!tile.building) throw new Error('Tile has no building to upgrade');
+		if (tile.building.status !== 'active') throw new Error('Building is not active');
 
-		const nextDef = getNextUpgradeDef(entity.building.buildingId);
+		const nextDef = getNextUpgradeDef(tile.building.buildingId);
 		if (!nextDef || nextDef.id !== targetBuildingId) throw new Error('No upgrades available');
 
 		this.deductCostWithThrow(nextDef.cost);
-		entity.building.status = 'upgrading';
-		entity.building.progress = 0;
-		entity.building.upgradeNextId = targetBuildingId;
+		tile.building.status = 'upgrading';
+		tile.building.progress = 0;
+		tile.building.upgradeNextId = targetBuildingId;
 	}
 
-	destroyBuilding(entity: Entity): void {
-		if (!entity.building) throw new Error('Entity has no building to destroy');
-		const def = getBuildingDef(entity.building.buildingId);
-		if (!def) throw new Error(`Invalid buildingId: ${entity.building.buildingId}`);
+	destroyBuilding(tileId: string): void {
+		const tile = this.getTileWithThrow(tileId);
+		if (!tile.building) throw new Error('Tile has no building to destroy');
+		const def = getBuildingDef(tile.building.buildingId);
+		if (!def) throw new Error(`Invalid buildingId: ${tile.building.buildingId}`);
 		if (def.isBlocker) {
 			this.deductCostWithThrow(def.cost);
 		}
-		delete entity.building.housedUnitEntityId;
-		delete entity.building;
+		delete tile.building.housedUnitId;
+		delete tile.building;
+	}
+
+	private getTileWithThrow(tileId: string): KingdomTileState {
+		const tile = this.world.getKingdomTile(tileId);
+		if (!tile) throw new Error('Unknown tile.');
+		return tile;
 	}
 
 	private deductCostWithThrow(cost: ResourceMap): void {

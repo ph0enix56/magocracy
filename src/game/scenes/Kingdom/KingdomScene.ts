@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 import { configuration } from '../../configuration';
-import type { BuildingCatalogSnapshot, KingdomTileSnapshot } from '../../../shared/multiplayer/protocol';
+import type { BuildingCatalogSnapshot, KingdomTileSnapshot } from '../../../shared/multiplayer/contracts/snapshots';
 import { gameSessionClient, gameSessionState } from '../../../multiplayer/client/gameSessionStore';
 import {
 	OVERLAY_BACKGROUND_EVENT,

@@ -1,16 +1,13 @@
 import { io, type Socket } from 'socket.io-client';
+import type { ClientCommand, GameActionCommand } from '../../shared/multiplayer/contracts/commands';
+import type { ClientToServerEvents, ServerEvent, ServerToClientEvents } from '../../shared/multiplayer/contracts/events';
 import type {
-	ClientCommand,
-	ClientToServerEvents,
 	BuildingCatalogSnapshot,
-	GameActionCommand,
 	GameSnapshot,
 	LobbyPlayerSnapshot,
 	LobbySnapshot,
-	PlayerGameView,
-	ServerEvent,
-	ServerToClientEvents
-} from '../../shared/multiplayer/protocol';
+	PlayerGameView
+} from '../../shared/multiplayer/contracts/snapshots';
 import { buildingCatalog } from './buildingCatalog';
 
 export type MultiplayerConnectionStatus = 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error';

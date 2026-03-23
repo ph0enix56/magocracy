@@ -1,4 +1,4 @@
-import type { BuildingCatalogEntry, LobbyPlayerSnapshot, LobbySnapshot, LobbyStatus } from '../../../shared/multiplayer/protocol';
+import type { BuildingCatalogEntry, LobbyPlayerSnapshot, LobbySnapshot, LobbyStatus } from '../../../shared/multiplayer/contracts/snapshots';
 import { getAllBuildingDefs } from '../config/buildings';
 
 type LobbyPlayerLike = {

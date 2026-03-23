@@ -1,4 +1,4 @@
-import type { ClientCommand, GameActionCommand } from '../../../shared/multiplayer/protocol';
+import type { ClientCommand, GameActionCommand } from '../../../shared/multiplayer/contracts/commands';
 import { RoomGameRuntime } from '../RoomGameRuntime';
 import { buildBuildingCatalog, toLobbySnapshot } from '../lobby/lobbyProjection';
 import { routeClientCommand } from './CommandRouter';

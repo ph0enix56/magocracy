@@ -1,5 +1,7 @@
 import { derived } from 'svelte/store';
-import type { AdvanceSnapshot, ArmyUnitSnapshot, BuildingCatalogEntry, CombatSnapshot, FightSnapshot, LobbyPlayerSnapshot } from '../shared/multiplayer/protocol';
+import type { AdvanceSnapshot, BuildingCatalogEntry, FightSnapshot, LobbyPlayerSnapshot } from '../shared/multiplayer/contracts/snapshots';
+import type { ArmyUnit } from '../shared/domain/gameViews';
+import type { CombatSnapshot } from '../shared/domain/combatTypes';
 import { gameSessionState, type SelectedTileView } from '../multiplayer/client/gameSessionStore';
 
 export const blueprintInventory = derived(gameSessionState, ($state) => $state.blueprints);
@@ -12,13 +14,9 @@ export type ShopViewState = {
 
 export const shopState = derived(gameSessionState, ($state): ShopViewState => $state.shop);
 
-export type ArmyUnitView = ArmyUnitSnapshot;
+export const armyState = derived(gameSessionState, ($state): ArmyUnit[] => $state.army);
 
-export const armyState = derived(gameSessionState, ($state): ArmyUnitView[] => $state.army);
-
-export type CombatUiState = CombatSnapshot;
-
-export const combatState = derived(gameSessionState, ($state): CombatUiState => $state.combat);
+export const combatState = derived(gameSessionState, ($state): CombatSnapshot => $state.combat);
 export const fightState = derived(gameSessionState, ($state): FightSnapshot => $state.fight);
 export const advanceState = derived(gameSessionState, ($state): AdvanceSnapshot => $state.advance);
 export const selectedTileState = derived(gameSessionState, ($state): SelectedTileView | null => $state.selectedTile);

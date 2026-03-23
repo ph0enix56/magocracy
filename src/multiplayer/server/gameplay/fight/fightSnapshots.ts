@@ -1,18 +1,20 @@
-import type { FightArmyUnitSummarySnapshot, FightSnapshot } from '../../../../shared/multiplayer/protocol';
-import type { ArmyUnitComponent } from '../model';
+import type { FightSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import type { FightArmyUnitSummary } from '../../../../shared/domain/gameViews';
+import type { ArmyUnitState } from '../model';
 import type { FightPhaseStateData } from './fightPhase';
 
 export function buildFightSnapshotForPlayer(params: {
 	playerId: string;
 	state: FightPhaseStateData;
-	getArmyForPlayer: (playerId: string) => ArmyUnitComponent[];
+	getArmyForPlayer: (playerId: string) => ArmyUnitState[];
+	resolveUnitName: (unitDefId: string) => string;
 }): FightSnapshot {
-	const { playerId, state, getArmyForPlayer } = params;
+	const { playerId, state, getArmyForPlayer, resolveUnitName } = params;
 	const playerRounds = state.playerRoundsByPlayerId.get(playerId) ?? [];
 	const enrichedPlayerRounds = playerRounds.map((round) => {
-		const selfArmy = summarizeFightArmy(getArmyForPlayer(playerId));
+		const selfArmy = summarizeFightArmy(getArmyForPlayer(playerId), resolveUnitName);
 		const opponentArmy = round.opponentPlayerId
-			? summarizeFightArmy(getArmyForPlayer(round.opponentPlayerId))
+			? summarizeFightArmy(getArmyForPlayer(round.opponentPlayerId), resolveUnitName)
 			: [];
 		return {
 			...round,
@@ -33,16 +35,19 @@ export function buildFightSnapshotForPlayer(params: {
 	};
 }
 
-export function summarizeFightArmy(units: ArmyUnitComponent[]): FightArmyUnitSummarySnapshot[] {
+export function summarizeFightArmy(
+	units: ArmyUnitState[],
+	resolveUnitName: (unitDefId: string) => string
+): FightArmyUnitSummary[] {
 	return units
 		.slice()
 		.sort((a, b) => {
 			if (b.trainingLevel !== a.trainingLevel) return b.trainingLevel - a.trainingLevel;
-			return a.name.localeCompare(b.name);
+			return resolveUnitName(a.unitDefId).localeCompare(resolveUnitName(b.unitDefId));
 		})
 		.map((unit) => ({
-			unitId: unit.unitId,
-			name: unit.name,
+			unitDefId: unit.unitDefId,
+			name: resolveUnitName(unit.unitDefId),
 			trainingLevel: unit.trainingLevel
 		}));
 }

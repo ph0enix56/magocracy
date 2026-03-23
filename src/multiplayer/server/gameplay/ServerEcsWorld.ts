@@ -1,8 +1,10 @@
 import { configuration } from '../../../game/configuration';
-import type { ArmyUnitComponent, Entity } from './model';
+import { getUnitDef } from '../config/buildings';
+import type { ArmyUnitState, KingdomTileState } from './model';
 
 export class WorldStore {
-	private readonly entities = new Map<string, Entity>();
+	private readonly kingdomTiles = new Map<string, KingdomTileState>();
+	private readonly armyUnits = new Map<string, ArmyUnitState>();
 	readonly resources = new Map<string, number>();
 	readonly blueprintInventory = new Map<string, number>();
 	shopOffers: Array<string | null> = Array.from({ length: configuration.shop.size }, () => null);
@@ -19,15 +21,58 @@ export class WorldStore {
 		}
 	}
 
-	spawnArmyUnit(component: Omit<ArmyUnitComponent, 'training'> & { training: ArmyUnitComponent['training'] }): Entity {
-		const id = `unit:${component.unitId}:${this.nextArmyUnitSeq++}`;
-		const entity: Entity = {
-			id,
-			armyUnit: component as ArmyUnitComponent
+	upsertKingdomTile(tile: KingdomTileState): void {
+		this.kingdomTiles.set(tile.tileId, tile);
+	}
+
+	getKingdomTile(tileId: string): KingdomTileState | undefined {
+		return this.kingdomTiles.get(tileId);
+	}
+
+	getKingdomTiles(): KingdomTileState[] {
+		return [...this.kingdomTiles.values()];
+	}
+
+	getKingdomTilesWithBuildings(): KingdomTileState[] {
+		return this.getKingdomTiles().filter((tile) => !!tile.building);
+	}
+
+	spawnArmyUnit(unitDefId: string): ArmyUnitState {
+		const unitDef = getUnitDef(unitDefId);
+		if (!unitDef) throw new Error(`Unknown unitDefId '${unitDefId}'`);
+
+		const armyUnitId = `unit:${unitDefId}:${this.nextArmyUnitSeq++}`;
+		const unit: ArmyUnitState = {
+			armyUnitId,
+			unitDefId,
+			initiative: unitDef.initiative,
+			health: unitDef.health,
+			drFlat: unitDef.drFlat,
+			drPercent: unitDef.drPercent,
+			actionPoints: unitDef.actionPoints,
+			bonusAttackDamage: 0,
+			trainingLevel: 0,
+			training: {
+				status: 'idle',
+				progress: 0
+			}
 		};
-		this.addEntity(entity);
+		this.armyUnits.set(armyUnitId, unit);
 		this.ensureArmyUnitOrderSynced();
-		return entity;
+		return unit;
+	}
+
+	getArmyUnit(armyUnitId: string): ArmyUnitState | undefined {
+		return this.armyUnits.get(armyUnitId);
+	}
+
+	getArmyUnits(): ArmyUnitState[] {
+		return [...this.armyUnits.values()];
+	}
+
+	removeArmyUnit(armyUnitId: string): void {
+		this.armyUnits.delete(armyUnitId);
+		this.ensureArmyUnitOrderSynced();
 	}
 
 	reorderArmyUnitWithThrow(unitEntityId: string, direction: 'up' | 'down'): void {
@@ -42,40 +87,18 @@ export class WorldStore {
 		this.armyUnitOrder[idx] = tmp!;
 	}
 
-	getOrderedArmyUnitEntities(): Entity[] {
+	getOrderedArmyUnits(): ArmyUnitState[] {
 		this.ensureArmyUnitOrderSynced();
-		const out: Entity[] = [];
-		for (const id of this.armyUnitOrder) {
-			const entity = this.getEntity(id);
-			if (entity?.armyUnit) out.push(entity);
+		const out: ArmyUnitState[] = [];
+		for (const armyUnitId of this.armyUnitOrder) {
+			const unit = this.getArmyUnit(armyUnitId);
+			if (unit) out.push(unit);
 		}
 		return out;
 	}
 
-	addEntity(entity: Entity): void {
-		this.entities.set(entity.id, entity);
-	}
-
-	getEntity(id: string): Entity | undefined {
-		return this.entities.get(id);
-	}
-
-	getEntities(): Entity[] {
-		return [...this.entities.values()];
-	}
-
-	getEntitiesWith<K extends keyof Pick<Entity, 'position' | 'building' | 'armyUnit'>>(
-		components: K[]
-	): Entity[] {
-		return this.getEntities().filter((entity) => components.every((component) => !!entity[component]));
-	}
-
 	private ensureArmyUnitOrderSynced(): void {
-		const existingArmyUnitIds = new Set(
-			this.getEntities()
-				.filter((entity) => !!entity.armyUnit)
-				.map((entity) => entity.id)
-		);
+		const existingArmyUnitIds = new Set(this.armyUnits.keys());
 
 		this.armyUnitOrder = this.armyUnitOrder.filter((id) => existingArmyUnitIds.has(id));
 

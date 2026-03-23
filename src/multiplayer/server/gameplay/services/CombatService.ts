@@ -4,26 +4,28 @@ import {
 	type CombatResult,
 	type CombatUnit
 } from '../../../../shared/combat/combatCore';
-import type { ArmyUnitComponent } from '../model';
+import { getUnitDef } from '../../config/buildings';
+import type { ArmyUnitState } from '../model';
 
-function toCombatUnit(unit: ArmyUnitComponent): CombatUnit {
+function toCombatUnit(unit: ArmyUnitState): CombatUnit {
+	const unitDef = getUnitDef(unit.unitDefId);
 	return {
-		unitId: unit.unitId,
-		name: unit.name,
-		assetPath: unit.assetPath,
+		unitDefId: unit.unitDefId,
+		name: unitDef?.name ?? unit.unitDefId,
+		assetPath: unitDef?.assetPath ?? '',
 		maxHealth: unit.health,
 		health: unit.health,
 		drFlat: unit.drFlat,
 		drPercent: unit.drPercent,
-		actionsPerTurn: unit.actionsPerTurn,
-		actions: unit.actions,
+		actionPoints: unit.actionPoints,
+		actions: unitDef?.actions.map((action) => ({ ...action })) ?? [],
 		trainingLevel: unit.trainingLevel,
-		trainingAttackDamagePerLevel: unit.training?.def?.attackDamage ?? 0
+		bonusAttackDamage: unit.bonusAttackDamage
 	};
 }
 
 export class CombatService {
-	static resolveCombat(armyA: ArmyUnitComponent[], armyB: ArmyUnitComponent[], options?: CombatOptions): CombatResult {
+	static resolveCombat(armyA: ArmyUnitState[], armyB: ArmyUnitState[], options?: CombatOptions): CombatResult {
 		return resolveCombat(armyA.map(toCombatUnit), armyB.map(toCombatUnit), options);
 	}
 }

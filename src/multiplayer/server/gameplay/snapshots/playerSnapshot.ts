@@ -1,13 +1,14 @@
-import type { ArmyUnitSnapshot, KingdomSnapshot, ResourceSnapshot } from '../../../../shared/multiplayer/protocol';
+import type { KingdomSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import type { ArmyUnit } from '../../../../shared/domain/gameViews';
 import type { ResourceMap } from '../../../../shared/domain/types';
-import { getBuildingDef } from '../../config/buildings';
+import { getBuildingDef, getUnitDef } from '../../config/buildings';
 import { computeNextTrainCost, getTrainCostEffectsForUnit } from '../army/trainCost';
-import { getNeighborsFromPositionedEntities } from '../kingdom/neighborLookup';
-import type { ArmyUnitComponent, Entity } from '../model';
+import { getNeighborsFromTiles } from '../kingdom/neighborLookup';
+import type { ArmyUnitState, KingdomTileState } from '../model';
 import { ProductionService } from '../services/ProductionService';
 
-export function serializeResources(resources: Map<string, number>): ResourceSnapshot {
-	const out: ResourceSnapshot = {};
+export function serializeResources(resources: Map<string, number>): ResourceMap {
+	const out: ResourceMap = {};
 	for (const [key, value] of resources.entries()) {
 		out[key] = value;
 	}
@@ -22,51 +23,59 @@ export function serializeInventory(inventory: Map<string, number>): ResourceMap 
 	return out;
 }
 
-export function serializeKingdom(entities: Entity[], productionService: ProductionService): KingdomSnapshot {
+export function serializeKingdom(tiles: KingdomTileState[], productionService: ProductionService): KingdomSnapshot {
 	return {
-		tiles: entities
-			.filter((entity): entity is Entity & { position: NonNullable<Entity['position']> } => !!entity.position)
-			.map((entity) => ({
-				q: entity.position.q,
-				r: entity.position.r,
-				building: entity.building
+		tiles: tiles.map((tile) => ({
+				q: tile.coord.q,
+				r: tile.coord.r,
+				building: tile.building
 					? {
-						buildingId: entity.building.buildingId,
-						status: entity.building.status,
-						progress: entity.building.progress,
-						upgradeNextId: entity.building.upgradeNextId,
-						productionMultiplier: entity.building.status === 'active' ? productionService.calculateMultiplier(entity) : undefined
+						buildingId: tile.building.buildingId,
+						status: tile.building.status,
+						progress: tile.building.progress,
+						upgradeNextId: tile.building.upgradeNextId,
+						productionMultiplier: tile.building.status === 'active' ? productionService.calculateMultiplier(tile.tileId) : undefined
 					}
 					: undefined
 			}))
 	};
 }
 
-export function serializeArmy(units: Array<{ entityId: string; unit: ArmyUnitComponent }>, positionedEntities: Entity[]): ArmyUnitSnapshot[] {
-	return units.map(({ entityId, unit }) => ({
-		entityId,
-		unitId: unit.unitId,
-		name: unit.name,
-		assetPath: unit.assetPath,
-		speed: unit.speed,
+export function serializeArmy(units: ArmyUnitState[], tiles: KingdomTileState[]): ArmyUnit[] {
+	return units.map((unit) => {
+		const unitDef = getUnitDef(unit.unitDefId);
+		const housingTile = tiles.find((tile) => tile.building?.housedUnitId === unit.armyUnitId);
+		const housingDef = housingTile?.building ? getBuildingDef(housingTile.building.buildingId) : undefined;
+		const trainTime = housingDef?.army ? Math.max(0, Math.floor(housingDef.army.trainTime)) : 0;
+		return {
+			entityId: unit.armyUnitId,
+			unitDefId: unit.unitDefId,
+			name: unitDef?.name ?? unit.unitDefId,
+		assetPath: unitDef?.assetPath ?? '',
+		initiative: unit.initiative,
 		health: unit.health,
 		drFlat: unit.drFlat,
 		drPercent: unit.drPercent,
-		actionsPerTurn: unit.actionsPerTurn,
+		actionPoints: unit.actionPoints,
 		trainingLevel: unit.trainingLevel,
 		trainingStatus: unit.training.status,
-		trainingProgress: unit.training.time > 0 ? (unit.training.progress / unit.training.time) * 100 : 0,
-		nextTrainCost: computeSnapshotNextTrainCost(entityId, unit, positionedEntities),
-		trainTime: unit.training.time
-	}));
+			trainingProgress: trainTime > 0 ? (unit.training.progress / trainTime) * 100 : 0,
+		nextTrainCost: computeSnapshotNextTrainCost(unit.armyUnitId, unit, tiles),
+			trainTime
+		};
+	});
 }
 
-function computeSnapshotNextTrainCost(unitEntityId: string, unit: ArmyUnitComponent, positionedEntities: Entity[]): ResourceMap {
+function computeSnapshotNextTrainCost(unitEntityId: string, unit: ArmyUnitState, tiles: KingdomTileState[]): ResourceMap {
+	const housingTile = tiles.find((tile) => tile.building?.housedUnitId === unitEntityId);
+	const housingDef = housingTile?.building ? getBuildingDef(housingTile.building.buildingId) : undefined;
+	if (!housingDef?.army) return {};
+
 	const effects = getTrainCostEffectsForUnit({
 		unitEntityId,
-		findHousingByUnitId: (entityId) => positionedEntities.find((entity) => entity.building?.housedUnitEntityId === entityId),
+		findHousingByUnitId: (entityId) => tiles.find((tile) => tile.building?.housedUnitId === entityId),
 		resolveBuildingDef: getBuildingDef,
-		getNeighbors: (q, r) => getNeighborsFromPositionedEntities(positionedEntities, q, r)
+		getNeighbors: (q, r) => getNeighborsFromTiles(tiles, q, r)
 	});
-	return computeNextTrainCost(unit, effects);
+	return computeNextTrainCost(unit, housingDef.army.trainCostBase, housingDef.army.trainCostMult, effects);
 }

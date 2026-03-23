@@ -1,4 +1,5 @@
-import type { LobbyStatus, ServerEvent } from '../../../shared/multiplayer/protocol';
+import type { LobbyStatus } from '../../../shared/multiplayer/contracts/snapshots';
+import type { ServerEvent } from '../../../shared/multiplayer/contracts/events';
 
 export type PlayerRecord = {
 	playerId: string;

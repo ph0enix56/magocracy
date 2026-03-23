@@ -101,8 +101,8 @@ function parseUnitDef(raw: unknown, index: number): UnitDef {
 		drFlat: asNumber(raw['drFlat'], `${path}.drFlat`),
 		drPercent: asNumber(raw['drPercent'], `${path}.drPercent`),
 		actions,
-		actionsPerTurn: asNumber(raw['actionsPerTurn'], `${path}.actionsPerTurn`),
-		speed: asNumber(raw['speed'], `${path}.speed`),
+		actionPoints: asNumber(raw['actionPoints'], `${path}.actionPoints`),
+		initiative: asNumber(raw['initiative'], `${path}.initiative`),
 		textureId: asString(raw['textureId'], `${path}.textureId`),
 		assetPath: asString(raw['assetPath'], `${path}.assetPath`)
 	};
@@ -131,7 +131,7 @@ function parseBuildingDef(raw: unknown, index: number): BuildingDef {
 		const trainDefRaw = armyRaw['trainDef'];
 		if (!isObject(trainDefRaw)) throw new Error(`${path}.army.trainDef must be an object`);
 		army = {
-			unitId: asString(armyRaw['unitId'], `${path}.army.unitId`),
+			unitDefId: asString(armyRaw['unitDefId'], `${path}.army.unitDefId`),
 			trainCostBase: asNumberRecord(armyRaw['trainCostBase'], `${path}.army.trainCostBase`),
 			trainCostMult: asNumber(armyRaw['trainCostMult'], `${path}.army.trainCostMult`),
 			trainTime: asNumber(armyRaw['trainTime'], `${path}.army.trainTime`),
@@ -210,8 +210,8 @@ const BUILDINGS: Record<string, BuildingDef> = loadAllBuildings();
 const UNITS: Record<string, UnitDef> = loadAllUnits();
 
 for (const building of Object.values(BUILDINGS)) {
-	if (building.army && !UNITS[building.army.unitId]) {
-		throw new Error(`Building '${building.id}' references unknown unitId '${building.army.unitId}'`);
+	if (building.army && !UNITS[building.army.unitDefId]) {
+		throw new Error(`Building '${building.id}' references unknown unitDefId '${building.army.unitDefId}'`);
 	}
 }
 
@@ -219,8 +219,8 @@ export function getBuildingDef(id: string): BuildingDef | undefined {
 	return BUILDINGS[id];
 }
 
-export function getUnitDef(unitId: string): UnitDef | undefined {
-	return UNITS[unitId];
+export function getUnitDef(unitDefId: string): UnitDef | undefined {
+	return UNITS[unitDefId];
 }
 
 /** Returns the next upgrade def for the given building id, if one exists. */

@@ -1,4 +1,4 @@
-import type { Entity } from '../model';
+import type { ArmyUnitState } from '../model';
 import { getBuildingDef } from '../../config/buildings';
 import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
 import { computeNextTrainCost, getTrainCostEffectsForUnit } from '../army/trainCost';
@@ -14,26 +14,31 @@ export class ArmyService {
 	advanceTick(): void {
 		recomputeAllHousedArmyUnits(this.world);
 
-		for (const entity of this.world.getEntitiesWith(['armyUnit'])) {
-			const unit = entity.armyUnit!;
+		for (const unit of this.world.getArmyUnits()) {
 			if (unit.training.status !== 'training') continue;
+			const trainingTime = this.getTrainingTimeForUnit(unit.armyUnitId);
+			if (trainingTime <= 0) {
+				unit.training.status = 'idle';
+				unit.training.progress = 0;
+				continue;
+			}
 
 			unit.training.progress += 1;
-			if (unit.training.progress < unit.training.time) continue;
+			if (unit.training.progress < trainingTime) continue;
 
-			unit.training.progress = unit.training.time;
+			unit.training.progress = trainingTime;
 			unit.training.status = 'idle';
+			unit.bonusAttackDamage += this.getTrainingAttackBonus(unit.armyUnitId);
 			unit.trainingLevel += 1;
 
-			const housing = getHousingBuildingForUnit(this.world, entity.id);
-			if (housing) recomputeHousedArmyUnit(this.world, housing.id);
+			const housing = getHousingBuildingForUnit(this.world, unit.armyUnitId);
+			if (housing) recomputeHousedArmyUnit(this.world, housing.tileId);
 		}
 	}
 
 	startTrainingWithThrow(unitEntityId: string): void {
-		const entity = this.world.getEntity(unitEntityId);
-		if (!entity?.armyUnit) throw new Error('Invalid unit.');
-		const unit = entity.armyUnit;
+		const unit = this.world.getArmyUnit(unitEntityId);
+		if (!unit) throw new Error('Invalid unit.');
 		if (unit.training.status === 'training') throw new Error('Unit is already training.');
 
 		const cost = this.getTrainCost(unitEntityId, unit);
@@ -42,9 +47,37 @@ export class ArmyService {
 		unit.training.progress = 0;
 	}
 
-	private getTrainCost(unitEntityId: string, unit: NonNullable<Entity['armyUnit']>): ResourceMap {
+	private getTrainCost(unitEntityId: string, unit: ArmyUnitState): ResourceMap {
 		const costEffects = this.getTrainCostEffects(unitEntityId);
-		return computeNextTrainCost(unit, costEffects);
+		const { trainCostBase, trainCostMult } = this.getTrainingParamsForUnitWithThrow(unitEntityId);
+		return computeNextTrainCost(unit, trainCostBase, trainCostMult, costEffects);
+	}
+
+	private getTrainingTimeForUnit(unitEntityId: string): number {
+		const housing = getHousingBuildingForUnit(this.world, unitEntityId);
+		if (!housing?.building) return 0;
+		const def = getBuildingDef(housing.building.buildingId);
+		if (!def?.army) return 0;
+		return Math.max(0, Math.floor(def.army.trainTime));
+	}
+
+	private getTrainingAttackBonus(unitEntityId: string): number {
+		const housing = getHousingBuildingForUnit(this.world, unitEntityId);
+		if (!housing?.building) return 0;
+		const def = getBuildingDef(housing.building.buildingId);
+		if (!def?.army) return 0;
+		return Math.max(0, Math.floor(def.army.trainDef.attackDamage));
+	}
+
+	private getTrainingParamsForUnitWithThrow(unitEntityId: string): { trainCostBase: ResourceMap; trainCostMult: number } {
+		const housing = getHousingBuildingForUnit(this.world, unitEntityId);
+		if (!housing?.building) throw new Error('Unit has no active housing.');
+		const def = getBuildingDef(housing.building.buildingId);
+		if (!def?.army) throw new Error('Unit housing has no training definition.');
+		return {
+			trainCostBase: def.army.trainCostBase,
+			trainCostMult: def.army.trainCostMult
+		};
 	}
 
 	private getTrainCostEffects(unitEntityId: string): { add: number; mult: number } {

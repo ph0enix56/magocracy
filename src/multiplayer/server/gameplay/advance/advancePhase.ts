@@ -1,4 +1,4 @@
-import type { CharterDraftOption } from './charterModel';
+import type { CharterOption as CharterDraftOption } from '../../../../shared/domain/charter';
 
 export type AdvancePhaseStateData = {
 	isActive: boolean;

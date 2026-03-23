@@ -21,7 +21,11 @@ export function kingdomCoordKey(q: number, r: number): string {
 }
 
 export function parseKingdomCoordKey(key: string): KingdomCoord {
-	const [q, r] = key.split(',').map(Number);
+	const q = Number(key.split(',')[0] ?? NaN);
+	const r = Number(key.split(',')[1] ?? NaN);
+	if (!Number.isFinite(q) || !Number.isFinite(r)) {
+		throw new Error(`Invalid kingdom coord key: '${key}'`);
+	}
 	return { q, r };
 }
 

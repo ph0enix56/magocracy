@@ -149,7 +149,7 @@
     "cost": { "wood": 50, "stone": 100 },
     "buildTime": 2,
     "army": {
-      "unitId": "swordsman",
+      "unitDefId": "swordsman",
       "trainCostBase": { "wood": 50, "stone": 25 },
       "trainCostMult": 1.5,
       "trainTime": 5,
@@ -167,7 +167,7 @@
     "cost": { "wood": 120, "stone": 40 },
     "buildTime": 3,
     "army": {
-      "unitId": "archer",
+      "unitDefId": "archer",
       "trainCostBase": { "wood": 30, "stone": 10 },
       "trainCostMult": 1.25,
       "trainTime": 4,
@@ -185,7 +185,7 @@
     "cost": { "wood": 50, "stone": 50 },
     "buildTime": 4,
     "army": {
-      "unitId": "defender",
+      "unitDefId": "defender",
       "trainCostBase": { "wood": 40, "stone": 60 },
       "trainCostMult": 1.4,
       "trainTime": 6,
@@ -203,7 +203,7 @@
     "cost": { "wood": 80, "stone": 150, "mana": 10 },
     "buildTime": 5,
     "army": {
-      "unitId": "earth_mage",
+      "unitDefId": "earth_mage",
       "trainCostBase": { "wood": 70, "stone": 80, "mana": 5 },
       "trainCostMult": 1.6,
       "trainTime": 8,
@@ -221,7 +221,7 @@
     "cost": { "wood": 150, "stone": 100, "mana": 20 },
     "buildTime": 6,
     "army": {
-      "unitId": "magic_archer",
+      "unitDefId": "magic_archer",
       "trainCostBase": { "wood": 100, "stone": 50, "mana": 10 },
       "trainCostMult": 1.7,
       "trainTime": 7,
@@ -239,7 +239,7 @@
     "cost": { "wood": 100, "stone": 80 },
     "buildTime": 4,
     "army": {
-      "unitId": "crossbowman",
+      "unitDefId": "crossbowman",
       "trainCostBase": { "wood": 40, "stone": 30 },
       "trainCostMult": 1.5,
       "trainTime": 5,
@@ -257,7 +257,7 @@
     "cost": { "wood": 80, "stone": 60, "mana": 15 },
     "buildTime": 5,
     "army": {
-      "unitId": "assassin",
+      "unitDefId": "assassin",
       "trainCostBase": { "wood": 30, "stone": 20, "mana": 5 },
       "trainCostMult": 2,
       "trainTime": 4,
@@ -275,7 +275,7 @@
     "cost": { "wood": 100, "stone": 30, "mana": 100 },
     "buildTime": 5,
     "army": {
-      "unitId": "death_mage",
+      "unitDefId": "death_mage",
       "trainCostBase": { "mana": 10 },
       "trainCostMult": 2,
       "trainTime": 10,
@@ -293,7 +293,7 @@
     "cost": { "wood": 150, "stone": 150 },
     "buildTime": 6,
     "army": {
-      "unitId": "champion",
+      "unitDefId": "champion",
       "trainCostBase": { "wood": 150, "stone": 150 },
       "trainCostMult": 1.1,
       "trainTime": 10,

@@ -4,25 +4,25 @@ export type CombatStatus = 'idle' | 'running' | 'finished';
 
 export type CombatActiveSide = 'armyA' | 'armyB';
 
-export type CombatUnitView = {
-	unitId: string;
+export type CombatUnit = {
+	unitDefId: string;
 	name: string;
 	assetPath: string;
 	health: number;
 	maxHealth: number;
 };
 
-export type CombatLogEntryView = {
+export type CombatLogEntry = {
 	seq: number;
 	text: string;
 };
 
-export type CombatSnapshotView = {
+export type CombatSnapshot = {
 	status: CombatStatus;
 	winner?: CombatWinner;
 	round: number;
 	activeSide: CombatActiveSide;
-	armyA: CombatUnitView[];
-	armyB: CombatUnitView[];
-	log: CombatLogEntryView[];
+	armyA: CombatUnit[];
+	armyB: CombatUnit[];
+	log: CombatLogEntry[];
 };

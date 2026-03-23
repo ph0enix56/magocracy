@@ -39,7 +39,7 @@ export interface ProductionComponent {
 /** Attached to buildings that train and manage an army unit type. */
 export interface ArmyComponent {
 	/** The unit type this building trains, referenced by id. */
-	unitId: string;
+	unitDefId: string;
 	trainCostBase: ResourceMap;
 	trainCostMult: number;
 	trainTime: number;
@@ -97,9 +97,9 @@ export interface UnitDef {
 	/** Action queue/cycle of this unit. */
 	actions: UnitAttackDef[];
 	/** Actions taken per turn in combat. */
-	actionsPerTurn: number;
-	/** Travel speed on the world map. */
-	speed: number;
+	actionPoints: number;
+	/** Initiative on the world map / combat ordering. */
+	initiative: number;
 	/** Phaser texture key. */
 	textureId: string;
 	/** Path relative to public/assets/ for the unit icon. */

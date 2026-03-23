@@ -1,4 +1,4 @@
-import type { Entity } from '../model';
+import type { KingdomTileState } from '../model';
 import type { WorldStore } from '../ServerEcsWorld';
 
 const DOUBLED_DIRECTIONS = [
@@ -10,12 +10,12 @@ const DOUBLED_DIRECTIONS = [
 	{ dq: -1, dr: 1 }
 ] as const;
 
-export function getNeighborsFromPositionedEntities(positionedEntities: Entity[], q: number, r: number): Entity[] {
+export function getNeighborsFromTiles(tiles: KingdomTileState[], q: number, r: number): KingdomTileState[] {
 	return DOUBLED_DIRECTIONS
-		.map(({ dq, dr }) => positionedEntities.find((entity) => entity.position?.q === q + dq && entity.position?.r === r + dr))
-		.filter((entity): entity is Entity => !!entity);
+		.map(({ dq, dr }) => tiles.find((tile) => tile.coord.q === q + dq && tile.coord.r === r + dr))
+		.filter((tile): tile is KingdomTileState => !!tile);
 }
 
-export function getNeighborsFromWorld(world: WorldStore, q: number, r: number): Entity[] {
-	return getNeighborsFromPositionedEntities(world.getEntitiesWith(['position']), q, r);
+export function getNeighborsFromWorld(world: WorldStore, q: number, r: number): KingdomTileState[] {
+	return getNeighborsFromTiles(world.getKingdomTiles(), q, r);
 }

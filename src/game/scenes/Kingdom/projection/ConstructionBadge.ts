@@ -24,7 +24,7 @@ export class ConstructionBadge {
 	private readonly ring: Phaser.GameObjects.Graphics;
 	private readonly label: Phaser.GameObjects.Text;
 
-	constructor(private readonly scene: Scene) {
+	constructor(scene: Scene) {
 		ConstructionBadge.preload(scene);
 
 		const badgeCfg = configuration.render.building.badge;

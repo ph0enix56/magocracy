@@ -1,7 +1,8 @@
-import type { BuildingKind } from '../../../../shared/domain/types';
+import type { BuildingKind } from './types';
+import type { ResourceKey } from './resources';
 
 export type CharterResourceGrant = {
-	resource: string;
+	resource: ResourceKey;
 	amount: number;
 };
 
@@ -13,7 +14,8 @@ export type CharterBlueprintGrant = {
 	magicSchool?: string;
 };
 
-export type CharterDraftOption = {
+/** Canonical charter model shared by runtime draft state and transport snapshots. */
+export type CharterOption = {
 	charterId: string;
 	title: string;
 	level: number;

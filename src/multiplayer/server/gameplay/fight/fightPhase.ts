@@ -1,13 +1,13 @@
-import type { FightPairingSnapshot, FightPlayerRoundSnapshot, FightRoundResultSnapshot } from '../../../../shared/multiplayer/protocol';
-import type { ArmyUnitComponent } from '../model';
+import type { FightPairingSnapshot, FightPlayerRoundSnapshot, FightRoundResultSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import type { ArmyUnitState } from '../model';
 import { CombatService } from '../services/CombatService';
 
 export type FightReplayRecord = {
 	matchId: string;
 	playerAId: string;
 	playerBId: string;
-	armyA: ArmyUnitComponent[];
-	armyB: ArmyUnitComponent[];
+	armyA: ArmyUnitState[];
+	armyB: ArmyUnitState[];
 };
 
 export type FightPhaseStateData = {
@@ -91,7 +91,7 @@ export function createFightPhaseState(params: {
 export function resolveFightRound(params: {
 	roundIndex: number;
 	state: FightPhaseStateData;
-	getArmyForPlayer: (playerId: string) => ArmyUnitComponent[] | undefined;
+	getArmyForPlayer: (playerId: string) => ArmyUnitState[] | undefined;
 	grantRenown: (playerId: string) => void;
 }): void {
 	const { roundIndex, state, getArmyForPlayer, grantRenown } = params;
@@ -147,7 +147,7 @@ export function openFightReplayForPlayer(params: {
 	playerId: string;
 	matchId: string;
 	state: FightPhaseStateData;
-	startCombat: (selfArmy: ArmyUnitComponent[], opponentArmy: ArmyUnitComponent[]) => void;
+	startCombat: (selfArmy: ArmyUnitState[], opponentArmy: ArmyUnitState[]) => void;
 }): { ok: true } | { ok: false; reason: string } {
 	const { playerId, matchId, state, startCombat } = params;
 	const replay = state.replaysByMatchId.get(matchId);
@@ -180,13 +180,9 @@ function setPlayerRoundResult(
 	row.replayAvailable = replayAvailable;
 }
 
-function cloneArmy(army: ArmyUnitComponent[]): ArmyUnitComponent[] {
+function cloneArmy(army: ArmyUnitState[]): ArmyUnitState[] {
 	return army.map((unit) => ({
 		...unit,
-		actions: unit.actions.map((action) => ({ ...action })),
-		training: {
-			...unit.training,
-			def: { ...unit.training.def }
-		}
+		training: { ...unit.training }
 	}));
 }

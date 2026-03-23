@@ -10,7 +10,7 @@
 	import AdvancePhasePanel from './AdvancePhasePanel.svelte';
 	import { armyModalState, blueprintModalState, shopModalState } from './uiState';
 	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
-	import type { GamePhase } from '../shared/multiplayer/protocol';
+	import type { GamePhase } from '../shared/multiplayer/contracts/snapshots';
 	import {
 		OVERLAY_BACKGROUND_EVENT,
 		OVERLAY_TOWN_VISIBILITY_EVENT,

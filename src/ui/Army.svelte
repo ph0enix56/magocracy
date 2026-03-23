@@ -86,7 +86,7 @@
 							<div class="stats">
 								<span>HP: {u.health}</span>
 								<span>DR: {u.drFlat} + {u.drPercent}%</span>
-								<span>Actions/turn: {u.actionsPerTurn}</span>
+								<span>Action points: {u.actionPoints}</span>
 							</div>
 
 							<div class="train-row">

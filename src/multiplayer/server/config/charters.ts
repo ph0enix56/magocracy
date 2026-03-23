@@ -1,7 +1,8 @@
 import type { BuildingKind } from '../../../shared/domain/types';
+import type { ResourceKey } from '../../../shared/domain/resources';
 
 export type CharterResourceRangeDef = {
-	resource: string;
+	resource: ResourceKey;
 	min: number;
 	max: number;
 };

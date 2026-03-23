@@ -1,5 +1,5 @@
 import type { BuildingDef, EffectApply, EffectStat, EffectTarget } from '../../config/buildingTypes';
-import type { Entity } from '../model';
+import type { KingdomTileState } from '../model';
 
 type ParsedBuildingEffect = {
 	target: EffectTarget;
@@ -15,7 +15,7 @@ export type EffectAccumulator = {
 };
 
 type ResolveBuildingDef = (buildingId: string) => BuildingDef | undefined;
-type GetNeighbors = (q: number, r: number) => Entity[];
+type GetNeighbors = (q: number, r: number) => KingdomTileState[];
 
 const VALID_TARGETS: EffectTarget[] = ['self-if', 'self-foreach', 'neighbor'];
 const VALID_APPLIES: EffectApply[] = ['add', 'mult'];
@@ -43,15 +43,13 @@ export function parseBuildingEffect(raw: string): ParsedBuildingEffect | null {
 }
 
 export function accumulateEffectsForTargetStat(params: {
-	targetEntity: Entity;
+	targetTile: KingdomTileState;
 	targetBuildingDef: BuildingDef;
 	targetStat: EffectStat;
 	resolveBuildingDef: ResolveBuildingDef;
 	getNeighbors: GetNeighbors;
 }): EffectAccumulator {
-	const { targetEntity, targetBuildingDef, targetStat, resolveBuildingDef, getNeighbors } = params;
-	const targetPosition = targetEntity.position;
-	if (!targetPosition) return { add: 0, mult: 0 };
+	const { targetTile, targetBuildingDef, targetStat, resolveBuildingDef, getNeighbors } = params;
 
 	let add = 0;
 	let mult = 0;
@@ -66,15 +64,14 @@ export function accumulateEffectsForTargetStat(params: {
 		mult += effect.value * applications;
 	};
 
-	const applySourceEffects = (sourceEntity: Entity, sourceDef: BuildingDef): void => {
-		if (!sourceEntity.position) return;
+	const applySourceEffects = (sourceTile: KingdomTileState, sourceDef: BuildingDef): void => {
 		for (const rawEffect of sourceDef.effects ?? []) {
 			const effect = parseBuildingEffect(rawEffect);
 			if (!effect) continue;
 
-			if (sourceEntity.id === targetEntity.id) {
+			if (sourceTile.tileId === targetTile.tileId) {
 				if (effect.target === 'neighbor') continue;
-				const sourceNeighbors = getNeighbors(sourceEntity.position.q, sourceEntity.position.r);
+				const sourceNeighbors = getNeighbors(sourceTile.coord.q, sourceTile.coord.r);
 				const passes = sourceNeighbors.filter((tile) => evalCond(effect.cond, tile, resolveBuildingDef)).length;
 				const applications = effect.target === 'self-if' ? (passes > 0 ? 1 : 0) : passes;
 				applyEffect(effect, applications);
@@ -82,20 +79,20 @@ export function accumulateEffectsForTargetStat(params: {
 			}
 
 			if (effect.target !== 'neighbor') continue;
-			const applications = evalCond(effect.cond, targetEntity, resolveBuildingDef) ? 1 : 0;
+			const applications = evalCond(effect.cond, targetTile, resolveBuildingDef) ? 1 : 0;
 			applyEffect(effect, applications);
 		}
 	};
 
-	applySourceEffects(targetEntity, targetBuildingDef);
+	applySourceEffects(targetTile, targetBuildingDef);
 
-	const neighboringTiles = getNeighbors(targetPosition.q, targetPosition.r);
-	for (const sourceEntity of neighboringTiles) {
-		const sourceBuilding = sourceEntity.building;
+	const neighboringTiles = getNeighbors(targetTile.coord.q, targetTile.coord.r);
+	for (const sourceTile of neighboringTiles) {
+		const sourceBuilding = sourceTile.building;
 		if (!sourceBuilding || sourceBuilding.status !== 'active') continue;
 		const sourceDef = resolveBuildingDef(sourceBuilding.buildingId);
 		if (!sourceDef) continue;
-		applySourceEffects(sourceEntity, sourceDef);
+		applySourceEffects(sourceTile, sourceDef);
 	}
 
 	return { add, mult };
@@ -122,7 +119,7 @@ function isValidStat(stat: string): stat is EffectStat {
 	return /^prod:[a-z0-9_]+$/i.test(stat);
 }
 
-function evalCond(cond: string, tile: Entity, resolveBuildingDef: ResolveBuildingDef): boolean {
+function evalCond(cond: string, tile: KingdomTileState, resolveBuildingDef: ResolveBuildingDef): boolean {
 	const operators = [...cond.matchAll(/([&|])/g)].map((entry) => entry[1]);
 	const terms = cond
 		.split(/\s*[&|]\s*/g)
@@ -140,7 +137,7 @@ function evalCond(cond: string, tile: Entity, resolveBuildingDef: ResolveBuildin
 	return result;
 }
 
-function evalTerm(termRaw: string, tile: Entity, resolveBuildingDef: ResolveBuildingDef): boolean {
+function evalTerm(termRaw: string, tile: KingdomTileState, resolveBuildingDef: ResolveBuildingDef): boolean {
 	const term = termRaw.trim().toLowerCase();
 	if (term === 'empty') return !tile.building;
 	if (!tile.building) return false;

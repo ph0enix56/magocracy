@@ -1,4 +1,4 @@
-import type { GameActionCommand } from '../../../../shared/multiplayer/protocol';
+import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
 
 type ActionResult = { ok: true } | { ok: false; reason: string };
 

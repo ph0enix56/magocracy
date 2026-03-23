@@ -1,8 +1,8 @@
 import type { AttackAction } from '../domain/types';
 import type {
-	CombatSnapshotView,
-	CombatUnitView,
-	CombatLogEntryView,
+	CombatSnapshot as SharedCombatSnapshot,
+	CombatUnit as SharedCombatUnit,
+	CombatLogEntry as SharedCombatLogEntry,
 	CombatWinner as SharedCombatWinner,
 	CombatStatus,
 	CombatActiveSide
@@ -13,20 +13,20 @@ export type CombatWinner = SharedCombatWinner;
 export type CombatAttack = AttackAction;
 
 export type CombatUnit = {
-	unitId: string;
+	unitDefId: string;
 	name: string;
 	assetPath: string;
 	maxHealth: number;
 	health: number;
 	drFlat: number;
 	drPercent: number;
-	actionsPerTurn: number;
+	actionPoints: number;
 	actions: CombatAttack[];
 	trainingLevel: number;
-	trainingAttackDamagePerLevel: number;
+	bonusAttackDamage: number;
 };
 
-export type CombatResultUnit = CombatUnitView;
+export type CombatResultUnit = SharedCombatUnit;
 
 export type CombatResult = {
 	winner: CombatWinner;
@@ -35,9 +35,9 @@ export type CombatResult = {
 	armyB: CombatResultUnit[];
 };
 
-export type CombatLogEntry = CombatLogEntryView;
+export type CombatLogEntry = SharedCombatLogEntry;
 
-export type CombatSnapshot = CombatSnapshotView;
+export type CombatSnapshot = SharedCombatSnapshot;
 
 export type CombatOptions = {
 	maxRounds?: number;
@@ -65,7 +65,7 @@ function clampNonNegInt(n: number): number {
 function effectiveDamage(attacker: CombatUnitState, action: CombatAttack): number {
 	const base = clampInt(action.damage);
 	if (!action.canUpgrade) return base;
-	return base + clampInt(attacker.trainingLevel) * clampInt(attacker.trainingAttackDamagePerLevel);
+	return base + clampInt(attacker.bonusAttackDamage);
 }
 
 function computeDamageTaken(rawDamage: number, target: CombatUnitState): number {
@@ -112,7 +112,7 @@ function removeDefeated(army: CombatUnitState[]): void {
 }
 
 function takeTurn(attacker: CombatUnitState, attackerIndex: number, enemyArmy: CombatUnitState[]): void {
-	let actionPoints = clampInt(attacker.actionsPerTurn);
+	let actionPoints = clampInt(attacker.actionPoints);
 	if (actionPoints <= 0) return;
 	if (attacker.actions.length === 0) return;
 
@@ -184,16 +184,16 @@ function toState(unit: CombatUnit): CombatUnitState {
 		health: clampInt(unit.health),
 		drFlat: clampInt(unit.drFlat),
 		drPercent: clampInt(unit.drPercent),
-		actionsPerTurn: clampInt(unit.actionsPerTurn),
+		actionPoints: clampInt(unit.actionPoints),
 		trainingLevel: clampInt(unit.trainingLevel),
-		trainingAttackDamagePerLevel: clampInt(unit.trainingAttackDamagePerLevel),
+		bonusAttackDamage: clampInt(unit.bonusAttackDamage),
 		actionCursor: 0
 	};
 }
 
 function toResultUnit(unit: CombatUnitState): CombatResultUnit {
 	return {
-		unitId: unit.unitId,
+		unitDefId: unit.unitDefId,
 		name: unit.name,
 		assetPath: unit.assetPath,
 		health: Math.max(0, unit.health),
@@ -255,7 +255,7 @@ export class CombatSession {
 		}
 
 		if (this.phase.remainingAp <= 0) {
-			this.phase.remainingAp = clampNonNegInt(attacker.actionsPerTurn);
+			this.phase.remainingAp = clampNonNegInt(attacker.actionPoints);
 		}
 		if (this.phase.remainingAp <= 0 || attacker.actions.length === 0) {
 			this.phase.unitIndex += 1;
