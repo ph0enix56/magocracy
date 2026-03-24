@@ -7,13 +7,10 @@ import type { ResourceMap } from '../../../shared/domain/types';
 export type {
 	BuildingDef,
 	UnitDef,
-	UnitAttackDef,
-	UnitTrainDef,
 	BuildingSchool,
 	EffectTarget,
 	EffectApply,
 	EffectStat,
-	BuildingEffectDef,
 	ProductionComponent,
 	ArmyComponent,
 	BUILDING_SCHOOLS

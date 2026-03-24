@@ -1,23 +1,8 @@
-import type { BuildingCatalogEntry, LobbyPlayerSnapshot, LobbySnapshot, LobbyStatus } from '../../../shared/multiplayer/contracts/snapshots';
-import { getAllBuildingDefs } from '../config/buildings';
+import type { BuildingCatalogEntry, LobbyPlayerSnapshot, LobbySnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import { getAllBuildingDefs } from '../../config/buildings';
+import type { LobbyRecord } from '../../app/lobbyTypes';
 
-type LobbyPlayerLike = {
-	playerId: string;
-	name: string;
-	isReady: boolean;
-	connected: boolean;
-};
-
-type LobbyLike = {
-	lobbyId: string;
-	status: LobbyStatus;
-	hostPlayerId: string;
-	maxPlayers: number;
-	createdAt: number;
-	players: Map<string, LobbyPlayerLike>;
-};
-
-export function toLobbySnapshot(lobby: LobbyLike): LobbySnapshot {
+export function toLobbySnapshot(lobby: LobbyRecord): LobbySnapshot {
 	const players: LobbyPlayerSnapshot[] = [...lobby.players.values()].map((player) => ({
 		playerId: player.playerId,
 		name: player.name,

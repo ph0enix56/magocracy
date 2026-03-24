@@ -1,16 +1,12 @@
-import type { AttackAction } from '../domain/types';
+import type { AttackAction } from '../../../../shared/domain/types';
 import type {
-	CombatSnapshot as SharedCombatSnapshot,
+	CombatSnapshot,
 	CombatUnit as SharedCombatUnit,
-	CombatLogEntry as SharedCombatLogEntry,
-	CombatWinner as SharedCombatWinner,
+	CombatLogEntry,
+	CombatWinner,
 	CombatStatus,
 	CombatActiveSide
-} from '../domain/combatTypes';
-
-export type CombatWinner = SharedCombatWinner;
-
-export type CombatAttack = AttackAction;
+} from '../../../../shared/domain/combatTypes';
 
 export type CombatUnit = {
 	unitDefId: string;
@@ -21,12 +17,12 @@ export type CombatUnit = {
 	drFlat: number;
 	drPercent: number;
 	actionPoints: number;
-	actions: CombatAttack[];
+	actions: AttackAction[];
 	trainingLevel: number;
 	bonusAttackDamage: number;
 };
 
-export type CombatResultUnit = SharedCombatUnit;
+type CombatResultUnit = SharedCombatUnit;
 
 export type CombatResult = {
 	winner: CombatWinner;
@@ -34,10 +30,6 @@ export type CombatResult = {
 	armyA: CombatResultUnit[];
 	armyB: CombatResultUnit[];
 };
-
-export type CombatLogEntry = SharedCombatLogEntry;
-
-export type CombatSnapshot = SharedCombatSnapshot;
 
 export type CombatOptions = {
 	maxRounds?: number;
@@ -62,7 +54,7 @@ function clampNonNegInt(n: number): number {
 	return Math.max(0, clampInt(n));
 }
 
-function effectiveDamage(attacker: CombatUnitState, action: CombatAttack): number {
+function effectiveDamage(attacker: CombatUnitState, action: AttackAction): number {
 	const base = clampInt(action.damage);
 	if (!action.canUpgrade) return base;
 	return base + clampInt(attacker.bonusAttackDamage);
@@ -75,7 +67,7 @@ function computeDamageTaken(rawDamage: number, target: CombatUnitState): number 
 	return Math.max(0, afterPercent);
 }
 
-function pickTargetsInRange(enemyArmy: CombatUnitState[], maxEnemiesInRange: number, targeting: CombatAttack['targeting']): CombatUnitState[] {
+function pickTargetsInRange(enemyArmy: CombatUnitState[], maxEnemiesInRange: number, targeting: AttackAction['targeting']): CombatUnitState[] {
 	if (maxEnemiesInRange <= 0) return [];
 	const candidates = enemyArmy.slice(0, maxEnemiesInRange);
 	if (candidates.length === 0) return [];
@@ -144,7 +136,7 @@ function takeTurn(attacker: CombatUnitState, attackerIndex: number, enemyArmy: C
 	}
 }
 
-function pickTargetIndicesInRange(enemyArmy: CombatUnitState[], maxEnemiesInRange: number, targeting: CombatAttack['targeting']): number[] {
+function pickTargetIndicesInRange(enemyArmy: CombatUnitState[], maxEnemiesInRange: number, targeting: AttackAction['targeting']): number[] {
 	if (maxEnemiesInRange <= 0) return [];
 	const count = Math.min(enemyArmy.length, maxEnemiesInRange);
 	if (count <= 0) return [];

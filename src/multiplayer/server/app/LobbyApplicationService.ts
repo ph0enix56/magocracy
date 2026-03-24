@@ -1,6 +1,6 @@
 import type { ClientCommand, GameActionCommand } from '../../../shared/multiplayer/contracts/commands';
-import { RoomGameRuntime } from '../RoomGameRuntime';
-import { buildBuildingCatalog, toLobbySnapshot } from '../lobby/lobbyProjection';
+import { RoomGameRuntime } from '../RoomGameRuntime.ts';
+import { buildBuildingCatalog, toLobbySnapshot } from '../gameplay/snapshots/lobbySnapshot';
 import { routeClientCommand } from './CommandRouter';
 import type { ServerEventGateway, LobbyRecord, PlayerRecord } from './lobbyTypes';
 

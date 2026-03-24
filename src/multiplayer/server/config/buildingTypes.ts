@@ -26,8 +26,6 @@ export type EffectStat =
 	| 'unit:damage';
 
 /** Serialized DSL string: "<target>; <cond>; <stat>; <apply>; <value>" */
-export type BuildingEffectDef = string;
-
 // --- Building components (attach to BuildingDef as optional fields) ---
 
 /** Attached to buildings that produce resources over time. */
@@ -43,7 +41,7 @@ export interface ArmyComponent {
 	trainCostBase: ResourceMap;
 	trainCostMult: number;
 	trainTime: number;
-	trainDef: UnitTrainDef;
+	trainDef: TrainingDelta;
 }
 
 // --- Building def ---
@@ -76,7 +74,7 @@ export interface BuildingDef {
 	/** Attached army component. */
 	army?: ArmyComponent;
 	/** Neighbor interaction effects written in the serialized DSL. */
-	effects?: BuildingEffectDef[];
+	effects?: string[];
 	/** Resource grants awarded once when construction/upgrade completes. */
 	onCompleteGrants?: ResourceMap;
 }
@@ -95,7 +93,7 @@ export interface UnitDef {
 	/** Percentual damage reduction applied to each incoming attack. */
 	drPercent: number;
 	/** Action queue/cycle of this unit. */
-	actions: UnitAttackDef[];
+	actions: AttackAction[];
 	/** Actions taken per turn in combat. */
 	actionPoints: number;
 	/** Initiative on the world map / combat ordering. */
@@ -105,7 +103,3 @@ export interface UnitDef {
 	/** Path relative to public/assets/ for the unit icon. */
 	assetPath: string;
 }
-
-export type UnitTrainDef = TrainingDelta;
-
-export type UnitAttackDef = AttackAction;

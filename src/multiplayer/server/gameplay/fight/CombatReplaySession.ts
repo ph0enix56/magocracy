@@ -1,4 +1,5 @@
-import { CombatSession, type CombatSnapshot, type CombatUnit } from '../../../../shared/combat/combatCore';
+import type { CombatSnapshot } from '../../../../shared/domain/combatTypes';
+import { CombatSession, type CombatUnit } from './combatEngine';
 import { getUnitDef } from '../../config/buildings';
 import type { ArmyUnitState } from '../model';
 

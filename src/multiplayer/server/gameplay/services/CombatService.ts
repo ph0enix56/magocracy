@@ -3,7 +3,7 @@ import {
 	type CombatOptions,
 	type CombatResult,
 	type CombatUnit
-} from '../../../../shared/combat/combatCore';
+} from '../fight/combatEngine';
 import { getUnitDef } from '../../config/buildings';
 import type { ArmyUnitState } from '../model';
 
