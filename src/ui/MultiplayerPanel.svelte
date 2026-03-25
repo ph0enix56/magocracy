@@ -43,14 +43,6 @@
 		multiplayerClient.startLobbyGame();
 	}
 
-	function startFightPhase() {
-		multiplayerClient.startFightPhase();
-	}
-
-	function startAdvancePhase() {
-		multiplayerClient.startAdvancePhase();
-	}
-
 	function scoutPlayer(playerId: string) {
 		gameSessionClient.scoutPlayer(playerId);
 	}
@@ -83,18 +75,34 @@
 			<span>Tick {$multiplayerState.game.tick}</span>
 			<span>Phase {phaseLabel($multiplayerState.game.phase)}</span>
 		</div>
+		<div class="multiplayer-row">
+			<span>Status {$multiplayerState.game.status}</span>
+			<span>Renown {$multiplayerState.game.targetRenown}</span>
+		</div>
+		{#if $multiplayerState.game.phase === 'build'}
+			<div class="multiplayer-row">
+				<span>Build ends in</span>
+				<span>{$multiplayerState.game.buildPhaseSecondsRemaining}s</span>
+			</div>
+		{/if}
 		{#if $multiplayerState.viewedPlayer}
 			<div class="multiplayer-row multiplayer-row--viewing">
 				<span>Viewing</span>
 				<span>{$multiplayerState.viewedPlayer.name}</span>
 			</div>
 		{/if}
-	{/if}
-	{#if selfPlayer?.isHost && $multiplayerState.lobby?.status === 'in-game' && $multiplayerState.game?.phase === 'build'}
-		<div class="multiplayer-actions multiplayer-phase-actions">
-			<button class="ui-button multiplayer-start" on:click={startFightPhase}>Start Fight Phase</button>
-			<button class="ui-button ui-button--ghost multiplayer-start" on:click={startAdvancePhase}>Start Advance Phase</button>
-		</div>
+		{#if $multiplayerState.game.status === 'finished'}
+			<div class="multiplayer-finished">
+				<div class="multiplayer-finished-title">Final standings</div>
+				{#each $multiplayerState.game.finalStandings as standing (standing.playerId)}
+					{@const lobbyPlayer = $multiplayerState.lobby?.players.find((player) => player.playerId === standing.playerId)}
+					<div class="multiplayer-row multiplayer-row--standing">
+						<span>#{standing.rank} {lobbyPlayer?.name ?? standing.playerId}</span>
+						<span>{standing.renown}</span>
+					</div>
+				{/each}
+			</div>
+		{/if}
 	{/if}
 	{#if $multiplayerState.lastError}
 		<div class="multiplayer-error">{$multiplayerState.lastError}</div>
@@ -208,5 +216,20 @@
 	}
 	.scout-button {
 		min-width: 84px;
+	}
+	.multiplayer-finished {
+		margin-top: 8px;
+		padding-top: 8px;
+		border-top: 1px solid rgba(255, 255, 255, 0.12);
+	}
+	.multiplayer-finished-title {
+		font-size: 0.82rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		opacity: 0.7;
+		margin-bottom: 6px;
+	}
+	.multiplayer-row--standing {
+		font-size: 0.82rem;
 	}
 </style>

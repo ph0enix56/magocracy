@@ -16,7 +16,5 @@ export type ClientCommand =
 	| { type: 'lobby/leave' }
 	| { type: 'lobby/set-ready'; ready: boolean }
 	| { type: 'lobby/start' }
-	| { type: 'lobby/start-fight' }
-	| { type: 'lobby/start-advance' }
 	| { type: 'lobby/solo'; playerName: string }
 	| { type: 'game/action'; requestId: string; action: GameActionCommand };

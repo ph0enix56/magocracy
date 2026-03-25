@@ -33,7 +33,9 @@ Server má být autoritativní. Klient nemá být zdroj pravdy pro gameplay stat
 ### Shared doména
 - `src/shared/combat/combatCore.ts`
 - `src/shared/kingdom/kingdomGrid.ts`
-- `src/shared/multiplayer/protocol.ts`
+- `src/shared/multiplayer/contracts/snapshots.ts`
+- `src/shared/multiplayer/contracts/commands.ts`
+- `src/shared/multiplayer/contracts/events.ts`
 
 ### Klientský multiplayer scaffold
 - `src/multiplayer/client/MultiplayerClient.ts`

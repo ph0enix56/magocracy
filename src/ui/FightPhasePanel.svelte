@@ -49,6 +49,8 @@
 		return `${playerName(result.winnerPlayerId)} won`;
 	}
 
+	$: inFinalResultsReveal = $fightState.currentRoundIndex >= $fightState.encountersPerPhase;
+
 	async function openReplay(matchId: string) {
 		if (isOpeningReplay) return;
 		isOpeningReplay = true;
@@ -65,7 +67,13 @@
 		<div class="fight-header">
 			<div>
 				<div class="fight-title">Fight Phase</div>
-				<div class="fight-subtitle">Round {$fightState.currentRoundIndex + 1} / {$fightState.encountersPerPhase}</div>
+				<div class="fight-subtitle">
+					{#if inFinalResultsReveal}
+						Final results
+					{:else}
+						Round {$fightState.currentRoundIndex + 1} / {$fightState.encountersPerPhase}
+					{/if}
+				</div>
 			</div>
 			<div class="fight-timer">{formatCountdown($fightState.secondsToNextRound)}</div>
 		</div>

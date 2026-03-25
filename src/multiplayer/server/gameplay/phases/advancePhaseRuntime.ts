@@ -1,8 +1,10 @@
 import { configuration } from '../../../../game/configuration';
 import { CHARTER_TEMPLATES } from '../../config/charters';
 import { getAllBuildingDefs } from '../../config/buildings';
+import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
 import type { AdvanceSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
-import type { CharterOption } from '../../../../shared/domain/charter';
+import type { CharterOption, CharterBlueprintGrant, CharterResourceGrant } from '../../../../shared/domain/charter';
+import type { PhaseActionResult, PhaseTickResult, RuntimePhase, RuntimePhaseContext } from './runtimePhase';
 import {
 	advancePhaseTimers,
 	createActiveAdvanceState,
@@ -16,19 +18,12 @@ import { materializeCharter, pickCharterTemplatesForDraft, resolveAdvanceLevel }
 
 export type AdvanceRuntimeActionResult = { ok: true } | { ok: false; reason: string };
 
-type AdvancePhaseDeps = {
-	playerIds: string[];
-	getPlayerRenown: (playerId: string) => number;
-	applyCharterRewards: (playerId: string, charter: CharterOption) => void;
-};
-
-export class AdvancePhaseRuntime {
-	private readonly playerIds: string[];
+export class AdvancePhaseRuntime implements RuntimePhase {
+	readonly key = 'advance' as const;
 	private state: AdvancePhaseStateData;
 	private advancePhaseIndex = 0;
 
-	constructor(private readonly deps: AdvancePhaseDeps) {
-		this.playerIds = [...deps.playerIds];
+	constructor() {
 		this.state = this.createEmptyState();
 	}
 
@@ -36,17 +31,23 @@ export class AdvancePhaseRuntime {
 		return this.state.isActive;
 	}
 
-	startPhase(): void {
+	onEnter(_ctx: RuntimePhaseContext): void {
+		this.startPhase(_ctx);
+	}
+
+	onExit(_ctx: RuntimePhaseContext): void {}
+
+	startPhase(ctx: RuntimePhaseContext): void {
 		const level = resolveAdvanceLevel(this.advancePhaseIndex, configuration.advancePhase.levelByAdvanceIndex);
-		const desiredCount = Math.min(9, Math.max(1, this.playerIds.length + configuration.advancePhase.charterCountBonus));
+		const desiredCount = Math.min(9, Math.max(1, ctx.playerIds.length + configuration.advancePhase.charterCountBonus));
 		const charterTemplates = pickCharterTemplatesForDraft(CHARTER_TEMPLATES, level, desiredCount);
 		const allBuildings = getAllBuildingDefs();
 		const charters = charterTemplates.map((template, index) => materializeCharter(template, index + 1, allBuildings));
-		const pickOrderPlayerIds = [...this.playerIds].sort((a, b) => {
-			const aRenown = this.deps.getPlayerRenown(a);
-			const bRenown = this.deps.getPlayerRenown(b);
+		const pickOrderPlayerIds = [...ctx.playerIds].sort((a, b) => {
+			const aRenown = this.getPlayerRenown(ctx, a);
+			const bRenown = this.getPlayerRenown(ctx, b);
 			if (aRenown !== bRenown) return aRenown - bRenown;
-			return this.playerIds.indexOf(a) - this.playerIds.indexOf(b);
+			return ctx.playerIds.indexOf(a) - ctx.playerIds.indexOf(b);
 		});
 
 		this.state = createActiveAdvanceState({
@@ -59,28 +60,37 @@ export class AdvancePhaseRuntime {
 		this.advancePhaseIndex += 1;
 	}
 
-	advanceTick(): { phaseShouldEnd: boolean } {
-		if (!this.state.isActive) return { phaseShouldEnd: false };
+	tick(ctx: RuntimePhaseContext): PhaseTickResult {
+		if (!this.state.isActive) return { kind: 'continue' };
 
 		const timerResult = advancePhaseTimers(this.state);
 		if (timerResult.phaseShouldEnd) {
 			this.state = this.createEmptyState();
-			return { phaseShouldEnd: true };
+			return { kind: 'transition', transition: { nextPhase: 'build' } };
 		}
-		if (!timerResult.autoPickPlayerId) return { phaseShouldEnd: false };
+		if (!timerResult.autoPickPlayerId) return { kind: 'continue' };
 
-		this.autoPickAdvanceCharter(timerResult.autoPickPlayerId);
-		return { phaseShouldEnd: false };
+		this.autoPickAdvanceCharter(ctx, timerResult.autoPickPlayerId);
+		return { kind: 'continue' };
 	}
 
-	selectCharter(playerId: string, charterId: string): AdvanceRuntimeActionResult {
+	tryHandleAction(_ctx: RuntimePhaseContext, playerId: string, action: GameActionCommand): PhaseActionResult {
+		if (action.type !== 'advance/select-charter') return { handled: false };
+		const result = this.selectCharter(_ctx, playerId, action.charterId);
+		if (!result.ok) {
+			return { handled: true, ok: false, reason: result.reason };
+		}
+		return { handled: true, ok: true, emitSnapshot: true };
+	}
+
+	selectCharter(ctx: RuntimePhaseContext, playerId: string, charterId: string): AdvanceRuntimeActionResult {
 		if (!this.state.isActive) {
 			return { ok: false, reason: 'Advance draft is not active.' };
 		}
 
 		const result = selectAdvanceCharterInState(this.state, playerId, charterId);
 		if (!result.ok) return result;
-		this.deps.applyCharterRewards(playerId, result.selectedCharter);
+		this.applyCharterRewards(ctx, playerId, result.selectedCharter);
 		return { ok: true };
 	}
 
@@ -99,13 +109,13 @@ export class AdvancePhaseRuntime {
 		};
 	}
 
-	private autoPickAdvanceCharter(playerId: string): void {
+	private autoPickAdvanceCharter(ctx: RuntimePhaseContext, playerId: string): void {
 		const charterId = pickRandomAvailableCharterId(this.state);
 		if (!charterId) {
 			skipAdvancePick(this.state);
 			return;
 		}
-		this.selectCharter(playerId, charterId);
+		this.selectCharter(ctx, playerId, charterId);
 	}
 
 	private createEmptyState(): AdvancePhaseStateData {
@@ -113,5 +123,30 @@ export class AdvancePhaseRuntime {
 			secondsPerPick: configuration.advancePhase.secondsPerPick,
 			revealDelaySeconds: configuration.advancePhase.revealSecondsAfterDraft
 		});
+	}
+
+	private getPlayerRenown(ctx: RuntimePhaseContext, playerId: string): number {
+		return ctx.getPlayerRuntime(playerId)?.run.world.resources.get('renown') ?? 0;
+	}
+
+	private applyCharterRewards(ctx: RuntimePhaseContext, playerId: string, charter: CharterOption): void {
+		const runtime = ctx.getPlayerRuntime(playerId);
+		if (!runtime) return;
+		for (const grant of charter.resources) {
+			this.applyResourceGrant(runtime.run.world.resources, grant);
+		}
+		for (const blueprint of charter.blueprints) {
+			this.applyBlueprintGrant(runtime.run.world.blueprintInventory, blueprint);
+		}
+	}
+
+	private applyResourceGrant(resources: Map<string, number>, grant: CharterResourceGrant): void {
+		const current = resources.get(grant.resource) ?? 0;
+		resources.set(grant.resource, current + Math.max(0, Math.floor(grant.amount)));
+	}
+
+	private applyBlueprintGrant(blueprints: Map<string, number>, grant: CharterBlueprintGrant): void {
+		const current = blueprints.get(grant.buildingId) ?? 0;
+		blueprints.set(grant.buildingId, current + Math.max(0, Math.floor(grant.count)));
 	}
 }

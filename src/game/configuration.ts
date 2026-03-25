@@ -32,7 +32,17 @@ export const configuration = {
 	fightPhase: {
 		encountersPerPhase: 2,
 		secondsPerRound: 60,
+		finalResultsSeconds: 10,
 		renownPerWin: 1
+	},
+
+	buildPhase: {
+		durationSeconds: 120,
+		secondsPerTick: 1
+	},
+
+	gameLifecycle: {
+		targetRenown: 10
 	},
 
 	advancePhase: {

@@ -10,8 +10,6 @@ type CommandHandlerMap = {
 	onLeave(): void;
 	onSetReady(ready: boolean): void;
 	onStartLobby(): void;
-	onStartFight(): void;
-	onStartAdvance(): void;
 	onSolo(playerName: string): void;
 	onGameAction(command: Extract<ClientCommand, { type: 'game/action' }>): void;
 };
@@ -38,12 +36,6 @@ export function routeClientCommand(command: ClientCommand, handlers: CommandHand
 			return;
 		case 'lobby/start':
 			handlers.onStartLobby();
-			return;
-		case 'lobby/start-fight':
-			handlers.onStartFight();
-			return;
-		case 'lobby/start-advance':
-			handlers.onStartAdvance();
 			return;
 		case 'lobby/solo':
 			handlers.onSolo(command.playerName);

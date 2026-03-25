@@ -2,10 +2,13 @@ import { kingdomCoordKey } from '../../../../shared/kingdom/kingdomGrid';
 import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
 import { getBuildingDef } from '../../config/buildings';
 import type { ServerGameState } from '../ServerGameState';
+import { pickRandomBlockerId } from '../board/blockerPicker';
+import { revealNeighborTiles } from '../board/kingdomBoard';
 import { ArmyService } from '../services/ArmyService';
 import { BuildService } from '../services/BuildService';
 import { ProductionService } from '../services/ProductionService';
 import { ShopService } from '../services/ShopService';
+import type { PhaseActionResult, PhaseTickResult, RuntimePhase, RuntimePhaseContext } from './runtimePhase';
 
 type ActionResult = { ok: true } | { ok: false; reason: string };
 
@@ -17,14 +20,92 @@ type BuildPhasePlayerRuntime = {
 	shopService: ShopService;
 };
 
-type BuildPhaseDeps = {
-	revealNeighbors: (runtime: BuildPhasePlayerRuntime, q: number, r: number) => void;
-};
+export class BuildPhaseRuntime implements RuntimePhase {
+	readonly key = 'build' as const;
+	private durationSecondsRemaining = 0;
+	private tickSecondsRemaining = 0;
 
-export class BuildPhaseRuntime {
-	constructor(private readonly deps: BuildPhaseDeps) {}
+	constructor() {}
 
-	advanceTick(runtime: BuildPhasePlayerRuntime): void {
+	onEnter(ctx: RuntimePhaseContext): void {
+		this.durationSecondsRemaining = ctx.resolveBuildPhaseDurationSeconds();
+		this.tickSecondsRemaining = ctx.resolveBuildTickIntervalSeconds();
+	}
+
+	onExit(_ctx: RuntimePhaseContext): void {}
+
+	tick(ctx: RuntimePhaseContext): PhaseTickResult {
+		if (this.durationSecondsRemaining > 0) {
+			this.durationSecondsRemaining -= 1;
+		}
+
+		if (this.tickSecondsRemaining > 0) {
+			this.tickSecondsRemaining -= 1;
+		}
+
+		if (this.tickSecondsRemaining <= 0) {
+			for (const playerId of ctx.playerIds) {
+				const runtime = ctx.getPlayerRuntime(playerId);
+				if (!runtime) continue;
+				this.advanceTick(runtime);
+			}
+			this.tickSecondsRemaining = ctx.resolveBuildTickIntervalSeconds();
+		}
+
+		if (this.durationSecondsRemaining <= 0) {
+			return { kind: 'transition', transition: { nextPhase: 'combat' } };
+		}
+
+		return { kind: 'continue' };
+	}
+
+	tryHandleAction(ctx: RuntimePhaseContext, playerId: string, action: GameActionCommand): PhaseActionResult {
+		const runtime = ctx.getPlayerRuntime(playerId);
+		if (!runtime) {
+			return { handled: true, ok: false, reason: 'Unknown player game state.' };
+		}
+
+		switch (action.type) {
+			case 'build/request': {
+				const result = this.handleBuildRequest(runtime, action);
+				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
+				return { handled: true, ok: true, emitSnapshot: true };
+			}
+			case 'destroy/request': {
+				const result = this.handleDestroyRequest(runtime, action);
+				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
+				return { handled: true, ok: true, emitSnapshot: true };
+			}
+			case 'upgrade/request': {
+				const result = this.handleUpgradeRequest(runtime, action);
+				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
+				return { handled: true, ok: true, emitSnapshot: true };
+			}
+			case 'shop/buy': {
+				const result = this.handleShopBuy(runtime, action);
+				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
+				return { handled: true, ok: true, emitSnapshot: true };
+			}
+			case 'shop/reroll': {
+				const result = this.handleShopReroll(runtime);
+				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
+				return { handled: true, ok: true, emitSnapshot: true };
+			}
+			case 'army/train': {
+				const result = this.handleArmyTrain(runtime, action);
+				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
+				return { handled: true, ok: true, emitSnapshot: true };
+			}
+			default:
+				return { handled: false };
+		}
+	}
+
+	getSecondsRemaining(): number {
+		return Math.max(0, this.durationSecondsRemaining);
+	}
+
+	private advanceTick(runtime: BuildPhasePlayerRuntime): void {
 		runtime.buildService.advanceTick();
 		runtime.productionService.advanceTick();
 		runtime.shopService.advanceTick();
@@ -33,10 +114,8 @@ export class BuildPhaseRuntime {
 
 	handleBuildRequest(
 		runtime: BuildPhasePlayerRuntime,
-		action: Extract<GameActionCommand, { type: 'build/request' }>,
-		phase: 'build' | 'combat' | 'advance' | 'setup'
+		action: Extract<GameActionCommand, { type: 'build/request' }>
 	): ActionResult {
-		if (phase !== 'build') return { ok: false, reason: 'Build actions are disabled outside build phase.' };
 		const tileId = kingdomCoordKey(action.q, action.r);
 		if (!runtime.run.world.getKingdomTile(tileId)) return { ok: false, reason: 'Unknown tile.' };
 		runtime.buildService.startBuild(tileId, action.buildingId);
@@ -45,10 +124,8 @@ export class BuildPhaseRuntime {
 
 	handleDestroyRequest(
 		runtime: BuildPhasePlayerRuntime,
-		action: Extract<GameActionCommand, { type: 'destroy/request' }>,
-		phase: 'build' | 'combat' | 'advance' | 'setup'
+		action: Extract<GameActionCommand, { type: 'destroy/request' }>
 	): ActionResult {
-		if (phase !== 'build') return { ok: false, reason: 'Destroy actions are disabled outside build phase.' };
 		const tileId = kingdomCoordKey(action.q, action.r);
 		const tile = runtime.run.world.getKingdomTile(tileId);
 		if (!tile?.building) return { ok: false, reason: 'No building on that tile.' };
@@ -56,17 +133,15 @@ export class BuildPhaseRuntime {
 		const wasBlocker = buildingDef?.isBlocker === true;
 		runtime.buildService.destroyBuilding(tileId);
 		if (wasBlocker) {
-			this.deps.revealNeighbors(runtime, action.q, action.r);
+			revealNeighborTiles(runtime.run.world, action.q, action.r, pickRandomBlockerId);
 		}
 		return { ok: true };
 	}
 
 	handleUpgradeRequest(
 		runtime: BuildPhasePlayerRuntime,
-		action: Extract<GameActionCommand, { type: 'upgrade/request' }>,
-		phase: 'build' | 'combat' | 'advance' | 'setup'
+		action: Extract<GameActionCommand, { type: 'upgrade/request' }>
 	): ActionResult {
-		if (phase !== 'build') return { ok: false, reason: 'Upgrade actions are disabled outside build phase.' };
 		const tileId = kingdomCoordKey(action.q, action.r);
 		if (!runtime.run.world.getKingdomTile(tileId)) return { ok: false, reason: 'Unknown tile.' };
 		runtime.buildService.startUpgrade(tileId, action.upgradeBuildingId);
@@ -75,26 +150,21 @@ export class BuildPhaseRuntime {
 
 	handleShopBuy(
 		runtime: BuildPhasePlayerRuntime,
-		action: Extract<GameActionCommand, { type: 'shop/buy' }>,
-		phase: 'build' | 'combat' | 'advance' | 'setup'
+		action: Extract<GameActionCommand, { type: 'shop/buy' }>
 	): ActionResult {
-		if (phase !== 'build') return { ok: false, reason: 'Shop is disabled outside build phase.' };
 		runtime.shopService.buyWithThrow(action.slotIndex);
 		return { ok: true };
 	}
 
-	handleShopReroll(runtime: BuildPhasePlayerRuntime, phase: 'build' | 'combat' | 'advance' | 'setup'): ActionResult {
-		if (phase !== 'build') return { ok: false, reason: 'Shop is disabled outside build phase.' };
+	handleShopReroll(runtime: BuildPhasePlayerRuntime): ActionResult {
 		runtime.shopService.rerollWithThrow();
 		return { ok: true };
 	}
 
 	handleArmyTrain(
 		runtime: BuildPhasePlayerRuntime,
-		action: Extract<GameActionCommand, { type: 'army/train' }>,
-		phase: 'build' | 'combat' | 'advance' | 'setup'
+		action: Extract<GameActionCommand, { type: 'army/train' }>
 	): ActionResult {
-		if (phase !== 'build') return { ok: false, reason: 'Training is disabled outside build phase.' };
 		runtime.armyService.startTrainingWithThrow(action.unitEntityId);
 		return { ok: true };
 	}

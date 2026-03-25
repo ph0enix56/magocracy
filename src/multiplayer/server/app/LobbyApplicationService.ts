@@ -59,8 +59,6 @@ export class LobbyApplicationService {
 			onLeave: () => this.handleLeaveLobby(playerId, socketId),
 			onSetReady: (ready) => this.handleSetReady(playerId, ready),
 			onStartLobby: () => this.handleStartLobby(playerId),
-			onStartFight: () => this.handleStartFightPhase(playerId),
-			onStartAdvance: () => this.handleStartAdvancePhase(playerId),
 			onSolo: (playerName) => this.handleSoloLobby(playerId, socketId, playerName),
 			onGameAction: (gameActionCommand) => this.handleGameAction(playerId, socketId, gameActionCommand)
 		});
@@ -208,30 +206,6 @@ export class LobbyApplicationService {
 		this.accept(socketId, 'game/action', action.type, requestId);
 	}
 
-	private handleStartFightPhase(playerId: string): void {
-		this.withHostRuntimeForInGameLobby(playerId, 'lobby/start-fight', 'Only the host can start the fight phase.', (socketId, runtime) => {
-			const started = runtime.startFightPhase(playerId);
-			if (!started.ok) {
-				this.reject(socketId, 'lobby/start-fight', started.reason);
-				return;
-			}
-
-			this.accept(socketId, 'lobby/start-fight');
-		});
-	}
-
-	private handleStartAdvancePhase(playerId: string): void {
-		this.withHostRuntimeForInGameLobby(playerId, 'lobby/start-advance', 'Only the host can start the advance phase.', (socketId, runtime) => {
-			const started = runtime.startAdvancePhase(playerId);
-			if (!started.ok) {
-				this.reject(socketId, 'lobby/start-advance', started.reason);
-				return;
-			}
-
-			this.accept(socketId, 'lobby/start-advance');
-		});
-	}
-
 	// HELPER METHODS //
 
 	private addOrUpdatePlayer(playerId: string, socketId: string, lobby: LobbyRecord, playerName: string): void {
@@ -276,10 +250,8 @@ export class LobbyApplicationService {
 
 	private startRuntimeForLobby(lobby: LobbyRecord, playerIds: string[]): void {
 		lobby.status = 'in-game';
-		const runtime = new RoomGameRuntime(playerIds, {
-			onSnapshot: (snapshot) => {
-				this.gateway.broadcastToLobby(lobby.lobbyId, { type: 'game/snapshot', game: snapshot });
-			}
+		const runtime = new RoomGameRuntime(playerIds, (snapshot) => {
+			this.gateway.broadcastToLobby(lobby.lobbyId, { type: 'game/snapshot', game: snapshot });
 		});
 		runtime.start();
 		this.gameRuntimes.set(lobby.lobbyId, runtime);
@@ -297,36 +269,6 @@ export class LobbyApplicationService {
 		const player = lobby.players.get(playerId);
 		if (!player) return undefined;
 		return player.socketId;
-	}
-
-	private withHostRuntimeForInGameLobby(
-		playerId: string,
-		commandType: Extract<ClientCommand['type'], 'lobby/start-fight' | 'lobby/start-advance'>,
-		notHostReason: string,
-		action: (socketId: string, runtime: RoomGameRuntime, lobby: LobbyRecord) => void
-	): void {
-		const lobby = this.getLobbyForPlayer(playerId);
-		if (!lobby) return;
-		const socketId = this.getSocketIdForPlayer(lobby, playerId);
-		if (!socketId) return;
-
-		if (lobby.status !== 'in-game') {
-			this.reject(socketId, commandType, 'The match has not started yet.');
-			return;
-		}
-
-		if (lobby.hostPlayerId !== playerId) {
-			this.reject(socketId, commandType, notHostReason);
-			return;
-		}
-
-		const runtime = this.gameRuntimes.get(lobby.lobbyId);
-		if (!runtime) {
-			this.reject(socketId, commandType, 'Missing authoritative game runtime.');
-			return;
-		}
-
-		action(socketId, runtime, lobby);
 	}
 
 	private broadcastLobbyState(lobby: LobbyRecord): void {

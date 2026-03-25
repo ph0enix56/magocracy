@@ -8,6 +8,13 @@ import type { KingdomCoord } from '../../kingdom/kingdomGrid';
 
 export type LobbyStatus = 'open' | 'in-game';
 export type GamePhase = 'setup' | 'build' | 'combat' | 'advance';
+export type GameStatus = 'running' | 'finished';
+
+export type GameStandingSnapshot = {
+	playerId: string;
+	renown: number;
+	rank: number;
+};
 
 export type AdvanceSnapshot = {
 	isActive: boolean;
@@ -132,5 +139,10 @@ export type PlayerGameView = {
 export type GameSnapshot = {
 	tick: number;
 	phase: GamePhase;
+	status: GameStatus;
+	targetRenown: number;
+	winnerPlayerId?: string;
+	finalStandings: GameStandingSnapshot[];
+	buildPhaseSecondsRemaining: number;
 	players: PlayerGameView[];
 };

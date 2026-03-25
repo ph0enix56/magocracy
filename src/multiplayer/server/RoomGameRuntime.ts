@@ -1,89 +1,79 @@
 import { configuration } from '../../game/configuration';
-import { getBlockingBuildingDefs, getUnitDef } from './config/buildings';
-import type { CharterOption } from '../../shared/domain/charter';
 import type { CombatSnapshot } from '../../shared/domain/combatTypes';
 import type { GameActionCommand } from '../../shared/multiplayer/contracts/commands';
 import type {
 	AdvanceSnapshot,
+	GameStandingSnapshot,
+	GameStatus,
 	GamePhase,
 	GameSnapshot,
 	PlayerGameView
 } from '../../shared/multiplayer/contracts/snapshots';
-import { ServerGameState } from './gameplay/ServerGameState';
-import type { ArmyUnitState } from './gameplay/model';
-import { routeGameAction } from './gameplay/actions/gameActionRouter';
-import { initializeKingdomGrid, revealNeighborTiles } from './gameplay/board/kingdomBoard';
 import { AdvancePhaseRuntime } from './gameplay/phases/advancePhaseRuntime';
 import { BuildPhaseRuntime } from './gameplay/phases/buildPhaseRuntime';
 import { FightPhaseRuntime } from './gameplay/phases/fightPhaseRuntime';
-import { ArmyService } from './gameplay/services/ArmyService';
-import { BuildService } from './gameplay/services/BuildService';
-import { ProductionService } from './gameplay/services/ProductionService';
-import { ShopService } from './gameplay/services/ShopService';
+import type { PhaseActionResult, RuntimePhase, RuntimePhaseContext, RuntimePhaseKey } from './gameplay/phases/runtimePhase';
+import { PlayerProgressionService } from './gameplay/services/PlayerProgressionService';
+import { PlayerRuntimeFactory, type PlayerRuntimeBundle } from './gameplay/services/PlayerRuntimeFactory';
 import { serializeArmy, serializeInventory, serializeKingdom, serializeResources } from './gameplay/snapshots/playerSnapshot';
 
-type PlayerRuntime = {
-	run: ServerGameState;
-	buildService: BuildService;
-	armyService: ArmyService;
-	productionService: ProductionService;
-	shopService: ShopService;
-};
-
-type RuntimeOptions = {
-	onSnapshot: (snapshot: GameSnapshot) => void;
-};
+type PlayerRuntime = PlayerRuntimeBundle;
 
 export class RoomGameRuntime {
 	private readonly players = new Map<string, PlayerRuntime>();
 	private readonly playerIds: string[];
 	private readonly onSnapshot: (snapshot: GameSnapshot) => void;
+	private readonly playerRuntimeFactory: PlayerRuntimeFactory;
+	private readonly progressionService: PlayerProgressionService;
 	private interval: ReturnType<typeof setInterval> | null = null;
 	private tick = 0;
-	private phase: GamePhase = 'build';
+	private phase: GamePhase = 'setup';
+	private gameStatus: GameStatus = 'running';
+	private winnerPlayerId: string | undefined;
+	private finalStandings: GameStandingSnapshot[] = [];
 	private readonly buildPhaseRuntime: BuildPhaseRuntime;
 	private readonly fightPhaseRuntime: FightPhaseRuntime;
 	private readonly advancePhaseRuntime: AdvancePhaseRuntime;
+	private readonly phaseByKey: Record<RuntimePhaseKey, RuntimePhase>;
+	private activePhase: RuntimePhase | null = null;
 
-	constructor(playerIds: string[], options: RuntimeOptions) {
+	constructor(playerIds: string[], onSnapshot: (snapshot: GameSnapshot) => void) {
 		this.playerIds = [...playerIds];
-		this.onSnapshot = options.onSnapshot;
-		this.buildPhaseRuntime = new BuildPhaseRuntime({
-			revealNeighbors: (runtime, q, r) => this.revealNeighbors(runtime as PlayerRuntime, q, r)
-		});
-		this.fightPhaseRuntime = new FightPhaseRuntime({
-			playerIds: this.playerIds,
-			getArmyForPlayer: (playerId) => {
-				const runtime = this.players.get(playerId);
-				if (!runtime) return undefined;
-				return this.getArmyForPlayer(playerId);
-			},
-			grantRenown: (playerId) => this.grantRenown(playerId),
-			resolveUnitName: (unitDefId) => getUnitDef(unitDefId)?.name ?? unitDefId
-		});
-		this.advancePhaseRuntime = new AdvancePhaseRuntime({
-			playerIds: this.playerIds,
-			getPlayerRenown: (playerId) => this.players.get(playerId)?.run.world.resources.get('renown') ?? 0,
-			applyCharterRewards: (playerId, charter) => this.applyCharterRewards(playerId, charter)
-		});
+		this.onSnapshot = onSnapshot;
+		this.playerRuntimeFactory = new PlayerRuntimeFactory();
+		this.progressionService = new PlayerProgressionService((playerId) => this.players.get(playerId)?.run.world);
+		this.buildPhaseRuntime = new BuildPhaseRuntime();
+		this.fightPhaseRuntime = new FightPhaseRuntime();
+		this.advancePhaseRuntime = new AdvancePhaseRuntime();
 		for (const playerId of playerIds) {
-			this.players.set(playerId, this.createPlayerRuntime());
+			this.players.set(playerId, this.playerRuntimeFactory.create());
 		}
+		this.phaseByKey = {
+			advance: this.advancePhaseRuntime,
+			build: this.buildPhaseRuntime,
+			combat: this.fightPhaseRuntime
+		};
 	}
 
 	start(): void {
 		if (this.interval) return;
+		this.transitionTo('advance');
 		this.interval = setInterval(() => {
-			this.tick += 1;
-			if (this.phase === 'build') {
-				for (const runtime of this.players.values()) {
-					this.buildPhaseRuntime.advanceTick(runtime);
-				}
-			} else if (this.phase === 'combat') {
-				this.advanceFightPhaseTick();
-			} else if (this.phase === 'advance') {
-				this.advanceAdvancePhaseTick();
+			if (this.gameStatus === 'finished') {
+				this.emitSnapshot();
+				return;
 			}
+
+			this.tick += 1;
+			const activePhase = this.activePhase;
+			if (activePhase) {
+				const tickResult = activePhase.tick(this.buildPhaseContext());
+				if (tickResult.kind === 'transition') {
+					this.transitionTo(tickResult.transition.nextPhase);
+				}
+			}
+
+			this.evaluateEndgame();
 			this.emitSnapshot();
 		}, configuration.loop.tickIntervalMs);
 	}
@@ -100,46 +90,27 @@ export class RoomGameRuntime {
 		return snapshot;
 	}
 
-	startFightPhase(startedByPlayerId: string): { ok: true } | { ok: false; reason: string } {
-		if (!this.players.has(startedByPlayerId)) return { ok: false, reason: 'Unknown player game state.' };
-		if (this.phase !== 'build') return { ok: false, reason: 'Fight phase can be started only from build phase.' };
-
-		this.phase = 'combat';
-		this.fightPhaseRuntime.start();
-		this.emitSnapshot();
-		return { ok: true };
-	}
-
-	startAdvancePhase(startedByPlayerId: string): { ok: true } | { ok: false; reason: string } {
-		if (!this.players.has(startedByPlayerId)) return { ok: false, reason: 'Unknown player game state.' };
-		if (this.phase !== 'build') return { ok: false, reason: 'Advance phase can be started only from build phase.' };
-		if (this.advancePhaseRuntime.isActive()) return { ok: false, reason: 'Advance phase is already active.' };
-
-		this.beginAdvancePhase();
-		this.emitSnapshot();
-		return { ok: true };
-	}
-
 	handleAction(playerId: string, action: GameActionCommand): { ok: true } | { ok: false; reason: string } {
-		const runtime = this.players.get(playerId);
-		if (!runtime) return { ok: false, reason: 'Unknown player game state.' };
+		if (this.gameStatus === 'finished') {
+			return { ok: false, reason: 'The match has already finished.' };
+		}
+		if (!this.players.has(playerId)) return { ok: false, reason: 'Unknown player game state.' };
+		const activePhase = this.activePhase;
+		if (!activePhase) return { ok: false, reason: 'No active gameplay phase.' };
 
 		try {
-			const routed = routeGameAction(action, {
-				onBuildRequest: (command) => this.buildPhaseRuntime.handleBuildRequest(runtime, command, this.phase),
-				onDestroyRequest: (command) => this.buildPhaseRuntime.handleDestroyRequest(runtime, command, this.phase),
-				onUpgradeRequest: (command) => this.buildPhaseRuntime.handleUpgradeRequest(runtime, command, this.phase),
-				onShopBuy: (command) => this.buildPhaseRuntime.handleShopBuy(runtime, command, this.phase),
-				onShopReroll: () => this.buildPhaseRuntime.handleShopReroll(runtime, this.phase),
-				onArmyTrain: (command) => this.buildPhaseRuntime.handleArmyTrain(runtime, command, this.phase),
-				onArmyReorder: (command) => this.buildPhaseRuntime.handleArmyReorder(runtime, command),
-				onCombatStep: (command) => this.handleCombatStep(playerId, command),
-				onFightReplayOpen: (command) => this.openFightReplay(playerId, command.matchId),
-				onAdvanceSelectCharter: (command) => this.selectAdvanceCharter(playerId, command.charterId)
-			});
+			const phaseResult = activePhase.tryHandleAction(this.buildPhaseContext(), playerId, action);
+			const handled = phaseResult.handled ? phaseResult : this.tryHandleGlobalAction(playerId, action);
 
-			if (!routed.ok) return routed;
-			if (routed.emitSnapshot) {
+			if (!handled.handled) {
+				return { ok: false, reason: 'Action is unavailable in the current phase.' };
+			}
+			if (!handled.ok) {
+				return { ok: false, reason: handled.reason };
+			}
+
+			this.evaluateEndgame();
+			if (handled.emitSnapshot) {
 				this.emitSnapshot();
 			}
 			return { ok: true };
@@ -148,32 +119,17 @@ export class RoomGameRuntime {
 		}
 	}
 
-	private createPlayerRuntime(): PlayerRuntime {
-		const run = new ServerGameState(Date.now() ^ Math.floor(Math.random() * 0xffffffff));
-		const buildService = new BuildService(run.world);
-		const productionService = new ProductionService(run.world);
-		const shopService = new ShopService(run.world);
-		const armyService = new ArmyService(run.world);
-
-		shopService.rerollFree();
-		initializeKingdomGrid(run.world, this.pickBlockerId);
-
-		return { run, buildService, armyService, productionService, shopService };
-	}
-
 	private buildSnapshot(): GameSnapshot {
 		return {
 			tick: this.tick,
 			phase: this.phase,
+			status: this.gameStatus,
+			targetRenown: Math.max(1, Math.floor(configuration.gameLifecycle.targetRenown)),
+			winnerPlayerId: this.winnerPlayerId,
+			finalStandings: this.finalStandings,
+			buildPhaseSecondsRemaining: this.phase === 'build' ? this.buildPhaseRuntime.getSecondsRemaining() : 0,
 			players: [...this.players.entries()].map(([playerId, runtime]) => this.buildPlayerView(playerId, runtime))
 		};
-	}
-
-	private handleCombatStep(
-		playerId: string,
-		action: Extract<GameActionCommand, { type: 'combat/step' }>
-	): { ok: true } | { ok: false; reason: string } {
-		return this.fightPhaseRuntime.stepCombatReplay(playerId, action.steps);
 	}
 
 	private getCombatSnapshotForPlayer(playerId: string): CombatSnapshot {
@@ -199,73 +155,57 @@ export class RoomGameRuntime {
 		return this.advancePhaseRuntime.buildSnapshot();
 	}
 
-	private getArmyForPlayer(playerId: string): ArmyUnitState[] {
+	private evaluateEndgame(): void {
+		if (this.gameStatus === 'finished') return;
+		const evaluation = this.progressionService.evaluateEndgame(this.playerIds);
+		if (!evaluation.finished) {
+			this.finalStandings = [];
+			return;
+		}
+
+		this.gameStatus = 'finished';
+		this.winnerPlayerId = evaluation.winnerPlayerId;
+		this.finalStandings = evaluation.standings;
+		this.stop();
+	}
+
+	private transitionTo(nextPhase: RuntimePhaseKey): void {
+		const context = this.buildPhaseContext();
+		if (this.activePhase) {
+			this.activePhase.onExit(context);
+		}
+		const next = this.phaseByKey[nextPhase];
+		this.activePhase = next;
+		this.phase = nextPhase;
+		next.onEnter(context);
+	}
+
+	private buildPhaseContext(): RuntimePhaseContext {
+		return {
+			playerIds: this.playerIds,
+			getPlayerRuntime: (playerId) => this.players.get(playerId),
+			resolveBuildPhaseDurationSeconds: () => this.resolveBuildPhaseDurationSeconds(),
+			resolveBuildTickIntervalSeconds: () => this.resolveBuildTickIntervalSeconds()
+		};
+	}
+
+	private tryHandleGlobalAction(playerId: string, action: GameActionCommand): PhaseActionResult {
+		if (action.type !== 'army/reorder') {
+			return { handled: false };
+		}
 		const runtime = this.players.get(playerId);
-		if (!runtime) return [];
-		return runtime.run.world.getOrderedArmyUnits().slice();
-	}
-
-	private advanceFightPhaseTick(): void {
-		const tickResult = this.fightPhaseRuntime.advanceTick();
-		if (tickResult.phaseCompleted) {
-			this.beginAdvancePhase();
+		if (!runtime) {
+			return { handled: true, ok: false, reason: 'Unknown player game state.' };
 		}
+		runtime.run.world.reorderArmyUnitWithThrow(action.unitEntityId, action.direction);
+		return { handled: true, ok: true, emitSnapshot: true };
 	}
 
-	private advanceAdvancePhaseTick(): void {
-		if (this.phase !== 'advance') return;
-		const tickResult = this.advancePhaseRuntime.advanceTick();
-		if (tickResult.phaseShouldEnd) {
-			this.phase = 'build';
-		}
+	private resolveBuildPhaseDurationSeconds(): number {
+		return Math.max(1, Math.floor(configuration.buildPhase.durationSeconds));
 	}
 
-	private grantRenown(playerId: string): void {
-		const runtime = this.players.get(playerId);
-		if (!runtime) return;
-		const current = runtime.run.world.resources.get('renown') ?? 0;
-		runtime.run.world.resources.set('renown', current + Math.max(0, Math.floor(configuration.fightPhase.renownPerWin)));
+	private resolveBuildTickIntervalSeconds(): number {
+		return Math.max(1, Math.floor(configuration.buildPhase.secondsPerTick));
 	}
-
-	private openFightReplay(playerId: string, matchId: string): { ok: true } | { ok: false; reason: string } {
-		return this.fightPhaseRuntime.openReplay(playerId, matchId);
-	}
-
-	private beginAdvancePhase(): void {
-		this.phase = 'advance';
-		this.advancePhaseRuntime.startPhase();
-	}
-
-	private selectAdvanceCharter(playerId: string, charterId: string): { ok: true } | { ok: false; reason: string } {
-		if (this.phase !== 'advance') {
-			return { ok: false, reason: 'Advance draft is not active.' };
-		}
-		return this.advancePhaseRuntime.selectCharter(playerId, charterId);
-	}
-
-	private applyCharterRewards(playerId: string, charter: CharterOption): void {
-		const runtime = this.players.get(playerId);
-		if (!runtime) return;
-
-		for (const grant of charter.resources) {
-			const current = runtime.run.world.resources.get(grant.resource) ?? 0;
-			runtime.run.world.resources.set(grant.resource, current + Math.max(0, Math.floor(grant.amount)));
-		}
-
-		for (const blueprint of charter.blueprints) {
-			const current = runtime.run.world.blueprintInventory.get(blueprint.buildingId) ?? 0;
-			runtime.run.world.blueprintInventory.set(blueprint.buildingId, current + Math.max(0, Math.floor(blueprint.count)));
-		}
-	}
-
-	private revealNeighbors(runtime: PlayerRuntime, q: number, r: number): void {
-		revealNeighborTiles(runtime.run.world, q, r, this.pickBlockerId);
-	}
-
-	private pickBlockerId = (): string => {
-		const blockers = getBlockingBuildingDefs();
-		if (blockers.length === 0) throw new Error('No blocker building defs configured.');
-		const index = Math.floor(Math.random() * blockers.length);
-		return blockers[index]!.id;
-	};
 }
