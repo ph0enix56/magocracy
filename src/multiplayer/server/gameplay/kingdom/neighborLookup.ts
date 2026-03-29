@@ -1,5 +1,5 @@
 import type { KingdomTileState } from '../model';
-import type { WorldStore } from '../ServerEcsWorld';
+import type { WorldStore } from '../WorldStore';
 
 const DOUBLED_DIRECTIONS = [
 	{ dq: 1, dr: 1 },

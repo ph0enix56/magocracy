@@ -1,6 +1,6 @@
 import { createInitialKingdomTiles, createRevealTilesAround, kingdomCoordKey } from '../../../../shared/kingdom/kingdomGrid';
 import type { KingdomTileState } from '../model';
-import type { WorldStore } from '../ServerEcsWorld';
+import type { WorldStore } from '../WorldStore';
 
 export function initializeKingdomGrid(world: WorldStore, pickBlockerId: () => string): void {
 	for (const tile of createInitialKingdomTiles(pickBlockerId)) {

@@ -1,7 +1,7 @@
 import { getBuildingDef, getNextUpgradeDef, getUnitDef } from '../../config/buildings';
 import { recomputeHousedArmyUnit } from './armyRuntime';
 import type { KingdomTileState } from '../model';
-import type { WorldStore } from '../ServerEcsWorld';
+import type { WorldStore } from '../WorldStore';
 import type { ResourceMap } from '../../../../shared/domain/types';
 
 export class BuildService {

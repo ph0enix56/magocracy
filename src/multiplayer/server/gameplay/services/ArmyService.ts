@@ -3,7 +3,7 @@ import { getBuildingDef } from '../../config/buildings';
 import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
 import { computeNextTrainCost, getTrainCostEffectsForUnit } from '../army/trainCost';
 import { getHousingBuildingForUnit, recomputeAllHousedArmyUnits, recomputeHousedArmyUnit } from './armyRuntime';
-import type { WorldStore } from '../ServerEcsWorld';
+import type { WorldStore } from '../WorldStore';
 import type { ResourceMap } from '../../../../shared/domain/types';
 
 export class ArmyService {

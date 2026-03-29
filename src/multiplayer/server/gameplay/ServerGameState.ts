@@ -1,4 +1,4 @@
-import { WorldStore } from './ServerEcsWorld';
+import { WorldStore } from './WorldStore';
 
 export class ServerGameState {
 	readonly seed: number;

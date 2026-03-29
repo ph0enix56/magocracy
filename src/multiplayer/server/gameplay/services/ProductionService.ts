@@ -2,7 +2,7 @@ import { getBuildingDef } from '../../config/buildings';
 import { accumulateEffectsForTargetStat } from '../effects/effectDsl';
 import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
 import type { KingdomTileState } from '../model';
-import type { WorldStore } from '../ServerEcsWorld';
+import type { WorldStore } from '../WorldStore';
 
 export class ProductionService {
 	constructor(private readonly world: WorldStore) {}

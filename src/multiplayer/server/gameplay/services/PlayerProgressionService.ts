@@ -1,7 +1,7 @@
 import { configuration } from '../../../../game/configuration';
 import type { CharterOption } from '../../../../shared/domain/charter';
 import type { GameStandingSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
-import type { WorldStore } from '../ServerEcsWorld';
+import type { WorldStore } from '../WorldStore';
 
 type PlayerWorldResolver = (playerId: string) => WorldStore | undefined;
 

@@ -1,6 +1,6 @@
 import { configuration } from '../../../../game/configuration';
 import { getPurchasableBuildings, type BuildingDef } from '../../config/buildings';
-import type { WorldStore } from '../ServerEcsWorld';
+import type { WorldStore } from '../WorldStore';
 
 export class ShopService {
 	constructor(private readonly world: WorldStore) {}

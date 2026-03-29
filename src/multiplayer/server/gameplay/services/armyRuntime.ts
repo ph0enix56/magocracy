@@ -2,7 +2,7 @@ import { getBuildingDef, getUnitDef } from '../../config/buildings';
 import { accumulateEffectsForTargetStat } from '../effects/effectDsl';
 import { getNeighborsFromWorld } from '../kingdom/neighborLookup';
 import type { KingdomTileState } from '../model';
-import type { WorldStore } from '../ServerEcsWorld';
+import type { WorldStore } from '../WorldStore';
 
 type UnitEffectStat = 'unit:hp' | 'unit:drflat' | 'unit:drpercent' | 'unit:ap' | 'unit:initiative' | 'unit:damage';
 
