@@ -19,6 +19,7 @@ export type MultiplayerClientState = {
 	playerName: string;
 	lobby: LobbySnapshot | null;
 	game: GameSnapshot | null;
+	gameSnapshotVersion: number;
 	lastError: string | null;
 };
 
@@ -66,6 +67,7 @@ export class MultiplayerClient {
 		playerName: loadInitialPlayerName(),
 		lobby: null,
 		game: null,
+		gameSnapshotVersion: 0,
 		lastError: null
 	};
 
@@ -114,7 +116,13 @@ export class MultiplayerClient {
 		});
 
 		socket.on('disconnect', (reason: string) => {
-			this.setState({ connectionStatus: 'disconnected', lobby: null, game: null, lastError: `Disconnected: ${reason}` });
+			this.setState({
+				connectionStatus: 'disconnected',
+				lobby: null,
+				game: null,
+				gameSnapshotVersion: 0,
+				lastError: `Disconnected: ${reason}`
+			});
 		});
 
 		socket.on('connect_error', (error: Error) => {
@@ -130,7 +138,7 @@ export class MultiplayerClient {
 		this.socket.disconnect();
 		this.socket = null;
 		buildingCatalog.reset();
-		this.setState({ connectionStatus: 'idle', playerId: null, lobby: null, game: null, lastError: null });
+		this.setState({ connectionStatus: 'idle', playerId: null, lobby: null, game: null, gameSnapshotVersion: 0, lastError: null });
 	}
 
 	getCatalog(): BuildingCatalogSnapshot | null {
@@ -205,7 +213,12 @@ export class MultiplayerClient {
 				buildingCatalog.setSnapshot(event.catalog);
 				return;
 			case 'lobby/state':
-				this.setState({ lobby: event.lobby, game: event.lobby?.status === 'in-game' ? this.state.game : null, lastError: null });
+				this.setState({
+					lobby: event.lobby,
+					game: event.lobby?.status === 'in-game' ? this.state.game : null,
+					gameSnapshotVersion: event.lobby?.status === 'in-game' ? this.state.gameSnapshotVersion : 0,
+					lastError: null
+				});
 				return;
 			case 'command/accepted':
 				this.setState({ lastError: null });
@@ -217,7 +230,7 @@ export class MultiplayerClient {
 				this.setState({ lastError: event.message });
 				return;
 			case 'game/snapshot':
-				this.setState({ game: event.game, lastError: null });
+				this.setState({ game: event.game, gameSnapshotVersion: this.state.gameSnapshotVersion + 1, lastError: null });
 				return;
 		}
 	}

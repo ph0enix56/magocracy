@@ -8,6 +8,9 @@
 	import MultiplayerPanel from './MultiplayerPanel.svelte';
 	import FightPhasePanel from './FightPhasePanel.svelte';
 	import AdvancePhasePanel from './AdvancePhasePanel.svelte';
+	import TopActionButtons from './TopActionButtons.svelte';
+	import RenownLeaderboard from './RenownLeaderboard.svelte';
+	import PhaseTimer from './PhaseTimer.svelte';
 	import { armyModalState, blueprintModalState, shopModalState } from './uiState';
 	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
 	import type { GamePhase } from '../shared/multiplayer/contracts/snapshots';
@@ -48,6 +51,8 @@
 	let activeOverlay: OverlayPhaseConfig | null = null;
 	let overlayTownVisibility: OverlayTownVisibility = { hideTownRender: false };
 	let overlayBackground: OverlayBackground = {};
+	let blueprintCount = 0;
+	let armyCount = 0;
 
 	function openBlueprints() {
 		if (!$gameSessionState.canTownInteract) return;
@@ -85,6 +90,13 @@
 		? { backgroundColor: activeOverlay.overviewBackgroundColor }
 		: {};
 
+	$: blueprintCount = Object.values($gameSessionState.blueprints).reduce((sum, value) => {
+		if (typeof value !== 'number' || !Number.isFinite(value)) return sum;
+		return sum + Math.max(0, Math.floor(value));
+	}, 0);
+
+	$: armyCount = $gameSessionState.army.length;
+
 	function toggleOverlayScreenView() {
 		overlayScreenView = overlayScreenView === 'overview' ? 'town' : 'overview';
 	}
@@ -108,14 +120,26 @@
 		<ResourceCounter keyName="food" icon="🍞" />
 		<ResourceCounter keyName="mana" icon="💧" />
 		<ResourceCounter keyName="gold" icon="💰" />
-		<ResourceCounter keyName="renown" icon="⭐" />
-		<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={openShop}>Shop</button>
-		<button class="ui-button" disabled={!$gameSessionState.canArmyReorder} on:click={openArmy}>Army</button>
-		<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={openBlueprints}>Blueprints</button>
 		{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
 			<div class="ui-chip scout-chip">Scouting {$gameSessionState.viewedPlayer.name}</div>
 		{/if}
 	</div>
+
+	<RenownLeaderboard />
+
+	<div class="bottom-actions-wrap">
+		<TopActionButtons
+			blueprintCount={blueprintCount}
+			armyCount={armyCount}
+			canTownInteract={$gameSessionState.canTownInteract}
+			canArmyReorder={$gameSessionState.canArmyReorder}
+			on:openBlueprints={openBlueprints}
+			on:openShop={openShop}
+			on:openArmy={openArmy}
+		/>
+	</div>
+
+	<PhaseTimer />
 
 	<MultiplayerPanel />
 	{#if activeOverlay?.fightPanel && overlayScreenView === 'overview'}
@@ -158,6 +182,20 @@
 		flex-wrap: wrap;
 		gap: 8px;
 		pointer-events: auto;
+	}
+
+	.bottom-actions-wrap {
+		position: absolute;
+		left: 50%;
+		bottom: 6px;
+		transform: translateX(-50%);
+		pointer-events: auto;
+	}
+
+	@media (max-height: 760px) {
+		.bottom-actions-wrap {
+			bottom: 4px;
+		}
 	}
 	.scout-chip {
 		font-weight: 700;

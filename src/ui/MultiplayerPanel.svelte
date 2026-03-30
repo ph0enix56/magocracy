@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 	import { multiplayerClient } from '../multiplayer/client/clientSingleton';
 	import { multiplayerState } from '../multiplayer/client/multiplayerStore';
 
 	$: selfPlayer = $multiplayerState.lobby?.players.find((player) => player.playerId === $multiplayerState.playerId) ?? null;
-	$: activeViewPlayerId = $multiplayerState.viewedPlayerId ?? $multiplayerState.playerId;
 
 	function connectMultiplayer() {
 		multiplayerClient.connect();
@@ -41,14 +39,6 @@
 
 	function startLobbyGame() {
 		multiplayerClient.startLobbyGame();
-	}
-
-	function scoutPlayer(playerId: string) {
-		gameSessionClient.scoutPlayer(playerId);
-	}
-
-	function viewOwnTown() {
-		gameSessionClient.viewOwnTown();
 	}
 
 	function phaseLabel(phase: string): string {
@@ -132,30 +122,6 @@
 			</button>
 		{/if}
 	{/if}
-	{#if $multiplayerState.game && $multiplayerState.game.players.length > 1}
-		<div class="scout-section">
-			<div class="scout-title">Scout Town</div>
-			{#each $multiplayerState.game.players as playerView (playerView.playerId)}
-				{@const lobbyPlayer = $multiplayerState.lobby?.players.find((player) => player.playerId === playerView.playerId)}
-				<div class="scout-row">
-					<span>{lobbyPlayer?.name ?? playerView.playerId}{playerView.playerId === $multiplayerState.playerId ? ' (you)' : ''}</span>
-					{#if playerView.playerId === $multiplayerState.playerId}
-						<button class="ui-button ui-button--ghost scout-button" disabled={!$multiplayerState.isScouting} on:click={viewOwnTown}>
-							{$multiplayerState.isScouting ? 'Return' : 'Viewing'}
-						</button>
-					{:else}
-						<button
-							class="ui-button ui-button--ghost scout-button"
-							disabled={activeViewPlayerId === playerView.playerId}
-							on:click={() => scoutPlayer(playerView.playerId)}
-						>
-							{activeViewPlayerId === playerView.playerId ? 'Viewing' : 'Scout'}
-						</button>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	{/if}
 </div>
 
 <style>
@@ -194,28 +160,6 @@
 	}
 	.multiplayer-row--viewing {
 		color: #ffd28a;
-	}
-	.scout-section {
-		margin-top: 12px;
-		padding-top: 10px;
-		border-top: 1px solid rgba(255, 255, 255, 0.12);
-	}
-	.scout-title {
-		font-size: 0.8rem;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		opacity: 0.7;
-		margin-bottom: 8px;
-	}
-	.scout-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 8px;
-		margin-top: 6px;
-	}
-	.scout-button {
-		min-width: 84px;
 	}
 	.multiplayer-finished {
 		margin-top: 8px;
