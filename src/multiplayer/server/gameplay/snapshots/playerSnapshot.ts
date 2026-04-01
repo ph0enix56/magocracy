@@ -29,13 +29,17 @@ export function serializeKingdom(tiles: KingdomTileState[], productionService: P
 				q: tile.coord.q,
 				r: tile.coord.r,
 				building: tile.building
-					? {
-						buildingId: tile.building.buildingId,
-						status: tile.building.status,
-						progress: tile.building.progress,
-						upgradeNextId: tile.building.upgradeNextId,
-						productionMultiplier: tile.building.status === 'active' ? productionService.calculateMultiplier(tile.tileId) : undefined
-					}
+					? (() => {
+						const def = getBuildingDef(tile.building.buildingId);
+						return {
+							buildingId: tile.building.buildingId,
+							school: def?.school,
+							status: tile.building.status,
+							progress: tile.building.progress,
+							upgradeNextId: tile.building.upgradeNextId,
+							productionMultiplier: tile.building.status === 'active' ? productionService.calculateMultiplier(tile.tileId) : undefined
+						};
+					})()
 					: undefined
 			}))
 	};

@@ -27,18 +27,10 @@ type Listener = (state: MultiplayerClientState) => void;
 type ServerEventListener = (event: ServerEvent) => void;
 
 const PLAYER_NAME_STORAGE_KEY = 'magocracy:player-name';
-const DEFAULT_MULTIPLAYER_PORT = '3001';
+const DEFAULT_MULTIPLAYER_SERVER_URL = 'http://localhost:8081';
 
-function getDefaultEndpoint(): string {
-	const envUrl = import.meta.env['VITE_MULTIPLAYER_URL'];
-	if (typeof envUrl === 'string' && envUrl.trim().length > 0) return envUrl;
-	if (import.meta.env.DEV) {
-		if (window.location.port === DEFAULT_MULTIPLAYER_PORT) return window.location.origin;
-		const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-		const hostname = window.location.hostname || 'localhost';
-		return `${protocol}//${hostname}:${DEFAULT_MULTIPLAYER_PORT}`;
-	}
-	return window.location.origin;
+function getServerEndpoint(): string {
+	return import.meta.env['VITE_MULTIPLAYER_SERVER_URL']?.trim() || DEFAULT_MULTIPLAYER_SERVER_URL;
 }
 
 function generateDefaultPlayerName(): string {
@@ -61,7 +53,7 @@ export class MultiplayerClient {
 	private listeners = new Set<Listener>();
 	private serverEventListeners = new Set<ServerEventListener>();
 	private state: MultiplayerClientState = {
-		endpoint: getDefaultEndpoint(),
+		endpoint: getServerEndpoint(),
 		connectionStatus: 'idle',
 		playerId: null,
 		playerName: loadInitialPlayerName(),

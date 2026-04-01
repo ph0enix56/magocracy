@@ -1,8 +1,9 @@
 import type { Scene } from 'phaser';
 import { configuration } from '../../../configuration';
 import { buildingCatalog } from '../../../../multiplayer/client/buildingCatalog';
+import { getHexTileColorForSchool, getHoveredHexTileColor } from '../../../../shared/ui/buildingSchoolColors';
 import { ConstructionBadge } from './ConstructionBadge';
-import type { ProjectionWorld } from './model';
+import type { ProjectionRenderState, ProjectionWorld } from './model';
 
 export class ProjectionRenderSystem {
 	private visible = true;
@@ -25,9 +26,10 @@ export class ProjectionRenderSystem {
 		const buildingCfg = configuration.render.building;
 		for (const tile of this.world.getTiles()) {
 			const render = tile.render;
+			const def = tile.building ? buildingCatalog.getById(tile.building.buildingId) : undefined;
+			this.syncHexColor(render, tile.building?.school ?? def?.school);
 
 			if (tile.building) {
-				const def = buildingCatalog.getById(tile.building.buildingId);
 				if (!def) continue;
 				if (!this.scene.textures.exists(def.textureId)) continue;
 
@@ -96,5 +98,14 @@ export class ProjectionRenderSystem {
 		const sourceWidth = sprite.frame.realWidth || sprite.width;
 		const sourceHeight = sprite.frame.realHeight || sprite.height;
 		return (configuration.render.building.hexSize / Math.max(sourceWidth, sourceHeight)) * fillScaleMultiplier;
+	}
+
+	private syncHexColor(render: ProjectionRenderState, school: string | undefined): void {
+		const baseColor = getHexTileColorForSchool(school);
+		render.hexBaseColor = baseColor;
+		const displayColor = render.hexHovered ? getHoveredHexTileColor(baseColor) : baseColor;
+		if (displayColor === render.hexDisplayColor) return;
+		render.hexDisplayColor = displayColor;
+		render.hex.setTintFill(displayColor);
 	}
 }

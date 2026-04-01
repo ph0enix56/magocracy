@@ -86,6 +86,7 @@ export type LobbySnapshot = {
 
 export type BuildingCatalogEntry = {
 	id: string;
+	kind: 'production' | 'army' | 'blocker';
 	school: string;
 	tier: number;
 	parentId?: string;
@@ -110,6 +111,7 @@ export type ShopSnapshot = {
 
 export type KingdomBuildingSnapshot = {
 	buildingId: string;
+	school?: string;
 	status: BuildingStatus;
 	progress: number;
 	upgradeNextId?: string;

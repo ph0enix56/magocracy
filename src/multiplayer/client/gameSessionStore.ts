@@ -1,5 +1,4 @@
 import { writable } from 'svelte/store';
-import { randomUUID } from 'crypto';
 import type { GameActionCommand } from '../../shared/multiplayer/contracts/commands';
 import type { ServerEvent } from '../../shared/multiplayer/contracts/events';
 import type { BuildingCatalogEntry } from '../../shared/multiplayer/contracts/snapshots';
@@ -12,17 +11,18 @@ import { buildGameSessionState } from './session/sessionStateBuilder';
 import {
 	INITIAL_SESSION_BUILD_CONTEXT,
 	type CommandResult,
-	type GameSessionState
+	type GameSessionState,
+	type TileScreenAnchor
 } from './session/types';
 
-export type { CommandResult, GameSessionState, SelectedTileView } from './session/types';
+export type { CommandResult, GameSessionState, SelectedTileView, TileScreenAnchor } from './session/types';
 
 type GameSessionRuntime = {
 	state: {
 		subscribe: (run: (value: GameSessionState) => void, invalidate?: (value?: GameSessionState) => void) => () => void;
 	};
 	client: {
-		selectTile: (q: number, r: number) => void;
+		selectTile: (q: number, r: number, anchor?: TileScreenAnchor) => void;
 		clearSelectedTile: () => void;
 		scoutPlayer: (playerId: string) => void;
 		viewOwnTown: () => void;
@@ -92,7 +92,7 @@ function createGameSessionRuntime(): GameSessionRuntime {
 			return Promise.resolve({ ok: false, reason: 'Authoritative multiplayer gameplay is not active.' });
 		}
 
-		const requestId = randomUUID();
+		const requestId = createRequestId();
 
 		return new Promise((resolve) => {
 			requestTracker.trackRequest({
@@ -137,14 +137,20 @@ function createGameSessionRuntime(): GameSessionRuntime {
 			subscribe: store.subscribe
 		},
 		client: {
-			selectTile(q: number, r: number): void {
-				if (sessionBuildContext.selectedTileCoords?.q === q && sessionBuildContext.selectedTileCoords.r === r) return;
+			selectTile(q: number, r: number, anchor?: TileScreenAnchor): void {
+				const sameCoords = sessionBuildContext.selectedTileCoords?.q === q && sessionBuildContext.selectedTileCoords.r === r;
+				const sameAnchor = !!anchor &&
+					sessionBuildContext.selectedTileAnchor?.screenX === anchor.screenX &&
+					sessionBuildContext.selectedTileAnchor?.screenY === anchor.screenY;
+				if (sameCoords && (!anchor || sameAnchor)) return;
 				sessionBuildContext.selectedTileCoords = { q, r };
+				sessionBuildContext.selectedTileAnchor = anchor ? { screenX: anchor.screenX, screenY: anchor.screenY } : null;
 				rebuildFromCurrentTransportState();
 			},
 			clearSelectedTile(): void {
 				if (!sessionBuildContext.selectedTileCoords) return;
 				sessionBuildContext.selectedTileCoords = null;
+				sessionBuildContext.selectedTileAnchor = null;
 				rebuildFromCurrentTransportState();
 			},
 			scoutPlayer(playerId: string): void {
@@ -153,12 +159,14 @@ function createGameSessionRuntime(): GameSessionRuntime {
 				if (sessionBuildContext.viewedPlayerId === nextPlayerId) return;
 				sessionBuildContext.viewedPlayerId = nextPlayerId;
 				sessionBuildContext.selectedTileCoords = null;
+				sessionBuildContext.selectedTileAnchor = null;
 				rebuildFromCurrentTransportState();
 			},
 			viewOwnTown(): void {
 				if (sessionBuildContext.viewedPlayerId === null) return;
 				sessionBuildContext.viewedPlayerId = null;
 				sessionBuildContext.selectedTileCoords = null;
+				sessionBuildContext.selectedTileAnchor = null;
 				rebuildFromCurrentTransportState();
 			},
 			requestBuild(q: number, r: number, buildingId: string): Promise<CommandResult> {
@@ -193,6 +201,10 @@ function createGameSessionRuntime(): GameSessionRuntime {
 			}
 		}
 	};
+}
+
+function createRequestId(): string {
+	return Date.now().toString(16) + '-' + Math.random().toString(16).slice(2);	
 }
 
 const runtime = createGameSessionRuntime();

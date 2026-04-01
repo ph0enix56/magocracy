@@ -46,6 +46,8 @@ export class KingdomScene extends Scene {
 		this.applyOverlayRenderMode();
 	};
 	private readonly handlePointerDown = (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
+		if (this.isPointerFromUi(_pointer)) return;
+
 		if (currentlyOver.length === 0) {
 			gameSessionClient.clearSelectedTile();
 		}
@@ -90,6 +92,11 @@ export class KingdomScene extends Scene {
 		camera.scrollY += worldPointBefore.y - worldPointAfter.y;
 	};
 
+	private isPointerFromUi(pointer: Phaser.Input.Pointer): boolean {
+		const target = pointer.event?.target;
+		return target instanceof HTMLElement && !!target.closest('#ui-root');
+	}
+
 	constructor() {
 		super('Kingdom');
 	}
@@ -115,8 +122,8 @@ export class KingdomScene extends Scene {
 			hexSize: this.HEX_SIZE,
 			hexStroke: this.HEX_STROKE,
 			gridOriginYOffset: this.GRID_ORIGIN_Y_OFFSET,
-			onTileSelected: (q, r) => {
-				gameSessionClient.selectTile(q, r);
+			onTileSelected: (q, r, anchor) => {
+				gameSessionClient.selectTile(q, r, anchor);
 			}
 		});
 
@@ -193,6 +200,7 @@ export class KingdomScene extends Scene {
 			if (tile.building) {
 				entity.building = {
 					buildingId: tile.building.buildingId,
+					school: tile.building.school,
 					status: tile.building.status,
 					progress: tile.building.progress,
 					upgradeNextId: tile.building.upgradeNextId,

@@ -19,6 +19,12 @@ export type TileCoords = {
 	r: number;
 };
 
+/** Screen-space anchor used to position floating tile UI near the clicked hex. */
+export type TileScreenAnchor = {
+	screenX: number;
+	screenY: number;
+};
+
 /**
  * UI projection for the currently selected tile. Values are derived from authoritative
  * kingdom snapshot and building catalog data.
@@ -26,8 +32,14 @@ export type TileCoords = {
 export type SelectedTileView = {
 	q: number;
 	r: number;
+	anchor?: TileScreenAnchor;
 	built: boolean;
 	buildingId?: string;
+	buildingName?: string;
+	buildingKind?: BuildingCatalogEntry['kind'];
+	buildingSchool?: string;
+	buildingTier?: number;
+	buildingAssetPath?: string;
 	buildingStatus?: BuildingStatus;
 	constructionProgress?: number;
 	productionMultiplier?: number;
@@ -47,6 +59,7 @@ export type CommandResult = { ok: true } | { ok: false; reason: string };
  */
 export type SessionBuildContext = {
 	selectedTileCoords: TileCoords | null;
+	selectedTileAnchor: TileScreenAnchor | null;
 	viewedPlayerId: string | null;
 	combatOpenRequest: number;
 	lastCombatStatus: CombatSnapshot['status'];
@@ -135,6 +148,7 @@ export const EMPTY_ADVANCE: AdvanceSnapshot = {
 /** Initial local view context used for the first client session build. */
 export const INITIAL_SESSION_BUILD_CONTEXT: SessionBuildContext = {
 	selectedTileCoords: null,
+	selectedTileAnchor: null,
 	viewedPlayerId: null,
 	combatOpenRequest: 0,
 	lastCombatStatus: 'idle'

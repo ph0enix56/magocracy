@@ -6,6 +6,7 @@ export type ProjectionPosition = KingdomCoord;
 
 export interface ProjectionBuilding {
 	buildingId: string;
+	school?: string;
 	status: BuildingStatus;
 	progress: number;
 	upgradeNextId?: string;
@@ -14,6 +15,10 @@ export interface ProjectionBuilding {
 
 export interface ProjectionRenderState {
 	hex: Phaser.GameObjects.Image;
+	hexOutline: Phaser.GameObjects.Image;
+	hexBaseColor: number;
+	hexDisplayColor: number;
+	hexHovered: boolean;
 	building?: Phaser.GameObjects.Image;
 	constructionBadge?: ConstructionBadge;
 }

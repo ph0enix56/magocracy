@@ -16,7 +16,8 @@ import {
 	EMPTY_SHOP,
 	type GameSessionState,
 	type SelectedTileView,
-	type SessionBuildContext
+	type SessionBuildContext,
+	type TileScreenAnchor
 } from './types';
 
 export type BuildGameSessionStateInput = {
@@ -62,6 +63,7 @@ export function buildGameSessionState(input: BuildGameSessionStateInput): BuildG
 
 	if (!viewedGameView) {
 		nextContext.selectedTileCoords = null;
+		nextContext.selectedTileAnchor = null;
 	}
 
 	const selectedTile = viewedGameView && nextContext.selectedTileCoords
@@ -69,7 +71,8 @@ export function buildGameSessionState(input: BuildGameSessionStateInput): BuildG
 			nextContext.selectedTileCoords.q,
 			nextContext.selectedTileCoords.r,
 			viewedGameView.kingdom,
-			catalog
+			catalog,
+			nextContext.selectedTileAnchor
 		)
 		: null;
 
@@ -137,12 +140,18 @@ function buildSelectedTileView(
 	q: number,
 	r: number,
 	kingdom: KingdomSnapshot,
-	catalog: BuildingCatalogEntry[]
+	catalog: BuildingCatalogEntry[],
+	anchor: TileScreenAnchor | null
 ): SelectedTileView {
 	const tile = kingdom.tiles.find((entry) => entry.q === q && entry.r === r);
 	const built = !!tile?.building;
 
 	let buildingId: string | undefined;
+	let buildingName: string | undefined;
+	let buildingKind: BuildingCatalogEntry['kind'] | undefined;
+	let buildingSchool: string | undefined;
+	let buildingTier: number | undefined;
+	let buildingAssetPath: string | undefined;
 	let buildingStatus: BuildingStatus | undefined;
 	let constructionProgress: number | undefined;
 	let productionMultiplier: number | undefined;
@@ -156,6 +165,14 @@ function buildSelectedTileView(
 		buildingId = tile.building.buildingId;
 		buildingStatus = tile.building.status;
 		const def = catalog.find((entry) => entry.id === buildingId);
+
+		if (def) {
+			buildingName = def.name;
+			buildingKind = def.kind;
+			buildingSchool = def.school;
+			buildingTier = def.tier;
+			buildingAssetPath = def.assetPath;
+		}
 
 		if (tile.building.status === 'constructing' && def) {
 			constructionProgress = toProgressPercent(tile.building.progress, def.buildTime);
@@ -179,8 +196,14 @@ function buildSelectedTileView(
 	return {
 		q,
 		r,
+		anchor: anchor ?? undefined,
 		built,
 		buildingId,
+		buildingName,
+		buildingKind,
+		buildingSchool,
+		buildingTier,
+		buildingAssetPath,
 		buildingStatus,
 		constructionProgress,
 		productionMultiplier,
