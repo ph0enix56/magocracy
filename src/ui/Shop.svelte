@@ -1,23 +1,15 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
 	import { shopModalState } from './uiState';
-	import { buildingCatalogState, shopState } from './gameState';
+	import { shopPanelState } from './projections/shopViewState';
 	import BuildingCard from './BuildingCard.svelte';
 	import type { BuildingCatalogEntry } from '../shared/multiplayer/contracts/snapshots';
-	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let state: { isOpen: boolean } = { isOpen: false };
 	shopModalState.subscribe(v => (state = v));
 
-	let view: { offers: Array<string | null>; buyCost: number; rerollCost: number } = { offers: [], buyCost: 0, rerollCost: 0 };
-	shopState.subscribe(v => (view = v));
-
 	let pendingBuySlot: number | null = null;
 	let pendingReroll = false;
-	let purchasableBuildings: BuildingCatalogEntry[] = [];
-	const unsubscribeCatalog = buildingCatalogState.subscribe((entries) => {
-		purchasableBuildings = entries.filter((entry) => !entry.parentId && !entry.isBlocker);
-	});
 
 	function close() {
 		shopModalState.set({ isOpen: false });
@@ -26,7 +18,7 @@
 	}
 
 	function canReroll(): boolean {
-		return pendingBuySlot === null && !pendingReroll && $gameSessionState.canTownInteract;
+		return pendingBuySlot === null && !pendingReroll && $shopPanelState.canTownInteract;
 	}
 
 	async function requestReroll() {
@@ -40,7 +32,7 @@
 	}
 
 	async function buy(slotIndex: number) {
-		if (pendingBuySlot !== null || pendingReroll || !$gameSessionState.canTownInteract) return;
+		if (pendingBuySlot !== null || pendingReroll || !$shopPanelState.canTownInteract) return;
 		pendingBuySlot = slotIndex;
 		const result = await gameSessionClient.requestShopBuy(slotIndex);
 		pendingBuySlot = null;
@@ -49,13 +41,9 @@
 		}
 	}
 
-	onDestroy(() => {
-		unsubscribeCatalog();
-	});
-
 	function defFor(id: string | null): BuildingCatalogEntry | null {
 		if (!id) return null;
-		return purchasableBuildings.find((building) => building.id === id) ?? null;
+		return $shopPanelState.purchasableBuildings.find((building) => building.id === id) ?? null;
 	}
 </script>
 
@@ -66,25 +54,25 @@
 				<h2 class="ui-modal-title">Blueprint Shop</h2>
 				<div class="header-actions">
 					<button class="ui-button ui-button--ghost" disabled={!canReroll()} on:click={requestReroll}>
-						Reroll ({view.rerollCost} gold)
+						Reroll ({$shopPanelState.rerollCost} gold)
 					</button>
 					<button class="ui-close-btn" on:click={close}>X</button>
 				</div>
 			</div>
-			{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
-				<div class="readonly-banner">Scouting {$gameSessionState.viewedPlayer.name}. Shop actions are disabled.</div>
+			{#if $shopPanelState.isScouting && $shopPanelState.viewedPlayerName}
+				<div class="readonly-banner">Scouting {$shopPanelState.viewedPlayerName}. Shop actions are disabled.</div>
 			{/if}
 
 			<div class="grid">
-				{#each view.offers as slot, i}
+				{#each $shopPanelState.offers as slot, i}
 					{#if slot}
 						{@const def = defFor(slot)}
 						{#if def}
 							<BuildingCard
 								def={def}
 								count={null}
-								actionLabel={`Buy (${view.buyCost} gold)`}
-								actionDisabled={pendingBuySlot !== null || pendingReroll || !$gameSessionState.canTownInteract}
+								actionLabel={`Buy (${$shopPanelState.buyCost} gold)`}
+								actionDisabled={pendingBuySlot !== null || pendingReroll || !$shopPanelState.canTownInteract}
 								on:action={() => buy(i)}
 							/>
 						{:else}

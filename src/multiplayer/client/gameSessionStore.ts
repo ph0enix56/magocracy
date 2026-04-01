@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { randomUUID } from 'crypto';
 import type { GameActionCommand } from '../../shared/multiplayer/contracts/commands';
 import type { ServerEvent } from '../../shared/multiplayer/contracts/events';
 import type { BuildingCatalogEntry } from '../../shared/multiplayer/contracts/snapshots';
@@ -91,7 +92,7 @@ function createGameSessionRuntime(): GameSessionRuntime {
 			return Promise.resolve({ ok: false, reason: 'Authoritative multiplayer gameplay is not active.' });
 		}
 
-		const requestId = createRequestId();
+		const requestId = randomUUID();
 
 		return new Promise((resolve) => {
 			requestTracker.trackRequest({
@@ -198,10 +199,3 @@ const runtime = createGameSessionRuntime();
 
 export const gameSessionState = runtime.state;
 export const gameSessionClient = runtime.client;
-
-function createRequestId(): string {
-	if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-		return crypto.randomUUID();
-	}
-	return `req-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}

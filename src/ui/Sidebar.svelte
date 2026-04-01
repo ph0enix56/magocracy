@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { blueprintModalState } from './uiState';
-	import { selectedTileState } from './gameState';
+	import { sidebarViewState } from './projections/sidebarViewState';
 	import type { ResourceMap } from '../shared/domain/types';
 	import { gameSessionClient, type SelectedTileView } from '../multiplayer/client/gameSessionStore';
-	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
 
 	let visible = false;
 	let selected: SelectedTileView | null = null;
 
-	const unsubscribe = selectedTileState.subscribe((nextSelected) => {
+	const unsubscribe = sidebarViewState.subscribe((view) => {
+		const nextSelected = view.selectedTile;
 		if (!nextSelected) {
 			selected = null;
 			visible = false;
@@ -29,7 +29,7 @@
 
 	function onBuild() {
 		if (!selected) return;
-		if (!$gameSessionState.canTownInteract) return;
+		if (!$sidebarViewState.canTownInteract) return;
 		blueprintModalState.set({ isOpen: true, mode: 'build', q: selected.q, r: selected.r });
 		visible = false;
 		selected = null;
@@ -37,7 +37,7 @@
 
 	async function onDestroyClick() {
 		if (!selected) return;
-		if (!$gameSessionState.canTownInteract) return;
+		if (!$sidebarViewState.canTownInteract) return;
 		const result = await gameSessionClient.requestDestroy(selected.q, selected.r);
 		if (!result.ok) {
 			alert(result.reason);
@@ -55,7 +55,7 @@
 
 	async function onUpgradeClick() {
 		if (!selected?.nextUpgradeId) return;
-		if (!$gameSessionState.canTownInteract) return;
+		if (!$sidebarViewState.canTownInteract) return;
 		const costStr = formatCost(selected.nextUpgradeCost);
 		const timeStr = selected.nextUpgradeTime !== undefined ? `${selected.nextUpgradeTime}s` : '';
 		const ok = confirm(`Upgrade to ${selected.nextUpgradeId}?\nCost: ${costStr}\nTime: ${timeStr}`);
@@ -73,8 +73,8 @@
 {#if visible && selected}
 	<div class="ui-panel sidebar">
 		<h2 class="ui-panel-title">Tile ({selected.q}, {selected.r})</h2>
-		{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
-			<p class="ui-muted">Scouting {$gameSessionState.viewedPlayer.name}. Commands are disabled.</p>
+		{#if $sidebarViewState.isScouting && $sidebarViewState.viewedPlayerName}
+			<p class="ui-muted">Scouting {$sidebarViewState.viewedPlayerName}. Commands are disabled.</p>
 		{/if}
 		
 		{#if selected.buildingId}
@@ -111,14 +111,14 @@
 				{#if selected.nextUpgradeTime !== undefined}
 					<p>Time: {selected.nextUpgradeTime}s</p>
 				{/if}
-				<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={onUpgradeClick}>Upgrade</button>
+				<button class="ui-button" disabled={!$sidebarViewState.canTownInteract} on:click={onUpgradeClick}>Upgrade</button>
 			</div>
 		{/if}
 
 		{#if selected.built}
-			<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={onDestroyClick}>Destroy</button>
+			<button class="ui-button" disabled={!$sidebarViewState.canTownInteract} on:click={onDestroyClick}>Destroy</button>
 		{:else}
-			<button class="ui-button" disabled={!$gameSessionState.canTownInteract} on:click={onBuild}>Build</button>
+			<button class="ui-button" disabled={!$sidebarViewState.canTownInteract} on:click={onBuild}>Build</button>
 		{/if}
 	</div>
 {/if}

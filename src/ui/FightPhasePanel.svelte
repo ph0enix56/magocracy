@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { fightState } from './gameState';
-	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
+	import { fightPanelState } from './projections/fightViewState';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let isOpeningReplay = false;
 
@@ -15,8 +15,7 @@
 
 	function playerName(playerId: string | null | undefined): string {
 		if (!playerId) return 'BYE';
-		const player = $gameSessionState.lobby?.players.find((entry) => entry.playerId === playerId);
-		return player?.name ?? playerId;
+		return $fightPanelState.playerNameById[playerId] ?? playerId;
 	}
 
 	function formatArmyUnits(units: Array<{ name: string; trainingLevel: number }>): string {
@@ -42,14 +41,12 @@
 	}
 
 	function resultWinnerLabel(matchId: string): string {
-		const result = $fightState.results.find((entry) => entry.matchId === matchId);
+		const result = $fightPanelState.fight.results.find((entry) => entry.matchId === matchId);
 		if (!result || result.status !== 'finished') return 'Pending';
 		if (!result.playerBId) return 'Bye';
 		if (!result.winnerPlayerId) return 'Draw';
 		return `${playerName(result.winnerPlayerId)} won`;
 	}
-
-	$: inFinalResultsReveal = $fightState.currentRoundIndex >= $fightState.encountersPerPhase;
 
 	async function openReplay(matchId: string) {
 		if (isOpeningReplay) return;
@@ -62,38 +59,38 @@
 	}
 </script>
 
-{#if $gameSessionState.isFightPhase}
+{#if $fightPanelState.isFightPhase}
 	<div class="fight-panel ui-panel">
 		<div class="fight-header">
 			<div>
 				<div class="fight-title">Fight Phase</div>
 				<div class="fight-subtitle">
-					{#if inFinalResultsReveal}
+					{#if $fightPanelState.inFinalResultsReveal}
 						Final results
 					{:else}
-						Round {$fightState.currentRoundIndex + 1} / {$fightState.encountersPerPhase}
+						Round {$fightPanelState.fight.currentRoundIndex + 1} / {$fightPanelState.fight.encountersPerPhase}
 					{/if}
 				</div>
 			</div>
-			<div class="fight-timer">{formatCountdown($fightState.secondsToNextRound)}</div>
+			<div class="fight-timer">{formatCountdown($fightPanelState.fight.secondsToNextRound)}</div>
 		</div>
 
 		<div class="fight-body">
-			{#if $fightState.playerRounds.length === 0}
+			{#if $fightPanelState.fight.playerRounds.length === 0}
 				<div class="fight-empty">No pairings available.</div>
 			{:else}
-				{#each $fightState.playerRounds as round (round.matchId)}
+				{#each $fightPanelState.fight.playerRounds as round (round.matchId)}
 					<div class="fight-row">
 						<div class="fight-row-main">
 							<div class="fight-row-top">
 								<div class="fight-round">R{round.roundIndex + 1}</div>
-								<div class="fight-opponent">{playerName($gameSessionState.playerId)} vs {playerName(round.opponentPlayerId)}</div>
+								<div class="fight-opponent">{playerName($fightPanelState.selfPlayerId)} vs {playerName(round.opponentPlayerId)}</div>
 								<div class={`fight-status fight-status--${round.status}`}>{statusLabel(round.status)}</div>
 								<div class="fight-result">{resultWinnerLabel(round.matchId)}</div>
 							</div>
 							<div class="fight-armies">
 								<div class="fight-army-line">
-									<span class="fight-army-name">{playerName($gameSessionState.playerId)}:</span>
+									<span class="fight-army-name">{playerName($fightPanelState.selfPlayerId)}:</span>
 									<span>{formatArmyUnits(round.selfArmy)}</span>
 								</div>
 								<div class="fight-army-line">

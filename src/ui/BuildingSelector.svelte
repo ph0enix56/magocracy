@@ -1,29 +1,19 @@
 <script lang="ts">
-    import { onDestroy } from 'svelte';
     import { blueprintModalState } from './uiState';
-    import { blueprintInventory, buildingCatalogState } from './gameState';
+    import { buildingSelectorState } from './projections/buildingSelectorViewState';
     import BuildingCard from './BuildingCard.svelte';
-    import type { ResourceMap } from '../shared/domain/types';
-    import type { BuildingCatalogEntry } from '../shared/multiplayer/contracts/snapshots';
-    import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
+    import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
     // Subscribe to stores
     let state: { isOpen: boolean; mode: 'view' | 'build'; q: number; r: number } = { isOpen: false, mode: 'view', q: 0, r: 0 };
     blueprintModalState.subscribe(v => state = v);
-
-    let inventory: ResourceMap = {};
-    blueprintInventory.subscribe(v => inventory = v);
-    let purchasableBuildings: BuildingCatalogEntry[] = [];
-    const unsubscribeCatalog = buildingCatalogState.subscribe((entries) => {
-        purchasableBuildings = entries.filter((entry) => !entry.parentId && !entry.isBlocker);
-    });
 
     function close() {
         blueprintModalState.set({ ...state, isOpen: false });
     }
 
     async function build(buildingId: string) {
-        if (state.mode !== 'build' || !$gameSessionState.canTownInteract) return;
+        if (state.mode !== 'build' || !$buildingSelectorState.canTownInteract) return;
         const result = await gameSessionClient.requestBuild(state.q, state.r, buildingId);
         close();
         if (!result.ok) {
@@ -32,14 +22,11 @@
     }
 
     function ownedBlueprints() {
-        return purchasableBuildings
+        const inventory = $buildingSelectorState.blueprintInventory;
+        return $buildingSelectorState.purchasableBuildings
             .map(def => ({ def, count: inventory[def.id] || 0 }))
             .filter(x => x.count > 0);
     }
-
-	onDestroy(() => {
-		unsubscribeCatalog();
-	});
 </script>
 
 {#if state.isOpen}
@@ -51,15 +38,15 @@
             </div>
             
             <div class="list">
-                {#if state.mode === 'build' && $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
-                    <div class="empty ui-muted">Scouting {$gameSessionState.viewedPlayer.name}. Building is disabled.</div>
+				{#if state.mode === 'build' && $buildingSelectorState.isScouting && $buildingSelectorState.viewedPlayerName}
+					<div class="empty ui-muted">Scouting {$buildingSelectorState.viewedPlayerName}. Building is disabled.</div>
                 {/if}
                 {#each ownedBlueprints() as item}
                     <BuildingCard
                         def={item.def}
                         count={item.count}
                         actionLabel={state.mode === 'build' ? 'Use' : null}
-                        actionDisabled={state.mode === 'build' && !$gameSessionState.canTownInteract}
+						actionDisabled={state.mode === 'build' && !$buildingSelectorState.canTownInteract}
                         on:action={() => build(item.def.id)}
                     />
                 {/each}

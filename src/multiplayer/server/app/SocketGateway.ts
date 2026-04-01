@@ -1,5 +1,5 @@
-import { createServer, type Server as HttpServer } from 'node:http';
-import { randomUUID } from 'node:crypto';
+import { createServer, type Server as HttpServer } from 'http';
+import { randomUUID } from 'crypto';
 import { Server, type Socket } from 'socket.io';
 import type { ClientCommand } from '../../../shared/multiplayer/contracts/commands';
 import type { ClientToServerEvents, ServerEvent, ServerToClientEvents } from '../../../shared/multiplayer/contracts/events';

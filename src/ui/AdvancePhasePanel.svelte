@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { advanceState } from './gameState';
-	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
+	import { advancePanelState } from './projections/advanceViewState';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let isSubmittingPick = false;
 
 	function playerName(playerId: string | null | undefined): string {
 		if (!playerId) return 'Unknown';
-		const player = $gameSessionState.lobby?.players.find((entry) => entry.playerId === playerId);
-		return player?.name ?? playerId;
+		return $advancePanelState.playerNameById[playerId] ?? playerId;
 	}
 
 	function formatCountdown(seconds: number): string {
@@ -34,34 +33,34 @@
 		}
 	}
 
-	$: selfPlayerId = $gameSessionState.playerId;
-	$: currentPickerPlayerId = $advanceState.currentPickerPlayerId;
-	$: isMyTurn = !!selfPlayerId && currentPickerPlayerId === selfPlayerId;
-	$: inReveal = !$advanceState.currentPickerPlayerId && $advanceState.secondsToPhaseEnd > 0;
+	$: selfPlayerId = $advancePanelState.selfPlayerId;
+	$: currentPickerPlayerId = $advancePanelState.advance.currentPickerPlayerId;
+	$: isMyTurn = $advancePanelState.isMyTurn;
+	$: inReveal = $advancePanelState.inReveal;
 </script>
 
-{#if $gameSessionState.isAdvancePhase}
+{#if $advancePanelState.isAdvancePhase}
 	<div class="advance-panel ui-panel">
 		<div class="advance-header">
 			<div>
 				<div class="advance-title">Advance Phase</div>
-				<div class="advance-subtitle">Charter Level {$advanceState.level}</div>
+				<div class="advance-subtitle">Charter Level {$advancePanelState.advance.level}</div>
 			</div>
 			<div class="advance-turn-block">
 				{#if currentPickerPlayerId}
 					<div class={`advance-turn-label ${isMyTurn ? 'advance-turn-label--mine' : ''}`}>
 						Picking: {isMyTurn ? 'You' : playerName(currentPickerPlayerId)}
 					</div>
-					<div class="advance-timer">{formatCountdown($advanceState.secondsRemaining)}</div>
+					<div class="advance-timer">{formatCountdown($advancePanelState.advance.secondsRemaining)}</div>
 				{:else if inReveal}
 					<div class="advance-turn-label">Results reveal</div>
-					<div class="advance-timer">{formatCountdown($advanceState.secondsToPhaseEnd)}</div>
+					<div class="advance-timer">{formatCountdown($advancePanelState.advance.secondsToPhaseEnd)}</div>
 				{/if}
 			</div>
 		</div>
 
 		<div class="advance-order">
-			{#each $advanceState.pickOrderPlayerIds as playerId, index (playerId)}
+			{#each $advancePanelState.advance.pickOrderPlayerIds as playerId, index (playerId)}
 				<div class={`advance-order-chip ${playerId === currentPickerPlayerId ? 'advance-order-chip--active' : ''} ${playerId === selfPlayerId ? 'advance-order-chip--me' : ''}`}>
 					<span class="advance-order-index">{index + 1}.</span>
 					<span>{playerName(playerId)}{playerId === selfPlayerId ? ' (you)' : ''}</span>
@@ -70,7 +69,7 @@
 		</div>
 
 		<div class="advance-grid">
-			{#each $advanceState.charters as charter (charter.charterId)}
+			{#each $advancePanelState.advance.charters as charter (charter.charterId)}
 				{@const takenByName = charter.selectedByPlayerId ? playerName(charter.selectedByPlayerId) : ''}
 				<div class={`charter-card ${charter.selectedByPlayerId ? 'charter-card--taken' : ''}`}>
 					<div class="charter-head">

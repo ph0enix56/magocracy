@@ -12,8 +12,7 @@
 	import RenownLeaderboard from './RenownLeaderboard.svelte';
 	import PhaseTimer from './PhaseTimer.svelte';
 	import { armyModalState, blueprintModalState, shopModalState } from './uiState';
-	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
-	import type { GamePhase } from '../shared/multiplayer/contracts/snapshots';
+	import { appViewState, type OverlayScreenView } from './projections/appViewState';
 	import {
 		OVERLAY_BACKGROUND_EVENT,
 		OVERLAY_TOWN_VISIBILITY_EVENT,
@@ -21,81 +20,43 @@
 		type OverlayTownVisibility
 	} from '../shared/ui/overlayRender';
 
-	type OverlayScreenView = 'overview' | 'town';
-	type OverlayPhaseConfig = {
-		fightPanel: boolean;
-		advancePanel: boolean;
-		showTownToggleLabel: string;
-		showOverviewToggleLabel: string;
-		overviewBackgroundColor: number;
-	};
-
-	const OVERLAY_PHASES: Partial<Record<GamePhase, OverlayPhaseConfig>> = {
-		combat: {
-			fightPanel: true,
-			advancePanel: false,
-			showTownToggleLabel: 'Show Town',
-			showOverviewToggleLabel: 'Show Fight Overview',
-			overviewBackgroundColor: 0xf4c7c7
-		},
-		advance: {
-			fightPanel: false,
-			advancePanel: true,
-			showTownToggleLabel: 'Show Town',
-			showOverviewToggleLabel: 'Show Charter Draft',
-			overviewBackgroundColor: 0xe2d5b8
-		}
-	};
-
 	let overlayScreenView: OverlayScreenView = 'overview';
-	let activeOverlay: OverlayPhaseConfig | null = null;
 	let overlayTownVisibility: OverlayTownVisibility = { hideTownRender: false };
 	let overlayBackground: OverlayBackground = {};
-	let blueprintCount = 0;
-	let armyCount = 0;
 
 	function openBlueprints() {
-		if (!$gameSessionState.canTownInteract) return;
+		if (!$appViewState.canTownInteract) return;
 		blueprintModalState.set({ isOpen: true, mode: 'view', q: 0, r: 0 });
 	}
 
 	function openShop() {
-		if (!$gameSessionState.canTownInteract) return;
+		if (!$appViewState.canTownInteract) return;
 		shopModalState.set({ isOpen: true });
 	}
 
 	function openArmy() {
-		if (!$gameSessionState.canArmyReorder) return;
+		if (!$appViewState.canArmyReorder) return;
 		armyModalState.set({ isOpen: true });
 	}
 
-	$: if (!$gameSessionState.canTownInteract) {
+	$: if (!$appViewState.canTownInteract) {
 		shopModalState.set({ isOpen: false });
 		blueprintModalState.set({ isOpen: false, mode: 'view', q: 0, r: 0 });
 	}
 
-	$: activeOverlay = OVERLAY_PHASES[$gameSessionState.currentPhase] ?? null;
-
-	$: if (!activeOverlay) {
+	$: if (!$appViewState.activeOverlay) {
 		overlayScreenView = 'overview';
 	}
 
-	$: overlayTownVisibility = activeOverlay && overlayScreenView === 'overview'
+	$: overlayTownVisibility = $appViewState.activeOverlay && overlayScreenView === 'overview'
 		? {
 			hideTownRender: true
 		}
 		: { hideTownRender: false };
 
-	$: overlayBackground = activeOverlay
-		? { backgroundColor: activeOverlay.overviewBackgroundColor }
+	$: overlayBackground = $appViewState.activeOverlay
+		? { backgroundColor: $appViewState.activeOverlay.overviewBackgroundColor }
 		: {};
-
-	$: blueprintCount = Object.values($gameSessionState.blueprints).reduce((sum, value) => {
-		if (typeof value !== 'number' || !Number.isFinite(value)) return sum;
-		return sum + Math.max(0, Math.floor(value));
-	}, 0);
-
-	$: armyCount = $gameSessionState.army.length;
 
 	function toggleOverlayScreenView() {
 		overlayScreenView = overlayScreenView === 'overview' ? 'town' : 'overview';
@@ -120,8 +81,8 @@
 		<ResourceCounter keyName="food" icon="🍞" />
 		<ResourceCounter keyName="mana" icon="💧" />
 		<ResourceCounter keyName="gold" icon="💰" />
-		{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
-			<div class="ui-chip scout-chip">Scouting {$gameSessionState.viewedPlayer.name}</div>
+		{#if $appViewState.isScouting && $appViewState.viewedPlayerName}
+			<div class="ui-chip scout-chip">Scouting {$appViewState.viewedPlayerName}</div>
 		{/if}
 	</div>
 
@@ -129,10 +90,10 @@
 
 	<div class="bottom-actions-wrap">
 		<TopActionButtons
-			blueprintCount={blueprintCount}
-			armyCount={armyCount}
-			canTownInteract={$gameSessionState.canTownInteract}
-			canArmyReorder={$gameSessionState.canArmyReorder}
+			blueprintCount={$appViewState.blueprintCount}
+			armyCount={$appViewState.armyCount}
+			canTownInteract={$appViewState.canTownInteract}
+			canArmyReorder={$appViewState.canArmyReorder}
 			on:openBlueprints={openBlueprints}
 			on:openShop={openShop}
 			on:openArmy={openArmy}
@@ -142,22 +103,22 @@
 	<PhaseTimer />
 
 	<MultiplayerPanel />
-	{#if activeOverlay?.fightPanel && overlayScreenView === 'overview'}
+	{#if $appViewState.activeOverlay?.fightPanel && overlayScreenView === 'overview'}
 		<FightPhasePanel />
 	{/if}
-	{#if activeOverlay?.advancePanel && overlayScreenView === 'overview'}
+	{#if $appViewState.activeOverlay?.advancePanel && overlayScreenView === 'overview'}
 		<AdvancePhasePanel />
 	{/if}
 
-	{#if activeOverlay}
+	{#if $appViewState.activeOverlay}
 		<div class="fight-toggle-wrap">
 			<button class="ui-button fight-toggle" on:click={toggleOverlayScreenView}>
-				{overlayScreenView === 'overview' ? activeOverlay.showTownToggleLabel : activeOverlay.showOverviewToggleLabel}
+				{overlayScreenView === 'overview' ? $appViewState.activeOverlay.showTownToggleLabel : $appViewState.activeOverlay.showOverviewToggleLabel}
 			</button>
 		</div>
 	{/if}
 
-	{#if !activeOverlay}
+	{#if !$appViewState.activeOverlay}
 		<Sidebar />
 		<BuildingSelector />
 	{/if}

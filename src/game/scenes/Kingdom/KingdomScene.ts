@@ -1,7 +1,7 @@
 import { Scene } from 'phaser';
 import { configuration } from '../../configuration';
 import type { BuildingCatalogSnapshot, KingdomTileSnapshot } from '../../../shared/multiplayer/contracts/snapshots';
-import { gameSessionClient, gameSessionState } from '../../../multiplayer/client/gameSessionStore';
+import { gameSessionClient } from '../../../multiplayer/client/gameSessionStore';
 import {
 	OVERLAY_BACKGROUND_EVENT,
 	OVERLAY_TOWN_VISIBILITY_EVENT,
@@ -11,6 +11,7 @@ import {
 import { ConstructionBadge } from './projection/ConstructionBadge';
 import { ProjectionRenderSystem } from './projection/ProjectionRenderSystem';
 import { ProjectionHexGrid } from './projection/ProjectionHexGrid';
+import { kingdomCatalogProjectionState, kingdomTileProjectionState } from './projection/kingdomSceneProjectionState';
 import { ProjectionWorld, type ProjectionRenderState } from './projection/model';
 
 export class KingdomScene extends Scene {
@@ -23,7 +24,8 @@ export class KingdomScene extends Scene {
 	private readonly MIN_CAMERA_ZOOM = 0.6;
 	private readonly MAX_CAMERA_ZOOM = 2.4;
 	private readonly CAMERA_ZOOM_STEP = 0.12;
-	private stateUnsubscribe: (() => void) | null = null;
+	private catalogUnsubscribe: (() => void) | null = null;
+	private tileProjectionUnsubscribe: (() => void) | null = null;
 	private isPanning = false;
 	private panPointerStart = new Phaser.Math.Vector2();
 	private panCameraStart = new Phaser.Math.Vector2();
@@ -120,12 +122,14 @@ export class KingdomScene extends Scene {
 
 		this.scale.on('resize', this.handleResize);
 
-		this.stateUnsubscribe = gameSessionState.subscribe((state) => {
-			this.loadCatalogAssets({ buildings: state.catalog });
-			this.applyKingdomSnapshot(state.kingdom.tiles);
-			this.hexGridSystem.relayout();
-			this.applyOverlayRenderMode();
+		this.catalogUnsubscribe = kingdomCatalogProjectionState.subscribe((catalog) => {
+			this.loadCatalogAssets(catalog);
 		});
+		this.tileProjectionUnsubscribe = kingdomTileProjectionState.subscribe((tiles) => {
+			this.applyKingdomSnapshot(tiles);
+			this.hexGridSystem.relayout();
+		});
+		this.applyOverlayRenderMode();
 		window.addEventListener(OVERLAY_TOWN_VISIBILITY_EVENT, this.handleOverlayTownVisibilityChanged as EventListener);
 		window.addEventListener(OVERLAY_BACKGROUND_EVENT, this.handleOverlayBackgroundChanged as EventListener);
 		this.events.once('shutdown', () => {
@@ -138,8 +142,10 @@ export class KingdomScene extends Scene {
 			this.input.off('wheel', this.handleWheel);
 			window.removeEventListener(OVERLAY_TOWN_VISIBILITY_EVENT, this.handleOverlayTownVisibilityChanged as EventListener);
 			window.removeEventListener(OVERLAY_BACKGROUND_EVENT, this.handleOverlayBackgroundChanged as EventListener);
-			this.stateUnsubscribe?.();
-			this.stateUnsubscribe = null;
+			this.catalogUnsubscribe?.();
+			this.tileProjectionUnsubscribe?.();
+			this.catalogUnsubscribe = null;
+			this.tileProjectionUnsubscribe = null;
 		});
 
 		this.input.on('pointerdown', this.handlePointerDown);

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { combatModalState } from './uiState';
-	import { combatOpenRequestState, combatState } from './gameState';
-	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
+	import { combatPanelState } from './projections/combatViewState';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let modal: { isOpen: boolean } = { isOpen: false };
 	const unsubModal = combatModalState.subscribe(v => (modal = v));
@@ -15,11 +15,12 @@
 		armyB: [],
 		log: []
 	} as any;
-	const unsubCombat = combatState.subscribe(v => (state = v as any));
+	const unsubCombat = combatPanelState.subscribe(v => (state = v.combat as any));
 	let stepPending = false;
 	let lastCombatOpenRequest = 0;
 
-	const unsubCombatOpen = combatOpenRequestState.subscribe((requestId) => {
+	const unsubCombatOpen = combatPanelState.subscribe((view) => {
+		const requestId = view.combatOpenRequest;
 		if (requestId <= lastCombatOpenRequest) return;
 		lastCombatOpenRequest = requestId;
 		combatModalState.set({ isOpen: true });
@@ -30,7 +31,7 @@
 	}
 
 	async function step() {
-		if (stepPending || !$gameSessionState.canCombatStep) return;
+		if (stepPending || !$combatPanelState.canCombatStep) return;
 		stepPending = true;
 		const result = await gameSessionClient.requestCombatStep(1);
 		stepPending = false;
@@ -58,12 +59,12 @@
 			<div class="ui-modal-header">
 				<h2 class="ui-modal-title">Combat</h2>
 				<div class="header-actions">
-					<button class="ui-button" on:click={step} disabled={state.status !== 'running' || stepPending || !$gameSessionState.canCombatStep}>Next action</button>
+					<button class="ui-button" on:click={step} disabled={state.status !== 'running' || stepPending || !$combatPanelState.canCombatStep}>Next action</button>
 					<button class="ui-close-btn" on:click={close}>X</button>
 				</div>
 			</div>
-			{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
-				<div class="readonly-banner">Scouting {$gameSessionState.viewedPlayer.name}. Combat controls are disabled.</div>
+			{#if $combatPanelState.isScouting && $combatPanelState.viewedPlayerName}
+				<div class="readonly-banner">Scouting {$combatPanelState.viewedPlayerName}. Combat controls are disabled.</div>
 			{/if}
 
 			<div class="meta">

@@ -23,6 +23,14 @@ This document defines the current end-to-end flow for multiplayer UI interaction
 - Main orchestrator: src/multiplayer/server/RoomGameRuntime.ts.
 - Phase-specific logic: src/multiplayer/server/gameplay/phases/*.ts.
 
+### Server Application Layer
+
+- Command-level coordinator: src/multiplayer/server/app/LobbyApplicationService.ts.
+- Lobby lifecycle ownership: src/multiplayer/server/app/LobbyLifecycleService.ts.
+- Runtime ownership and dispatch: src/multiplayer/server/app/LobbyRuntimeOrchestrator.ts.
+- Event emission boundary: src/multiplayer/server/app/ServerEventPublisher.ts.
+- Transport gateway: src/multiplayer/server/app/SocketGateway.ts.
+
 ### Shared Contracts
 
 - Commands: src/shared/multiplayer/contracts/commands.ts.
@@ -173,29 +181,158 @@ The plan is intentionally file-level and ordered, so each task has unambiguous o
 
 ### Phase C - Projection and UI Consumer Migration
 
-- Move component-specific derivations from Svelte components to `src/ui/projections/*` modules.
-- Reduce direct dependencies on `gameSessionState` in UI components.
-- Keep only shared selectors in `src/ui/gameState.ts`.
+#### C1. Introduce dedicated UI projection modules by domain
+
+- Create or extend `src/ui/projections/*` modules for component-specific view state:
+	- `shopViewState.ts`
+	- `armyViewState.ts`
+	- `combatViewState.ts`
+	- `advanceViewState.ts`
+	- `fightViewState.ts`
+	- `buildingSelectorViewState.ts`
+	- `sidebarViewState.ts`
+	- `resourceViewState.ts`
+	- `renownLeaderboardState.ts`
+	- `appViewState.ts`
+- Each module should expose typed derived stores and reusable formatting helpers when needed.
+- Add JSDoc for exported projection types and stores.
+
+#### C2. Move component-local derivations into projection modules
+
+- Update `src/ui/*.svelte` consumers to read pre-derived view data from projection stores.
+- Remove per-component derivation of:
+	- lobby player name lookup maps
+	- scouting/read-only labels
+	- overlay phase config selection
+	- blueprint/army aggregate counts
+	- leaderboard ranking shaping
+- Keep Svelte components focused on rendering and interaction dispatch only.
+
+#### C3. Reduce direct `gameSessionState` usage in UI components
+
+- Replace direct imports of `gameSessionState` in UI components with projection store imports.
+- Keep direct imports only where transport actions are triggered via `gameSessionClient`.
+- Ensure each component subscribes only to minimal projection slices required for rendering.
+
+#### C4. Constrain `src/ui/gameState.ts` to shared selectors only
+
+- Keep `src/ui/gameState.ts` limited to broad shared selectors used by multiple projection modules.
+- Move component-specific selectors out of this module.
+- Remove obsolete exports and update imports accordingly.
+
+#### C5. Verify UI behavior parity after projection cutover
+
+- Confirm no UI interaction regressions for build/shop/army/combat/advance/fight views.
+- Confirm scouting/read-only messaging still appears consistently across affected components.
 
 ### Phase D - Kingdom Scene Projection Isolation
 
-- Narrow `KingdomScene` subscriptions to dedicated projection stores.
-- Avoid full-state subscription-driven relayout on unrelated updates.
+#### D1. Introduce Kingdom scene projection store module
+
+- Create `src/game/scenes/Kingdom/projection/kingdomSceneProjectionState.ts`.
+- Expose narrow stores for scene consumers:
+	- building catalog snapshot projection used for asset loading
+	- kingdom tile snapshot projection used for render world sync
+- Ensure projection emission is guarded by reference/identity checks to avoid redundant scene updates.
+
+#### D2. Refactor `KingdomScene` to subscribe to narrow stores
+
+- Replace `gameSessionState` subscription in `src/game/scenes/Kingdom/KingdomScene.ts`.
+- Use independent subscriptions for:
+	- catalog changes -> `loadCatalogAssets(...)`
+	- tile snapshot changes -> `applyKingdomSnapshot(...)`
+- Keep overlay and input behavior unchanged.
+
+#### D3. Remove full-state relayout churn in scene update flow
+
+- Trigger `hexGridSystem.relayout()` only for tile/camera/layout events, not every session update.
+- Preserve relayout behavior on resize and real tile projection changes.
+
+#### D4. Verify rendering and interaction parity in Kingdom scene
+
+- Confirm tile selection, building sprite loading, and construction badge rendering still work.
+- Confirm panning/zoom and overlay hide/show behavior remain unchanged.
 
 ### Phase E - Server Application Service Decomposition
 
-- Split lobby lifecycle, runtime orchestration, and response emission responsibilities in server app layer.
-- Preserve wire contracts and authoritative runtime behavior.
+#### E1. Introduce dedicated server event publisher module
+
+- Create `src/multiplayer/server/app/ServerEventPublisher.ts`.
+- Move response emission concerns out of `LobbyApplicationService`:
+	- session connected event emission
+	- catalog snapshot emission
+	- lobby state broadcast
+	- game snapshot broadcast
+	- command accepted/rejected event emission
+- Keep payload schemas identical to existing shared wire contracts.
+
+#### E2. Introduce dedicated lobby lifecycle service module
+
+- Create `src/multiplayer/server/app/LobbyLifecycleService.ts`.
+- Move lobby and player lifecycle ownership out of `LobbyApplicationService`:
+	- lobby create/join/leave/solo operations
+	- player connected/disconnected and ready state updates
+	- host reassignment and empty-lobby teardown
+	- player->lobby lookup index and lobby record storage
+- Keep lifecycle rules and validation messages behaviorally equivalent.
+
+#### E3. Introduce dedicated runtime orchestration service module
+
+- Create `src/multiplayer/server/app/LobbyRuntimeOrchestrator.ts`.
+- Move runtime ownership out of `LobbyApplicationService`:
+	- `RoomGameRuntime` creation and start
+	- runtime lookup by lobby
+	- action dispatch to authoritative runtime
+	- runtime stop and cleanup when lobbies are removed
+	- snapshot callback routing to publisher
+
+#### E4. Refactor LobbyApplicationService into orchestration facade
+
+- Keep `LobbyApplicationService` as command-level coordinator only.
+- Delegate:
+	- lifecycle operations to `LobbyLifecycleService`
+	- runtime operations to `LobbyRuntimeOrchestrator`
+	- outbound events to `ServerEventPublisher`
+- Preserve public API used by `SocketGateway` (`handleConnected`, `handleDisconnected`, `handleCommand`).
+
+#### E5. Preserve authoritative behavior and contract compatibility
+
+- Ensure game action command flow remains unchanged from client perspective.
+- Ensure lobby state and game snapshot emissions remain deterministic and equivalent in timing semantics.
 
 ### Phase F - Final Cleanup and Redundancy Removal
 
-- Remove obsolete modules and aliases.
-- Update docs to final architecture only.
-- Ensure no compatibility bridge modules remain.
+#### F1. Remove obsolete compatibility wrappers and aliases
+
+- Remove `src/multiplayer/server/LobbyServer.ts` compatibility wrapper.
+- Remove client store alias module `src/multiplayer/client/multiplayerStore.ts`.
+- Update all imports to canonical modules.
+
+#### F2. Simplify server bootstrap to direct composition
+
+- Update `src/multiplayer/server/index.ts` to compose:
+	- `SocketGateway`
+	- `LobbyApplicationService`
+- Remove wrapper-based server instantiation.
+
+#### F3. Remove dead code paths and redundant helpers
+
+- Delete helper methods no longer needed after E decomposition.
+- Ensure no duplicate command accept/reject emitters remain in multiple modules.
+
+#### F4. Documentation cleanup to final architecture shape
+
+- Update architecture docs to reference final module ownership for client and server layers.
+- Remove mention of temporary compatibility layers and migration-window-only aliases.
+
+#### F5. Final verification pass
+
+- Re-run typecheck and build.
+- Verify no orphaned imports/references to removed modules remain.
 
 ## Acceptance Tests
 
-Each test has a deterministic pass condition. Tests are grouped by phase and should be run in CI and locally.
+Each test has a deterministic pass condition. Tests are grouped by phase and should be run locally.
 
 ### A/B Structural and Type Safety
 
@@ -244,6 +381,91 @@ Each test has a deterministic pass condition. Tests are grouped by phase and sho
 	- advance charter selection dispatches
 - Pass: no runtime exception in browser console, and command feedback remains functional.
 
+### C Structural and Projection Boundary
+
+10. C-T1 UI projection modules compile
+- Command: `bunx tsc --noEmit`
+- Pass: exit code 0 with new projection modules and updated imports.
+
+11. C-T2 UI components no longer depend on full session store directly (targeted set)
+- File check: `src/ui/App.svelte`, `src/ui/Shop.svelte`, `src/ui/Army.svelte`, `src/ui/Combat.svelte`, `src/ui/AdvancePhasePanel.svelte`, `src/ui/FightPhasePanel.svelte`, `src/ui/BuildingSelector.svelte`, `src/ui/Sidebar.svelte`, `src/ui/ResourceCounter.svelte`, `src/ui/RenownLeaderboard.svelte`
+- Pass: components import projection stores for view derivation instead of deriving directly from `gameSessionState`.
+
+12. C-T3 Shared selector boundary in gameState module
+- File check: `src/ui/gameState.ts`
+- Pass: module contains only shared cross-cutting selectors, not component-specific derived view models.
+
+13. C-T4 Production build after UI cutover
+- Command: `bun run build`
+- Pass: build succeeds with no Svelte compile regressions.
+
+### D Runtime and Scene Subscription Isolation
+
+14. D-T1 Kingdom scene no longer subscribes to full session state
+- File check: `src/game/scenes/Kingdom/KingdomScene.ts`
+- Pass: no `gameSessionState.subscribe(...)` usage remains.
+
+15. D-T2 Dedicated scene projection module purity
+- File check: `src/game/scenes/Kingdom/projection/kingdomSceneProjectionState.ts`
+- Pass: module is projection-only, has no Phaser imports, and no scene side effects.
+
+16. D-T3 Relayout trigger narrowing
+- File check: `src/game/scenes/Kingdom/KingdomScene.ts`
+- Pass: `hexGridSystem.relayout()` is not triggered by unrelated session updates; only resize and tile projection updates trigger relayout.
+
+17. D-S1 Manual Kingdom scene smoke
+- Setup: start server, open client, enter game, perform tile selection/build/upgrade/destroy and phase transitions.
+- Verify:
+	- tile selection updates sidebar consistently
+	- new building textures still load when first encountered
+	- camera pan/zoom and overlay hide/show still work
+	- no visible jitter from unrelated state updates (e.g. timer ticks)
+- Pass: no runtime errors and no scene desync observed.
+
+### E Server Decomposition Structural and Runtime
+
+18. E-T1 Server decomposition compiles
+- Command: `bunx tsc --noEmit`
+- Pass: no TypeScript errors after service split.
+
+19. E-T2 Application service responsibility boundary
+- File check: `src/multiplayer/server/app/LobbyApplicationService.ts`
+- Pass: no direct lobby map storage, no runtime map storage, and no direct event payload construction helpers remain.
+
+20. E-T3 Lifecycle ownership isolation
+- File check: `src/multiplayer/server/app/LobbyLifecycleService.ts`
+- Pass: module owns lobby/player records, player-lobby index, and lifecycle mutation rules.
+
+21. E-T4 Runtime ownership isolation
+- File check: `src/multiplayer/server/app/LobbyRuntimeOrchestrator.ts`
+- Pass: module owns runtime map and runtime start/stop/action dispatch.
+
+22. E-T5 Event emission ownership isolation
+- File check: `src/multiplayer/server/app/ServerEventPublisher.ts`
+- Pass: module owns accepted/rejected and snapshot/lobby/session event emission.
+
+23. E-S1 Multiplayer server smoke
+- Setup: start server, connect one client, create solo lobby, enter game, issue one valid game action.
+- Pass: no runtime exception and command response + snapshot flow still works.
+
+### F Cleanup and Redundancy Removal
+
+24. F-T1 No compatibility wrapper server class remains
+- File check: `src/multiplayer/server/LobbyServer.ts`
+- Pass: file removed and no imports reference it.
+
+25. F-T2 No multiplayer store alias remains
+- File check: `src/multiplayer/client/multiplayerStore.ts`
+- Pass: file removed and no imports reference it.
+
+26. F-T3 Production build after cleanup
+- Command: `bun run build`
+- Pass: build succeeds and bundle generation completes.
+
+27. F-T4 Documentation reflects final architecture only
+- File check: `docs/client_server_store_architecture.md`
+- Pass: phase text reflects final module boundaries without compatibility-bridge references.
+
 ## A/B Execution Order
 
 Use this exact order while implementing now:
@@ -252,3 +474,23 @@ Use this exact order while implementing now:
 2. B1 -> B2 -> B3 -> B4
 3. Run AB-T1 and AB-T2
 4. Run AB-S1
+
+## C/D Execution Order
+
+Use this exact order while implementing now:
+
+1. C1 -> C2 -> C3 -> C4 -> C5
+2. D1 -> D2 -> D3 -> D4
+3. Run C-T1 and C-T4
+4. Run D-T1, D-T2, D-T3
+5. Run D-S1
+
+## E/F Execution Order
+
+Use this exact order while implementing now:
+
+1. E1 -> E2 -> E3 -> E4 -> E5
+2. F1 -> F2 -> F3 -> F4 -> F5
+3. Run E-T1 and E-T2..E-T5
+4. Run F-T1, F-T2, F-T3, F-T4
+5. Run E-S1

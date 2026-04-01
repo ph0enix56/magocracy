@@ -1,24 +1,14 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
+	import { createResourceAmountState } from './projections/resourceViewState';
 
 	export let keyName: string;
 	export let icon: string;
-
-	let value = 0;
-
-	const unsubscribe = gameSessionState.subscribe((state) => {
-		value = state.resources[keyName] ?? 0;
-	});
-
-	onDestroy(() => {
-		unsubscribe();
-	});
+	$: valueState = createResourceAmountState(keyName);
 </script>
 
 <div class="ui-chip resource">
 	<div class="icon">{icon}</div>
-	<div class="value">{value}</div>
+	<div class="value">{$valueState}</div>
 </div>
 
 <style>

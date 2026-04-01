@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { multiplayerClient } from '../multiplayer/client/clientSingleton';
-	import { multiplayerState } from '../multiplayer/client/multiplayerStore';
+	import { gameSessionState } from '../multiplayer/client/gameSessionStore';
 
-	$: selfPlayer = $multiplayerState.lobby?.players.find((player) => player.playerId === $multiplayerState.playerId) ?? null;
+	$: selfPlayer = $gameSessionState.lobby?.players.find((player) => player.playerId === $gameSessionState.playerId) ?? null;
 
 	function connectMultiplayer() {
 		multiplayerClient.connect();
@@ -13,7 +13,7 @@
 	}
 
 	function renamePlayer() {
-		const next = window.prompt('Player name', $multiplayerState.playerName)?.trim();
+		const next = window.prompt('Player name', $gameSessionState.playerName)?.trim();
 		if (!next) return;
 		multiplayerClient.setPlayerName(next);
 	}
@@ -51,41 +51,41 @@
 <div class="multiplayer-panel ui-panel">
 	<div class="multiplayer-title">Multiplayer</div>
 	<div class="multiplayer-row">
-		<span>{$multiplayerState.connectionStatus}</span>
-		<span>{$multiplayerState.playerName}</span>
+		<span>{$gameSessionState.connectionStatus}</span>
+		<span>{$gameSessionState.playerName}</span>
 	</div>
-	{#if $multiplayerState.lobby}
+	{#if $gameSessionState.lobby}
 		<div class="multiplayer-row">
-			<span>Lobby {$multiplayerState.lobby.lobbyId}</span>
-			<span>{$multiplayerState.lobby.players.length}/{$multiplayerState.lobby.maxPlayers}</span>
+			<span>Lobby {$gameSessionState.lobby.lobbyId}</span>
+			<span>{$gameSessionState.lobby.players.length}/{$gameSessionState.lobby.maxPlayers}</span>
 		</div>
 	{/if}
-	{#if $multiplayerState.game}
+	{#if $gameSessionState.game}
 		<div class="multiplayer-row">
-			<span>Tick {$multiplayerState.game.tick}</span>
-			<span>Phase {phaseLabel($multiplayerState.game.phase)}</span>
+			<span>Tick {$gameSessionState.game.tick}</span>
+			<span>Phase {phaseLabel($gameSessionState.game.phase)}</span>
 		</div>
 		<div class="multiplayer-row">
-			<span>Status {$multiplayerState.game.status}</span>
-			<span>Renown {$multiplayerState.game.targetRenown}</span>
+			<span>Status {$gameSessionState.game.status}</span>
+			<span>Renown {$gameSessionState.game.targetRenown}</span>
 		</div>
-		{#if $multiplayerState.game.phase === 'build'}
+		{#if $gameSessionState.game.phase === 'build'}
 			<div class="multiplayer-row">
 				<span>Build ends in</span>
-				<span>{$multiplayerState.game.buildPhaseSecondsRemaining}s</span>
+				<span>{$gameSessionState.game.buildPhaseSecondsRemaining}s</span>
 			</div>
 		{/if}
-		{#if $multiplayerState.viewedPlayer}
+		{#if $gameSessionState.viewedPlayer}
 			<div class="multiplayer-row multiplayer-row--viewing">
 				<span>Viewing</span>
-				<span>{$multiplayerState.viewedPlayer.name}</span>
+				<span>{$gameSessionState.viewedPlayer.name}</span>
 			</div>
 		{/if}
-		{#if $multiplayerState.game.status === 'finished'}
+		{#if $gameSessionState.game.status === 'finished'}
 			<div class="multiplayer-finished">
 				<div class="multiplayer-finished-title">Final standings</div>
-				{#each $multiplayerState.game.finalStandings as standing (standing.playerId)}
-					{@const lobbyPlayer = $multiplayerState.lobby?.players.find((player) => player.playerId === standing.playerId)}
+				{#each $gameSessionState.game.finalStandings as standing (standing.playerId)}
+					{@const lobbyPlayer = $gameSessionState.lobby?.players.find((player) => player.playerId === standing.playerId)}
 					<div class="multiplayer-row multiplayer-row--standing">
 						<span>#{standing.rank} {lobbyPlayer?.name ?? standing.playerId}</span>
 						<span>{standing.renown}</span>
@@ -94,30 +94,30 @@
 			</div>
 		{/if}
 	{/if}
-	{#if $multiplayerState.lastError}
-		<div class="multiplayer-error">{$multiplayerState.lastError}</div>
+	{#if $gameSessionState.lastError}
+		<div class="multiplayer-error">{$gameSessionState.lastError}</div>
 	{/if}
 	<div class="multiplayer-actions">
-		{#if $multiplayerState.connectionStatus !== 'connected'}
+		{#if $gameSessionState.connectionStatus !== 'connected'}
 			<button class="ui-button" on:click={connectMultiplayer}>Connect</button>
 		{:else}
 			<button class="ui-button" on:click={disconnectMultiplayer}>Disconnect</button>
 		{/if}
 		<button class="ui-button ui-button--ghost" on:click={renamePlayer}>Rename</button>
 	</div>
-	{#if $multiplayerState.connectionStatus === 'connected' && !$multiplayerState.lobby}
+	{#if $gameSessionState.connectionStatus === 'connected' && !$gameSessionState.lobby}
 		<div class="multiplayer-actions">
 			<button class="ui-button" on:click={createLobby}>Create Lobby</button>
 			<button class="ui-button ui-button--ghost" on:click={joinLobby}>Join Lobby</button>
 		</div>
 	{/if}
-	{#if $multiplayerState.lobby}
+	{#if $gameSessionState.lobby}
 		<div class="multiplayer-actions">
 			<button class="ui-button" on:click={toggleReady}>{selfPlayer?.isReady ? 'Unready' : 'Ready'}</button>
 			<button class="ui-button ui-button--ghost" on:click={leaveLobby}>Leave</button>
 		</div>
 		{#if selfPlayer?.isHost}
-			<button class="ui-button multiplayer-start" on:click={startLobbyGame} disabled={$multiplayerState.lobby.status !== 'open'}>
+			<button class="ui-button multiplayer-start" on:click={startLobbyGame} disabled={$gameSessionState.lobby.status !== 'open'}>
 				Start Match
 			</button>
 		{/if}

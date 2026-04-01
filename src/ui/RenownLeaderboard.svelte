@@ -1,21 +1,8 @@
 <script lang="ts">
-	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
-
-	type LeaderboardEntry = {
-		playerId: string;
-		name: string;
-		renown: number;
-		isSelf: boolean;
-	};
+	import { renownLeaderboardState, type LeaderboardEntry } from './projections/renownLeaderboardState';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let hoveredPlayerId: string | null = null;
-	let leaderboardEntries: LeaderboardEntry[] = [];
-	let activeViewPlayerId: string | null = null;
-
-	function toRenown(value: unknown): number {
-		if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
-		return Math.max(0, Math.floor(value));
-	}
 
 	function hoverEntry(entry: LeaderboardEntry): void {
 		hoveredPlayerId = entry.isSelf ? null : entry.playerId;
@@ -32,38 +19,17 @@
 		}
 		gameSessionClient.scoutPlayer(entry.playerId);
 	}
-
-	$: activeViewPlayerId = $gameSessionState.viewedPlayerId ?? $gameSessionState.playerId;
-
-	$: {
-		const lobbyPlayers = $gameSessionState.lobby?.players ?? [];
-		const gamePlayers = $gameSessionState.game?.players ?? [];
-		const renownByPlayerId = new Map<string, number>();
-
-		for (const gamePlayer of gamePlayers) {
-			renownByPlayerId.set(gamePlayer.playerId, toRenown(gamePlayer.resources['renown']));
-		}
-
-		leaderboardEntries = lobbyPlayers
-			.map((player) => ({
-				playerId: player.playerId,
-				name: player.name,
-				renown: renownByPlayerId.get(player.playerId) ?? 0,
-				isSelf: player.playerId === $gameSessionState.playerId
-			}))
-			.sort((a, b) => b.renown - a.renown || a.name.localeCompare(b.name));
-	}
 </script>
 
-{#if leaderboardEntries.length > 1}
+{#if $renownLeaderboardState.entries.length > 1}
 	<div class="renown-leaderboard" aria-label="Renown leaderboard">
-		{#each leaderboardEntries as entry (entry.playerId)}
+		{#each $renownLeaderboardState.entries as entry (entry.playerId)}
 			<button
 				type="button"
 				class="leaderboard-card"
 				class:leaderboard-card--self={entry.isSelf}
 				class:leaderboard-card--hover={hoveredPlayerId === entry.playerId}
-				class:leaderboard-card--active={activeViewPlayerId === entry.playerId && !entry.isSelf}
+				class:leaderboard-card--active={$renownLeaderboardState.activeViewPlayerId === entry.playerId && !entry.isSelf}
 				on:mouseenter={() => hoverEntry(entry)}
 				on:mouseleave={clearHover}
 				on:focus={() => hoverEntry(entry)}

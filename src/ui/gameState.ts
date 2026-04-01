@@ -1,27 +1,22 @@
 import { derived } from 'svelte/store';
-import type { AdvanceSnapshot, BuildingCatalogEntry, FightSnapshot, LobbyPlayerSnapshot } from '../shared/multiplayer/contracts/snapshots';
-import type { ArmyUnit } from '../shared/domain/gameViews';
-import type { CombatSnapshot } from '../shared/domain/combatTypes';
+import type { BuildingCatalogEntry, LobbyPlayerSnapshot, PlayerGameView } from '../shared/multiplayer/contracts/snapshots';
+import type { ResourceMap } from '../shared/domain/types';
 import { gameSessionState, type SelectedTileView } from '../multiplayer/client/gameSessionStore';
 
-export const blueprintInventory = derived(gameSessionState, ($state) => $state.blueprints);
+/** Shared selector for authoritative resources of the currently viewed player. */
+export const sessionResourcesState = derived(gameSessionState, ($state): ResourceMap => $state.resources);
 
-export type ShopViewState = {
-	offers: Array<string | null>;
-	buyCost: number;
-	rerollCost: number;
-};
+/** Shared selector for currently available building catalog entries. */
+export const sessionBuildingCatalogState = derived(gameSessionState, ($state): BuildingCatalogEntry[] => $state.catalog);
 
-export const shopState = derived(gameSessionState, ($state): ShopViewState => $state.shop);
+/** Shared selector for lobby roster used by multiple projection modules. */
+export const sessionLobbyPlayersState = derived(gameSessionState, ($state): LobbyPlayerSnapshot[] => $state.lobby?.players ?? []);
 
-export const armyState = derived(gameSessionState, ($state): ArmyUnit[] => $state.army);
+/** Shared selector for game player views used by multiple projection modules. */
+export const sessionGamePlayersState = derived(gameSessionState, ($state): PlayerGameView[] => $state.game?.players ?? []);
 
-export const combatState = derived(gameSessionState, ($state): CombatSnapshot => $state.combat);
-export const fightState = derived(gameSessionState, ($state): FightSnapshot => $state.fight);
-export const advanceState = derived(gameSessionState, ($state): AdvanceSnapshot => $state.advance);
-export const selectedTileState = derived(gameSessionState, ($state): SelectedTileView | null => $state.selectedTile);
-export const buildingCatalogState = derived(gameSessionState, ($state): BuildingCatalogEntry[] => $state.catalog);
-export const combatOpenRequestState = derived(gameSessionState, ($state) => $state.combatOpenRequest);
+/** Shared selector for tile context consumed by scene and panel projections. */
+export const sessionSelectedTileState = derived(gameSessionState, ($state): SelectedTileView | null => $state.selectedTile);
 
 export type ViewModeState = {
 	canIssueCommands: boolean;

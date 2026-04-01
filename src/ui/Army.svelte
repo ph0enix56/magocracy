@@ -1,15 +1,11 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
 	import type { ResourceMap } from '../shared/domain/types';
 	import { armyModalState } from './uiState';
-	import { armyState } from './gameState';
-	import { gameSessionClient, gameSessionState } from '../multiplayer/client/gameSessionStore';
+	import { armyPanelState } from './projections/armyViewState';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let state: { isOpen: boolean } = { isOpen: false };
 	armyModalState.subscribe(v => (state = v));
-
-	let units = [] as any[];
-	armyState.subscribe(v => (units = v));
 
 	let pendingTrain: string | null = null;
 
@@ -25,7 +21,7 @@
 	}
 
 	async function train(unitEntityId: string) {
-		if (pendingTrain || !$gameSessionState.canTownInteract) return;
+		if (pendingTrain || !$armyPanelState.canTownInteract) return;
 		pendingTrain = unitEntityId;
 		const result = await gameSessionClient.requestArmyTrain(unitEntityId);
 		pendingTrain = null;
@@ -35,15 +31,12 @@
 	}
 
 	async function reorder(unitEntityId: string, direction: 'up' | 'down') {
-		if (!$gameSessionState.canArmyReorder) return;
+		if (!$armyPanelState.canArmyReorder) return;
 		const result = await gameSessionClient.requestArmyReorder(unitEntityId, direction);
 		if (!result.ok) {
 			alert(result.reason);
 		}
 	}
-
-	onDestroy(() => {
-	});
 </script>
 
 {#if state.isOpen}
@@ -53,16 +46,16 @@
 				<h2 class="ui-modal-title">Army</h2>
 				<button class="ui-close-btn" on:click={close}>X</button>
 			</div>
-			{#if $gameSessionState.isScouting && $gameSessionState.viewedPlayer}
-				<div class="readonly-banner">Scouting {$gameSessionState.viewedPlayer.name}. Army actions are disabled.</div>
+			{#if $armyPanelState.isScouting && $armyPanelState.viewedPlayerName}
+				<div class="readonly-banner">Scouting {$armyPanelState.viewedPlayerName}. Army actions are disabled.</div>
 			{/if}
 
 			<div class="list">
-				{#if units.length === 0}
+				{#if $armyPanelState.units.length === 0}
 					<div class="empty ui-muted">No units yet. Build an army building.</div>
 				{/if}
 
-				{#each units as u, i (u.entityId)}
+				{#each $armyPanelState.units as u, i (u.entityId)}
 					<div class="unit-card">
 						<div class="icon-container">
 							<img class="unit-icon unit-icon--ally" src={`assets/${u.assetPath}`} alt={u.name} />
@@ -73,10 +66,10 @@
 									{u.name} <span class="lvl">Lv {u.trainingLevel}</span>
 								</div>
 								<div class="reorder">
-									<button class="ui-button ui-button--tiny reorder-btn" disabled={i === 0 || !$gameSessionState.canArmyReorder} on:click={() => reorder(u.entityId, 'up')}>↑</button>
+									<button class="ui-button ui-button--tiny reorder-btn" disabled={i === 0 || !$armyPanelState.canArmyReorder} on:click={() => reorder(u.entityId, 'up')}>↑</button>
 									<button
 										class="ui-button ui-button--tiny reorder-btn"
-										disabled={i === units.length - 1 || !$gameSessionState.canArmyReorder}
+										disabled={i === $armyPanelState.units.length - 1 || !$armyPanelState.canArmyReorder}
 										on:click={() => reorder(u.entityId, 'down')}
 									>
 										↓
@@ -96,7 +89,7 @@
 								</div>
 								<button
 									class="ui-button"
-									disabled={u.trainingStatus === 'training' || pendingTrain !== null || !$gameSessionState.canTownInteract}
+									disabled={u.trainingStatus === 'training' || pendingTrain !== null || !$armyPanelState.canTownInteract}
 									on:click={() => train(u.entityId)}
 								>
 									{u.trainingStatus === 'training' ? 'Training…' : 'Train'}
