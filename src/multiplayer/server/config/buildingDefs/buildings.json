@@ -7,9 +7,13 @@
     "description": "Extracts stone from the earth.",
     "textureId": "building_stone_mine",
     "assetPath": "game_icons/stone-crafting.svg",
-    "cost": { "wood": 35 },
+    "cost": {
+      "wood": 35
+    },
     "buildTime": 5,
-    "production": { "productions": { "stone": 5 } }
+    "productions": {
+      "stone": 5
+    }
   },
   {
     "id": "stone_mine_2",
@@ -20,9 +24,14 @@
     "description": "Upgraded mine with better tools and throughput.",
     "textureId": "building_stone_mine",
     "assetPath": "game_icons/stone-crafting.svg",
-    "cost": { "wood": 60, "stone": 30 },
+    "cost": {
+      "wood": 60,
+      "stone": 30
+    },
     "buildTime": 8,
-    "production": { "productions": { "stone": 8 } }
+    "productions": {
+      "stone": 8
+    }
   },
   {
     "id": "stone_mine_3",
@@ -33,9 +42,14 @@
     "description": "Deep shafts and reinforced supports.",
     "textureId": "building_stone_mine",
     "assetPath": "game_icons/stone-crafting.png",
-    "cost": { "wood": 90, "stone": 70 },
+    "cost": {
+      "wood": 90,
+      "stone": 70
+    },
     "buildTime": 12,
-    "production": { "productions": { "stone": 12 } }
+    "productions": {
+      "stone": 12
+    }
   },
   {
     "id": "lumber_camp",
@@ -45,12 +59,16 @@
     "description": "Cuts wood. Lumber Camps near each other work more efficiently.",
     "textureId": "building_lumber_camp",
     "assetPath": "game_icons/axe-in-stump.png",
-    "cost": { "stone": 60 },
+    "cost": {
+      "stone": 60
+    },
     "buildTime": 10,
-    "production": { "productions": { "wood": 10 } },
     "effects": [
       "self-foreach; school=sylvan & hasProd; prod:all; mult; 0.1"
-    ]
+    ],
+    "productions": {
+      "wood": 10
+    }
   },
   {
     "id": "lumber_camp_2",
@@ -61,12 +79,17 @@
     "description": "Sharper saws and better logistics.",
     "textureId": "building_lumber_camp",
     "assetPath": "game_icons/axe-in-stump.png",
-    "cost": { "stone": 80, "wood": 30 },
+    "cost": {
+      "stone": 80,
+      "wood": 30
+    },
     "buildTime": 12,
-    "production": { "productions": { "wood": 14 } },
     "effects": [
       "self-foreach; school=sylvan & hasProd; prod:all; mult; 0.1"
-    ]
+    ],
+    "productions": {
+      "wood": 14
+    }
   },
   {
     "id": "farm",
@@ -76,12 +99,17 @@
     "description": "Produces food. Farms work faster the more empty tiles are surrounding them.",
     "textureId": "building_farm",
     "assetPath": "game_icons/windmill.png",
-    "cost": { "wood": 40, "stone": 40 },
+    "cost": {
+      "wood": 40,
+      "stone": 40
+    },
     "buildTime": 15,
-    "production": { "productions": { "food": 15 } },
     "effects": [
       "self-foreach; empty; prod:all; mult; 0.05"
-    ]
+    ],
+    "productions": {
+      "food": 15
+    }
   },
   {
     "id": "farm_2",
@@ -92,12 +120,18 @@
     "description": "Crop rotation and irrigation improve yields.",
     "textureId": "building_farm",
     "assetPath": "game_icons/windmill.png",
-    "cost": { "wood": 60, "stone": 60, "food": 50 },
+    "cost": {
+      "wood": 60,
+      "stone": 60,
+      "food": 50
+    },
     "buildTime": 18,
-    "production": { "productions": { "food": 22 } },
     "effects": [
       "self-foreach; empty; prod:all; mult; 0.05"
-    ]
+    ],
+    "productions": {
+      "food": 22
+    }
   },
   {
     "id": "house",
@@ -107,12 +141,16 @@
     "description": "Grants an additive +10% production bonus to neighbors.",
     "textureId": "building_house",
     "assetPath": "game_icons/house.png",
-    "cost": { "wood": 40, "stone": 40, "food": 50 },
+    "cost": {
+      "wood": 40,
+      "stone": 40,
+      "food": 50
+    },
     "buildTime": 20,
-    "production": { "productions": {} },
     "effects": [
       "neighbor; hasProd; prod:all; mult; 0.1"
-    ]
+    ],
+    "productions": {}
   },
   {
     "id": "gold_mine",
@@ -122,9 +160,15 @@
     "description": "Deep shafts allow mining gold in addition to stone.",
     "textureId": "building_gold_mine",
     "assetPath": "game_icons/gold-mine.svg",
-    "cost": { "wood": 50, "stone": 150 },
+    "cost": {
+      "wood": 50,
+      "stone": 150
+    },
     "buildTime": 15,
-    "production": { "productions": { "gold": 5, "stone": 10 } }
+    "productions": {
+      "gold": 5,
+      "stone": 10
+    }
   },
   {
     "id": "sword_barracks",
@@ -134,15 +178,12 @@
     "description": "Melee fighters with decent stats.",
     "textureId": "building_sword_barracks",
     "assetPath": "game_icons/sword-brandish.svg",
-    "cost": { "wood": 50, "stone": 100 },
+    "cost": {
+      "wood": 50,
+      "stone": 100
+    },
     "buildTime": 2,
-    "army": {
-      "unitDefId": "swordsman",
-      "trainCostBase": { "wood": 50, "stone": 25 },
-      "trainCostMult": 1.5,
-      "trainTime": 5,
-      "trainDef": { "health": 20, "attackDamage": 5, "drFlat": 1 }
-    }
+    "housedUnitDefId": "swordsman"
   },
   {
     "id": "archer_range",
@@ -152,15 +193,12 @@
     "description": "Ranged low-health fighters, aiming for the army's back.",
     "textureId": "building_archer_range",
     "assetPath": "game_icons/high-shot.svg",
-    "cost": { "wood": 120, "stone": 40 },
+    "cost": {
+      "wood": 120,
+      "stone": 40
+    },
     "buildTime": 3,
-    "army": {
-      "unitDefId": "archer",
-      "trainCostBase": { "wood": 30, "stone": 10 },
-      "trainCostMult": 1.25,
-      "trainTime": 4,
-      "trainDef": { "health": 5, "attackDamage": 5, "drFlat": 0 }
-    }
+    "housedUnitDefId": "archer"
   },
   {
     "id": "defender_hideout",
@@ -170,15 +208,12 @@
     "description": "Slow-attacking, but armored defenders.",
     "textureId": "building_defender_hideout",
     "assetPath": "game_icons/vibrating-shield.svg",
-    "cost": { "wood": 50, "stone": 50 },
+    "cost": {
+      "wood": 50,
+      "stone": 50
+    },
     "buildTime": 4,
-    "army": {
-      "unitDefId": "defender",
-      "trainCostBase": { "wood": 40, "stone": 60 },
-      "trainCostMult": 1.4,
-      "trainTime": 6,
-      "trainDef": { "health": 50, "attackDamage": 1, "drFlat": 5 }
-    }
+    "housedUnitDefId": "defender"
   },
   {
     "id": "earth_mage_tower",
@@ -188,15 +223,13 @@
     "description": "Earth mages create shockwaves, damaging all enemies.",
     "textureId": "building_earth_mage_tower",
     "assetPath": "game_icons/earth-crack.svg",
-    "cost": { "wood": 80, "stone": 150, "mana": 10 },
+    "cost": {
+      "wood": 80,
+      "stone": 150,
+      "mana": 10
+    },
     "buildTime": 5,
-    "army": {
-      "unitDefId": "earth_mage",
-      "trainCostBase": { "wood": 70, "stone": 80, "mana": 5 },
-      "trainCostMult": 1.6,
-      "trainTime": 8,
-      "trainDef": { "health": 10, "attackDamage": 10, "drFlat": 0 }
-    }
+    "housedUnitDefId": "earth_mage"
   },
   {
     "id": "magic_archer_training_ground",
@@ -206,15 +239,13 @@
     "description": "Magic archers shoot twice, at a first and last army unit.",
     "textureId": "building_magic_archer_training_ground",
     "assetPath": "game_icons/double-shot.svg",
-    "cost": { "wood": 150, "stone": 100, "mana": 20 },
+    "cost": {
+      "wood": 150,
+      "stone": 100,
+      "mana": 20
+    },
     "buildTime": 6,
-    "army": {
-      "unitDefId": "magic_archer",
-      "trainCostBase": { "wood": 100, "stone": 50, "mana": 10 },
-      "trainCostMult": 1.7,
-      "trainTime": 7,
-      "trainDef": { "health": 15, "attackDamage": 7, "drFlat": 2 }
-    }
+    "housedUnitDefId": "magic_archer"
   },
   {
     "id": "crossbow_range",
@@ -224,15 +255,12 @@
     "description": "Improved ranged units shower 3 bolts on the frontline every turn.",
     "textureId": "building_crossbow_range",
     "assetPath": "game_icons/crossbow.svg",
-    "cost": { "wood": 100, "stone": 80 },
+    "cost": {
+      "wood": 100,
+      "stone": 80
+    },
     "buildTime": 4,
-    "army": {
-      "unitDefId": "crossbowman",
-      "trainCostBase": { "wood": 40, "stone": 30 },
-      "trainCostMult": 1.5,
-      "trainTime": 5,
-      "trainDef": { "health": 0, "attackDamage": 5, "drFlat": 0 }
-    }
+    "housedUnitDefId": "crossbowman"
   },
   {
     "id": "assassin_guild",
@@ -242,15 +270,13 @@
     "description": "Stealthy units striking the lowest health enemy unit.",
     "textureId": "building_assassin_guild",
     "assetPath": "game_icons/backstab.svg",
-    "cost": { "wood": 80, "stone": 60, "mana": 15 },
+    "cost": {
+      "wood": 80,
+      "stone": 60,
+      "mana": 15
+    },
     "buildTime": 5,
-    "army": {
-      "unitDefId": "assassin",
-      "trainCostBase": { "wood": 30, "stone": 20, "mana": 5 },
-      "trainCostMult": 2,
-      "trainTime": 4,
-      "trainDef": { "health": 2, "attackDamage": 3, "drFlat": 0 }
-    }
+    "housedUnitDefId": "assassin"
   },
   {
     "id": "death_mage_tower",
@@ -260,15 +286,13 @@
     "description": "Death mages take 5 turns to prepare, then instakill the first enemy.",
     "textureId": "building_death_mage_tower",
     "assetPath": "game_icons/disintegrate.svg",
-    "cost": { "wood": 100, "stone": 30, "mana": 100 },
+    "cost": {
+      "wood": 100,
+      "stone": 30,
+      "mana": 100
+    },
     "buildTime": 5,
-    "army": {
-      "unitDefId": "death_mage",
-      "trainCostBase": { "mana": 10 },
-      "trainCostMult": 2,
-      "trainTime": 10,
-      "trainDef": { "health": 50, "attackDamage": 0, "drFlat": 0 }
-    }
+    "housedUnitDefId": "death_mage"
   },
   {
     "id": "champion_arena",
@@ -278,14 +302,11 @@
     "description": "Versatile fighters, switching attack styles each turn.",
     "textureId": "building_champion_arena",
     "assetPath": "game_icons/brutal-helm.svg",
-    "cost": { "wood": 150, "stone": 150 },
+    "cost": {
+      "wood": 150,
+      "stone": 150
+    },
     "buildTime": 6,
-    "army": {
-      "unitDefId": "champion",
-      "trainCostBase": { "wood": 150, "stone": 150 },
-      "trainCostMult": 1.1,
-      "trainTime": 10,
-      "trainDef": { "health": 20, "attackDamage": 2, "drFlat": 2 }
-    }
+    "housedUnitDefId": "champion"
   }
 ]

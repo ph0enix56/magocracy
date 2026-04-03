@@ -24,7 +24,7 @@ export function toLobbySnapshot(lobby: LobbyRecord): LobbySnapshot {
 export function buildBuildingCatalog(): BuildingCatalogEntry[] {
 	return getAllBuildingDefs().map((def) => ({
 		id: def.id,
-		kind: def.army ? 'army' : 'production',
+		kind: def.housedUnitDefId ? 'army' : 'production',
 		school: def.school,
 		tier: def.tier,
 		parentId: def.parentId,

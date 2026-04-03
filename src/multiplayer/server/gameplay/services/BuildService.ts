@@ -27,6 +27,7 @@ export class BuildService {
 			if (building.progress < targetDef.buildTime) continue;
 
 			building.progress = targetDef.buildTime;
+			const previousBuildingId = building.buildingId;
 			if (isUpgrading) {
 				building.buildingId = targetId;
 				building.upgradeNextId = undefined;
@@ -40,14 +41,30 @@ export class BuildService {
 				}
 			}
 
-			if (previousStatus === 'constructing' && targetDef.army) {
-				const army = targetDef.army;
-				const unit = getUnitDef(army.unitDefId);
-				if (!unit) throw new Error(`Unknown unitDefId '${army.unitDefId}' for building '${targetId}'`);
+			const previousDef = getBuildingDef(previousBuildingId);
+			if (previousStatus === 'constructing' && targetDef.housedUnitDefId) {
+				const unit = getUnitDef(targetDef.housedUnitDefId);
+				if (!unit) throw new Error(`Unknown unitDefId '${targetDef.housedUnitDefId}' for building '${targetId}'`);
 
-				const spawnedUnit = this.world.spawnArmyUnit(army.unitDefId);
-
+				const spawnedUnit = this.world.spawnArmyUnit(targetDef.housedUnitDefId);
 				building.housedUnitId = spawnedUnit.armyUnitId;
+				recomputeHousedArmyUnit(this.world, tile.tileId);
+				continue;
+			}
+
+			if (
+				previousStatus === 'upgrading' &&
+				targetDef.housedUnitDefId &&
+				previousDef?.housedUnitDefId &&
+				targetDef.housedUnitDefId !== previousDef.housedUnitDefId
+			) {
+				const housedUnitId = building.housedUnitId;
+				if (!housedUnitId) throw new Error('Missing housed unit for army building upgrade.');
+				const replaced = this.world.replaceArmyUnitWithThrow(housedUnitId, targetDef.housedUnitDefId);
+				building.housedUnitId = replaced.armyUnitId;
+			}
+
+			if (building.housedUnitId) {
 				recomputeHousedArmyUnit(this.world, tile.tileId);
 			}
 		}

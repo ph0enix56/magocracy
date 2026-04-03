@@ -16,12 +16,9 @@ export function recomputeHousedArmyUnit(world: WorldStore, housingEntityId: stri
 	if (!housedUnit) return;
 
 	const buildingDef = getBuildingDef(housingTile.building.buildingId);
-	if (!buildingDef?.army) return;
-	const unitDef = getUnitDef(buildingDef.army.unitDefId);
+	if (!buildingDef?.housedUnitDefId) return;
+	const unitDef = getUnitDef(buildingDef.housedUnitDefId);
 	if (!unitDef) return;
-
-	const trainingLevel = Math.max(0, Math.floor(housedUnit.trainingLevel));
-	const trainingDef = buildingDef.army.trainDef;
 
 	const baseHp = applyIntStatEffects(world, housingTile, buildingDef, 'unit:hp', unitDef.health);
 	const baseDrFlat = applyIntStatEffects(world, housingTile, buildingDef, 'unit:drflat', unitDef.drFlat);
@@ -31,8 +28,8 @@ export function recomputeHousedArmyUnit(world: WorldStore, housingEntityId: stri
 
 	housedUnit.unitDefId = unitDef.id;
 	housedUnit.initiative = baseInitiative;
-	housedUnit.health = Math.max(0, baseHp + trainingLevel * trainingDef.health);
-	housedUnit.drFlat = Math.max(0, baseDrFlat + trainingLevel * trainingDef.drFlat);
+	housedUnit.health = Math.max(0, baseHp);
+	housedUnit.drFlat = Math.max(0, baseDrFlat);
 	housedUnit.drPercent = Math.max(0, baseDrPercent);
 	housedUnit.actionPoints = Math.max(0, baseActionPoints);
 }

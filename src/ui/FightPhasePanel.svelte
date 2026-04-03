@@ -18,9 +18,9 @@
 		return $fightPanelState.playerNameById[playerId] ?? playerId;
 	}
 
-	function formatArmyUnits(units: Array<{ name: string; trainingLevel: number }>): string {
+	function formatArmyUnits(units: Array<{ name: string }>): string {
 		if (units.length === 0) return 'No units';
-		return units.map((unit) => `${unit.name} (Lv ${unit.trainingLevel})`).join(', ');
+		return units.map((unit) => unit.name).join(', ');
 	}
 
 	function statusLabel(status: string): string {

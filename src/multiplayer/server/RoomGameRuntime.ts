@@ -144,7 +144,7 @@ export class RoomGameRuntime {
 			blueprints: serializeInventory(runtime.run.world.blueprintInventory),
 			shop: runtime.shopService.getState(),
 			kingdom: serializeKingdom(tiles, runtime.productionService),
-			army: serializeArmy(runtime.run.world.getOrderedArmyUnits(), tiles),
+			army: serializeArmy(runtime.run.world.getOrderedArmyUnits()),
 			combat: this.getCombatSnapshotForPlayer(playerId),
 			fight: this.fightPhaseRuntime.buildFightSnapshotForPlayer(playerId),
 			advance: this.buildPlayerAdvanceSnapshot()

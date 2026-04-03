@@ -41,13 +41,9 @@ export function summarizeFightArmy(
 ): FightArmyUnitSummary[] {
 	return units
 		.slice()
-		.sort((a, b) => {
-			if (b.trainingLevel !== a.trainingLevel) return b.trainingLevel - a.trainingLevel;
-			return resolveUnitName(a.unitDefId).localeCompare(resolveUnitName(b.unitDefId));
-		})
+		.sort((a, b) => resolveUnitName(a.unitDefId).localeCompare(resolveUnitName(b.unitDefId)))
 		.map((unit) => ({
 			unitDefId: unit.unitDefId,
-			name: resolveUnitName(unit.unitDefId),
-			trainingLevel: unit.trainingLevel
+			name: resolveUnitName(unit.unitDefId)
 		}));
 }

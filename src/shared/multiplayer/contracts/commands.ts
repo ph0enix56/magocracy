@@ -5,7 +5,6 @@ export type GameActionCommand =
 	| { type: 'upgrade/request'; q: number; r: number; upgradeBuildingId: string }
 	| { type: 'shop/buy'; slotIndex: number }
 	| { type: 'shop/reroll' }
-	| { type: 'army/train'; unitEntityId: string }
 	| { type: 'army/reorder'; unitEntityId: string; direction: 'up' | 'down' }
 	| { type: 'combat/step'; steps?: number }
 	| { type: 'fight/replay-open'; matchId: string }

@@ -1,5 +1,3 @@
-import type { ResourceMap, TrainingStatus } from './types';
-
 export type ArmyUnit = {
 	entityId: string;
 	unitDefId: string;
@@ -10,15 +8,9 @@ export type ArmyUnit = {
 	drFlat: number;
 	drPercent: number;
 	actionPoints: number;
-	trainingLevel: number;
-	trainingStatus: TrainingStatus;
-	trainingProgress: number;
-	nextTrainCost: ResourceMap;
-	trainTime: number;
 };
 
 export type FightArmyUnitSummary = {
 	unitDefId: string;
 	name: string;
-	trainingLevel: number;
 };

@@ -32,7 +32,6 @@ type GameSessionRuntime = {
 		requestUpgrade: (q: number, r: number, upgradeBuildingId: string) => Promise<CommandResult>;
 		requestShopBuy: (slotIndex: number) => Promise<CommandResult>;
 		requestShopReroll: () => Promise<CommandResult>;
-		requestArmyTrain: (unitEntityId: string) => Promise<CommandResult>;
 		requestArmyReorder: (unitEntityId: string, direction: 'up' | 'down') => Promise<CommandResult>;
 		requestCombatStep: (steps?: number) => Promise<CommandResult>;
 		requestFightReplayOpen: (matchId: string) => Promise<CommandResult>;
@@ -187,9 +186,6 @@ function createGameSessionRuntime(): GameSessionRuntime {
 			},
 			requestShopReroll(): Promise<CommandResult> {
 				return sendTrackedAction({ type: 'shop/reroll' });
-			},
-			requestArmyTrain(unitEntityId: string): Promise<CommandResult> {
-				return sendTrackedAction({ type: 'army/train', unitEntityId });
 			},
 			requestArmyReorder(unitEntityId: string, direction: 'up' | 'down'): Promise<CommandResult> {
 				return sendTrackedAction({ type: 'army/reorder', unitEntityId, direction });

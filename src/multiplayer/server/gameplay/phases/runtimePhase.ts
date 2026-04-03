@@ -1,6 +1,6 @@
 import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
 import type { ServerGameState } from '../ServerGameState';
-import type { ArmyService } from '../services/ArmyService';
+import type { ArmyService } from '../services/armyService';
 import type { BuildService } from '../services/BuildService';
 import type { ProductionService } from '../services/ProductionService';
 import type { ShopService } from '../services/ShopService';

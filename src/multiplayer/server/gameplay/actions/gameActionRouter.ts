@@ -11,7 +11,6 @@ type HandlerMap = {
 	onUpgradeRequest: (action: Extract<GameActionCommand, { type: 'upgrade/request' }>) => ActionResult;
 	onShopBuy: (action: Extract<GameActionCommand, { type: 'shop/buy' }>) => ActionResult;
 	onShopReroll: (action: Extract<GameActionCommand, { type: 'shop/reroll' }>) => ActionResult;
-	onArmyTrain: (action: Extract<GameActionCommand, { type: 'army/train' }>) => ActionResult;
 	onArmyReorder: (action: Extract<GameActionCommand, { type: 'army/reorder' }>) => ActionResult;
 	onCombatStep: (action: Extract<GameActionCommand, { type: 'combat/step' }>) => ActionResult;
 	onFightReplayOpen: (action: Extract<GameActionCommand, { type: 'fight/replay-open' }>) => ActionResult;
@@ -42,10 +41,6 @@ export function routeGameAction(command: GameActionCommand, handlers: HandlerMap
 		}
 		case 'shop/reroll': {
 			const result = handlers.onShopReroll(command);
-			return { ...result, emitSnapshot: result.ok };
-		}
-		case 'army/train': {
-			const result = handlers.onArmyTrain(command);
 			return { ...result, emitSnapshot: result.ok };
 		}
 		case 'army/reorder': {

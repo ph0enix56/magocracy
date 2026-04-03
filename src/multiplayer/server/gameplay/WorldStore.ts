@@ -49,17 +49,32 @@ export class WorldStore {
 			health: unitDef.health,
 			drFlat: unitDef.drFlat,
 			drPercent: unitDef.drPercent,
-			actionPoints: unitDef.actionPoints,
-			bonusAttackDamage: 0,
-			trainingLevel: 0,
-			training: {
-				status: 'idle',
-				progress: 0
-			}
+			actionPoints: unitDef.actionPoints
 		};
 		this.armyUnits.set(armyUnitId, unit);
 		this.ensureArmyUnitOrderSynced();
 		return unit;
+	}
+
+	replaceArmyUnitWithThrow(previousArmyUnitId: string, nextUnitDefId: string): ArmyUnitState {
+		const previous = this.getArmyUnit(previousArmyUnitId);
+		if (!previous) throw new Error('Invalid unit.');
+
+		this.ensureArmyUnitOrderSynced();
+		const previousIndex = this.armyUnitOrder.indexOf(previousArmyUnitId);
+
+		this.removeArmyUnit(previousArmyUnitId);
+		const nextUnit = this.spawnArmyUnit(nextUnitDefId);
+
+		if (previousIndex < 0) return nextUnit;
+
+		const insertedIndex = this.armyUnitOrder.indexOf(nextUnit.armyUnitId);
+		if (insertedIndex < 0) return nextUnit;
+		this.armyUnitOrder.splice(insertedIndex, 1);
+
+		const clampedIndex = Math.max(0, Math.min(previousIndex, this.armyUnitOrder.length));
+		this.armyUnitOrder.splice(clampedIndex, 0, nextUnit.armyUnitId);
+		return nextUnit;
 	}
 
 	getArmyUnit(armyUnitId: string): ArmyUnitState | undefined {

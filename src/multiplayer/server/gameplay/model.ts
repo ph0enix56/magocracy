@@ -1,5 +1,5 @@
 import type { KingdomCoord } from '../../../shared/kingdom/kingdomGrid';
-import type { BuildingStatus, TrainingStatus } from '../../../shared/domain/types';
+import type { BuildingStatus } from '../../../shared/domain/types';
 
 export interface BuildingState {
 	buildingId: string;
@@ -7,11 +7,6 @@ export interface BuildingState {
 	progress: number;
 	upgradeNextId?: string;
 	housedUnitId?: string;
-}
-
-export interface ArmyUnitTrainingState {
-	status: TrainingStatus;
-	progress: number;
 }
 
 export interface ArmyUnitState {
@@ -22,9 +17,6 @@ export interface ArmyUnitState {
 	drFlat: number;
 	drPercent: number;
 	actionPoints: number;
-	bonusAttackDamage: number;
-	trainingLevel: number;
-	training: ArmyUnitTrainingState;
 }
 
 export interface KingdomTileState {

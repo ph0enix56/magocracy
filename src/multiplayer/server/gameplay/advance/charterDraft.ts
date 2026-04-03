@@ -94,7 +94,7 @@ function generateBlueprintRewards(template: CharterTemplateDef, allBuildings: Bu
 				buildingId: picked.id,
 				count: 1,
 				tier: tierByBuildingId.get(picked.id) ?? 1,
-				type: picked.army ? 'army' : 'production',
+				type: picked.housedUnitDefId ? 'army' : 'production',
 				magicSchool: rule.magicSchool
 			});
 		}
@@ -109,8 +109,8 @@ function pickBlueprintBuildingForRule(
 	rule: NonNullable<CharterTemplateDef['blueprints']>[number]
 ): BuildingDef | null {
 	const filterByRule = (building: BuildingDef, strictTier: boolean): boolean => {
-		if (rule.buildingType === 'production' && !building.production) return false;
-		if (rule.buildingType === 'army' && !building.army) return false;
+		if (rule.buildingType === 'production' && !building.productions) return false;
+		if (rule.buildingType === 'army' && !building.housedUnitDefId) return false;
 		if (strictTier && (tierByBuildingId.get(building.id) ?? 1) !== Math.max(1, Math.floor(rule.tier))) return false;
 		return true;
 	};

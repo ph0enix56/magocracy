@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { ResourceMap } from '../shared/domain/types';
 	import { armyModalState } from './uiState';
 	import { armyPanelState } from './projections/armyViewState';
 	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
@@ -7,27 +6,8 @@
 	let state: { isOpen: boolean } = { isOpen: false };
 	armyModalState.subscribe(v => (state = v));
 
-	let pendingTrain: string | null = null;
-
 	function close() {
 		armyModalState.set({ isOpen: false });
-		pendingTrain = null;
-	}
-
-	function formatCost(cost: ResourceMap): string {
-		return Object.entries(cost)
-			.map(([res, amount]) => `${amount} ${res}`)
-			.join(', ');
-	}
-
-	async function train(unitEntityId: string) {
-		if (pendingTrain || !$armyPanelState.canTownInteract) return;
-		pendingTrain = unitEntityId;
-		const result = await gameSessionClient.requestArmyTrain(unitEntityId);
-		pendingTrain = null;
-		if (!result.ok) {
-			alert(result.reason);
-		}
 	}
 
 	async function reorder(unitEntityId: string, direction: 'up' | 'down') {
@@ -63,7 +43,7 @@
 						<div class="info">
 							<div class="name-row">
 								<div class="name">
-									{u.name} <span class="lvl">Lv {u.trainingLevel}</span>
+									{u.name}
 								</div>
 								<div class="reorder">
 									<button class="ui-button ui-button--tiny reorder-btn" disabled={i === 0 || !$armyPanelState.canArmyReorder} on:click={() => reorder(u.entityId, 'up')}>↑</button>
@@ -81,26 +61,6 @@
 								<span>DR: {u.drFlat} + {u.drPercent}%</span>
 								<span>Action points: {u.actionPoints}</span>
 							</div>
-
-							<div class="train-row">
-								<div class="train-meta">
-									<div>Train cost: {formatCost(u.nextTrainCost)}</div>
-									<div>Train time: {u.trainTime}s</div>
-								</div>
-								<button
-									class="ui-button"
-									disabled={u.trainingStatus === 'training' || pendingTrain !== null || !$armyPanelState.canTownInteract}
-									on:click={() => train(u.entityId)}
-								>
-									{u.trainingStatus === 'training' ? 'Training…' : 'Train'}
-								</button>
-							</div>
-
-							{#if u.trainingStatus === 'training'}
-								<div class="ui-progress">
-									<div class="ui-progress-fill" style={`width: ${u.trainingProgress}%`}></div>
-								</div>
-							{/if}
 						</div>
 					</div>
 				{/each}
@@ -205,50 +165,11 @@
 		cursor: not-allowed;
 	}
 
-	.lvl {
-		margin-left: 8px;
-		font-weight: 600;
-		color: #ffd700;
-		font-size: 0.9rem;
-	}
-
 	.stats {
 		display: flex;
 		gap: 12px;
 		flex-wrap: wrap;
 		font-size: 0.9rem;
 		color: #ddd;
-	}
-
-	.train-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 12px;
-		margin-top: 4px;
-	}
-
-	.train-meta {
-		font-size: 0.85rem;
-		color: #bbb;
-	}
-
-	.ui-button {
-		background: #4a9eff;
-		font-weight: 700;
-	}
-
-	.ui-button:hover {
-		background: #3a8eef;
-	}
-
-	.ui-progress {
-		background: #222;
-		border-radius: 999px;
-		border: 1px solid rgba(255, 255, 255, 0.08);
-	}
-
-	.ui-progress-fill {
-		background: #00c26e;
 	}
 </style>

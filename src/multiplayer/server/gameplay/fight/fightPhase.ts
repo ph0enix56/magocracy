@@ -181,8 +181,5 @@ function setPlayerRoundResult(
 }
 
 function cloneArmy(army: ArmyUnitState[]): ArmyUnitState[] {
-	return army.map((unit) => ({
-		...unit,
-		training: { ...unit.training }
-	}));
+	return army.map((unit) => ({ ...unit }));
 }

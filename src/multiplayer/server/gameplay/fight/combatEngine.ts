@@ -18,8 +18,6 @@ export type CombatUnit = {
 	drPercent: number;
 	actionPoints: number;
 	actions: AttackAction[];
-	trainingLevel: number;
-	bonusAttackDamage: number;
 };
 
 type CombatResultUnit = SharedCombatUnit;
@@ -54,10 +52,9 @@ function clampNonNegInt(n: number): number {
 	return Math.max(0, clampInt(n));
 }
 
-function effectiveDamage(attacker: CombatUnitState, action: AttackAction): number {
+function effectiveDamage(action: AttackAction): number {
 	const base = clampInt(action.damage);
-	if (!action.canUpgrade) return base;
-	return base + clampInt(attacker.bonusAttackDamage);
+	return base;
 }
 
 function computeDamageTaken(rawDamage: number, target: CombatUnitState): number {
@@ -126,7 +123,7 @@ function takeTurn(attacker: CombatUnitState, attackerIndex: number, enemyArmy: C
 		const targets = pickTargetsInRange(enemyArmy, maxEnemiesInRange, action.targeting);
 		if (targets.length === 0) continue;
 
-		const raw = effectiveDamage(attacker, action);
+		const raw = effectiveDamage(action);
 		for (const target of targets) {
 			const taken = computeDamageTaken(raw, target);
 			target.health -= taken;
@@ -177,8 +174,6 @@ function toState(unit: CombatUnit): CombatUnitState {
 		drFlat: clampInt(unit.drFlat),
 		drPercent: clampInt(unit.drPercent),
 		actionPoints: clampInt(unit.actionPoints),
-		trainingLevel: clampInt(unit.trainingLevel),
-		bonusAttackDamage: clampInt(unit.bonusAttackDamage),
 		actionCursor: 0
 	};
 }
@@ -274,7 +269,7 @@ export class CombatSession {
 
 		const maxEnemiesInRange = clampInt(action.range) - this.phase.unitIndex;
 		const targetIndexes = pickTargetIndicesInRange(enemyArmy, maxEnemiesInRange, action.targeting);
-		const raw = effectiveDamage(attacker, action);
+		const raw = effectiveDamage(action);
 		let totalTaken = 0;
 		const defeated: string[] = [];
 

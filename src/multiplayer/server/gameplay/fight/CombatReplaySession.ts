@@ -14,9 +14,7 @@ function toCombatUnit(unit: ArmyUnitState): CombatUnit {
 		drFlat: unit.drFlat,
 		drPercent: unit.drPercent,
 		actionPoints: unit.actionPoints,
-		actions: unitDef?.actions.map((action) => ({ ...action })) ?? [],
-		trainingLevel: unit.trainingLevel,
-		bonusAttackDamage: unit.bonusAttackDamage
+		actions: unitDef?.actions.map((action) => ({ ...action })) ?? []
 	};
 }
 

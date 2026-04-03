@@ -106,7 +106,6 @@ function statMatches(effectStat: EffectStat, targetStat: EffectStat): boolean {
 function isValidStat(stat: string): stat is EffectStat {
 	if (
 		stat === 'prod:all' ||
-		stat === 'army:traincost' ||
 		stat === 'unit:hp' ||
 		stat === 'unit:drflat' ||
 		stat === 'unit:drpercent' ||
@@ -145,8 +144,8 @@ function evalTerm(termRaw: string, tile: KingdomTileState, resolveBuildingDef: R
 	const def = resolveBuildingDef(tile.building.buildingId);
 	if (!def) return false;
 
-	if (term === 'hasprod') return !!def.production;
-	if (term === 'hasarmy') return !!def.army;
+	if (term === 'hasprod') return !!def.productions;
+	if (term === 'hasarmy') return !!def.housedUnitDefId;
 
 	if (term.startsWith('school=')) {
 		const school = term.slice('school='.length);

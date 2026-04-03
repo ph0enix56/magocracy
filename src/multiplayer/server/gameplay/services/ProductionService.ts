@@ -15,8 +15,8 @@ export class ProductionService {
 		for (const tile of this.world.getKingdomTilesWithBuildings()) {
 			if (tile.building?.status !== 'active') continue;
 			const def = getBuildingDef(tile.building.buildingId);
-			if (!def?.production) continue;
-			for (const [resource, baseAmount] of Object.entries(def.production.productions)) {
+			if (!def?.productions) continue;
+			for (const [resource, baseAmount] of Object.entries(def.productions)) {
 				const amount = this.calculateResourceAmount(tile, resource, baseAmount);
 				if (amount <= 0) continue;
 				production.set(resource, (production.get(resource) || 0) + amount);
@@ -33,7 +33,7 @@ export class ProductionService {
 		const tile = this.world.getKingdomTile(tileId);
 		if (!tile?.building) return 0;
 		const def = getBuildingDef(tile.building.buildingId);
-		if (!def?.production) return 0;
+		if (!def?.productions) return 0;
 
 		const effects = accumulateEffectsForTargetStat({
 			targetTile: tile,
@@ -49,7 +49,7 @@ export class ProductionService {
 	private calculateResourceAmount(tile: KingdomTileState, resource: string, baseAmount: number): number {
 		if (!tile.building) return 0;
 		const def = getBuildingDef(tile.building.buildingId);
-		if (!def?.production) return 0;
+		if (!def?.productions) return 0;
 
 		const allEffects = accumulateEffectsForTargetStat({
 			targetTile: tile,

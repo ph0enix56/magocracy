@@ -11,8 +11,6 @@ export type {
 	EffectTarget,
 	EffectApply,
 	EffectStat,
-	ProductionComponent,
-	ArmyComponent,
 	BUILDING_SCHOOLS
 } from './buildingTypes';
 
@@ -114,31 +112,12 @@ function parseBuildingDef(raw: unknown, index: number): BuildingDef {
 		throw new Error(`${path}.school must be one of: ${Object.keys(BUILDING_SCHOOLS).join(', ')}`);
 	}
 
-	const productionRaw = raw['production'];
-	let production: BuildingDef['production'];
-	if (productionRaw !== undefined) {
-		if (!isObject(productionRaw)) throw new Error(`${path}.production must be an object`);
-		production = { productions: asNumberRecord(productionRaw['productions'], `${path}.production.productions`) };
-	}
+	const productionsRaw = raw['productions'];
+	const productions = productionsRaw === undefined ? undefined : asNumberRecord(productionsRaw, `${path}.productions`);
 
-	const armyRaw = raw['army'];
-	let army: BuildingDef['army'];
-	if (armyRaw !== undefined) {
-		if (!isObject(armyRaw)) throw new Error(`${path}.army must be an object`);
-		const trainDefRaw = armyRaw['trainDef'];
-		if (!isObject(trainDefRaw)) throw new Error(`${path}.army.trainDef must be an object`);
-		army = {
-			unitDefId: asString(armyRaw['unitDefId'], `${path}.army.unitDefId`),
-			trainCostBase: asNumberRecord(armyRaw['trainCostBase'], `${path}.army.trainCostBase`),
-			trainCostMult: asNumber(armyRaw['trainCostMult'], `${path}.army.trainCostMult`),
-			trainTime: asNumber(armyRaw['trainTime'], `${path}.army.trainTime`),
-			trainDef: {
-				health: asNumber(trainDefRaw['health'], `${path}.army.trainDef.health`),
-				attackDamage: asNumber(trainDefRaw['attackDamage'], `${path}.army.trainDef.attackDamage`),
-				drFlat: asNumber(trainDefRaw['drFlat'], `${path}.army.trainDef.drFlat`)
-			}
-		};
-	}
+	const housedUnitDefIdRaw = raw['housedUnitDefId'];
+	const housedUnitDefId =
+		housedUnitDefIdRaw === undefined ? undefined : asString(housedUnitDefIdRaw, `${path}.housedUnitDefId`);
 
 	const parentIdRaw = raw['parentId'];
 
@@ -153,8 +132,8 @@ function parseBuildingDef(raw: unknown, index: number): BuildingDef {
 		assetPath: asString(raw['assetPath'], `${path}.assetPath`),
 		cost: asNumberRecord(raw['cost'], `${path}.cost`),
 		buildTime: asNumber(raw['buildTime'], `${path}.buildTime`),
-		production,
-		army,
+		productions,
+		housedUnitDefId,
 		effects: raw['effects'] === undefined ? undefined : asStringArray(raw['effects'], `${path}.effects`),
 		onCompleteGrants: raw['onCompleteGrants'] === undefined ? undefined : asNumberRecord(raw['onCompleteGrants'], `${path}.onCompleteGrants`)
 	};
@@ -202,8 +181,8 @@ const BUILDINGS: Record<string, BuildingDef> = loadAllBuildings();
 const UNITS: Record<string, UnitDef> = loadAllUnits();
 
 for (const building of Object.values(BUILDINGS)) {
-	if (building.army && !UNITS[building.army.unitDefId]) {
-		throw new Error(`Building '${building.id}' references unknown unitDefId '${building.army.unitDefId}'`);
+	if (building.housedUnitDefId && !UNITS[building.housedUnitDefId]) {
+		throw new Error(`Building '${building.id}' references unknown unitDefId '${building.housedUnitDefId}'`);
 	}
 }
 

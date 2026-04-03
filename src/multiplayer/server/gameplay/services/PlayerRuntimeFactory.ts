@@ -1,6 +1,6 @@
 import { ServerGameState } from '../ServerGameState';
 import { initializeKingdomGrid } from '../board/kingdomBoard';
-import { ArmyService } from './ArmyService';
+import { ArmyService } from './armyService';
 import { BuildService } from './BuildService';
 import { ProductionService } from './ProductionService';
 import { ShopService } from './ShopService';

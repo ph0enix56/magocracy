@@ -1,4 +1,4 @@
-import type { AttackAction, ResourceMap, TrainingDelta } from '../../../shared/domain/types';
+import type { AttackAction, ResourceMap } from '../../../shared/domain/types';
 
 export const BUILDING_SCHOOLS = {
 	neutral: 'neutral',
@@ -17,7 +17,6 @@ export type EffectApply = 'add' | 'mult';
 export type EffectStat =
 	| 'prod:all'
 	| `prod:${string}`
-	| 'army:traincost'
 	| 'unit:hp'
 	| 'unit:drflat'
 	| 'unit:drpercent'
@@ -26,24 +25,6 @@ export type EffectStat =
 	| 'unit:damage';
 
 /** Serialized DSL string: "<target>; <cond>; <stat>; <apply>; <value>" */
-// --- Building components (attach to BuildingDef as optional fields) ---
-
-/** Attached to buildings that produce resources over time. */
-export interface ProductionComponent {
-	/** Resource productions per game tick. */
-	productions: ResourceMap;
-}
-
-/** Attached to buildings that train and manage an army unit type. */
-export interface ArmyComponent {
-	/** The unit type this building trains, referenced by id. */
-	unitDefId: string;
-	trainCostBase: ResourceMap;
-	trainCostMult: number;
-	trainTime: number;
-	trainDef: TrainingDelta;
-}
-
 // --- Building def ---
 
 export interface BuildingDef {
@@ -67,10 +48,10 @@ export interface BuildingDef {
 	cost: ResourceMap;
 	/** Time to build/upgrade in game ticks. */
 	buildTime: number;
-	/** Attached production component. */
-	production?: ProductionComponent;
-	/** Attached army component. */
-	army?: ArmyComponent;
+	/** Resource productions per game tick. Presence means this is a production building. */
+	productions?: ResourceMap;
+	/** Unit definition this building houses. Presence means this is an army building. */
+	housedUnitDefId?: string;
 	/** Neighbor interaction effects written in the serialized DSL. */
 	effects?: string[];
 	/** Resource grants awarded once when construction/upgrade completes. */

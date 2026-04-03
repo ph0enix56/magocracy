@@ -2,7 +2,7 @@ import { kingdomCoordKey } from '../../../../shared/kingdom/kingdomGrid';
 import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
 import type { ServerGameState } from '../ServerGameState';
 import { expandKingdomTile } from '../board/kingdomBoard';
-import { ArmyService } from '../services/ArmyService';
+import { ArmyService } from '../services/armyService';
 import { BuildService } from '../services/BuildService';
 import { ProductionService } from '../services/ProductionService';
 import { ShopService } from '../services/ShopService';
@@ -94,11 +94,6 @@ export class BuildPhaseRuntime implements RuntimePhase {
 				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
 				return { handled: true, ok: true, emitSnapshot: true };
 			}
-			case 'army/train': {
-				const result = this.handleArmyTrain(runtime, action);
-				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
-				return { handled: true, ok: true, emitSnapshot: true };
-			}
 			default:
 				return { handled: false };
 		}
@@ -173,14 +168,6 @@ export class BuildPhaseRuntime implements RuntimePhase {
 
 	handleShopReroll(runtime: BuildPhasePlayerRuntime): ActionResult {
 		runtime.shopService.rerollWithThrow();
-		return { ok: true };
-	}
-
-	handleArmyTrain(
-		runtime: BuildPhasePlayerRuntime,
-		action: Extract<GameActionCommand, { type: 'army/train' }>
-	): ActionResult {
-		runtime.armyService.startTrainingWithThrow(action.unitEntityId);
 		return { ok: true };
 	}
 

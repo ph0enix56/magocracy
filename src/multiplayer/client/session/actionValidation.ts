@@ -40,11 +40,6 @@ export function validateActionSanity(action: GameActionCommand): CommandResult |
 			return null;
 		case 'shop/reroll':
 			return null;
-		case 'army/train':
-			if (!isNonEmptyId(action.unitEntityId)) {
-				return { ok: false, reason: 'Unit entity ID is required.' };
-			}
-			return null;
 		case 'army/reorder':
 			if (!isNonEmptyId(action.unitEntityId)) {
 				return { ok: false, reason: 'Unit entity ID is required.' };
