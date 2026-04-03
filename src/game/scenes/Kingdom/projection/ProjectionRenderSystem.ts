@@ -19,6 +19,7 @@ export class ProjectionRenderSystem {
 		for (const tile of this.world.getTiles()) {
 			tile.render.building?.setVisible(visible);
 			tile.render.constructionBadge?.setVisible(visible);
+			tile.render.expansion?.setVisible(visible && !!tile.isExpansionSite && this.world.areExpansionTilesVisible());
 		}
 	}
 
@@ -27,7 +28,19 @@ export class ProjectionRenderSystem {
 		for (const tile of this.world.getTiles()) {
 			const render = tile.render;
 			const def = tile.building ? buildingCatalog.getById(tile.building.buildingId) : undefined;
-			this.syncHexColor(render, tile.building?.school ?? def?.school);
+			this.syncHexColor(tile, render, tile.building?.school ?? def?.school);
+
+			if (tile.isExpansionSite && !tile.building) {
+				if (!render.expansion) {
+					render.expansion = this.scene.add.image(render.hex.x, render.hex.y, 'hexTilePlus');
+					render.expansion.setVisible(this.visible && this.world.areExpansionTilesVisible());
+				}
+				render.expansion.setPosition(render.hex.x, render.hex.y);
+				render.expansion.setVisible(this.visible && this.world.areExpansionTilesVisible());
+			} else if (render.expansion) {
+				render.expansion.destroy();
+				render.expansion = undefined;
+			}
 
 			if (tile.building) {
 				if (!def) continue;
@@ -100,8 +113,8 @@ export class ProjectionRenderSystem {
 		return (configuration.render.building.hexSize / Math.max(sourceWidth, sourceHeight)) * fillScaleMultiplier;
 	}
 
-	private syncHexColor(render: ProjectionRenderState, school: string | undefined): void {
-		const baseColor = getHexTileColorForSchool(school);
+	private syncHexColor(tile: { isExpansionSite?: boolean }, render: ProjectionRenderState, school: string | undefined): void {
+		const baseColor = tile.isExpansionSite ? 0xb9d5df : getHexTileColorForSchool(school);
 		render.hexBaseColor = baseColor;
 		const displayColor = render.hexHovered ? getHoveredHexTileColor(baseColor) : baseColor;
 		if (displayColor === render.hexDisplayColor) return;

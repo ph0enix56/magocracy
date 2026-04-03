@@ -86,11 +86,10 @@ export type LobbySnapshot = {
 
 export type BuildingCatalogEntry = {
 	id: string;
-	kind: 'production' | 'army' | 'blocker';
+	kind: 'production' | 'army';
 	school: string;
 	tier: number;
 	parentId?: string;
-	isBlocker?: true;
 	name: string;
 	description: string;
 	textureId: string;
@@ -119,6 +118,7 @@ export type KingdomBuildingSnapshot = {
 };
 
 export type KingdomTileSnapshot = KingdomCoord & {
+	isExpansionSite?: true;
 	building?: KingdomBuildingSnapshot;
 };
 

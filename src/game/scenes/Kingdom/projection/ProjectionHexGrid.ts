@@ -19,6 +19,7 @@ export class ProjectionHexGrid {
 	private visible = true;
 	private static readonly HEX_FILL_TEXTURE_KEY = 'hexTileFill';
 	private static readonly HEX_OUTLINE_TEXTURE_KEY = 'hexTileOutline';
+	private static readonly HEX_PLUS_TEXTURE_KEY = 'hexTilePlus';
 
 	constructor(
 		private readonly world: ProjectionWorld,
@@ -30,8 +31,15 @@ export class ProjectionHexGrid {
 		if (this.visible === visible) return;
 		this.visible = visible;
 		for (const tile of this.world.getTiles()) {
-			tile.render.hex.setVisible(visible);
-			tile.render.hexOutline.setVisible(visible);
+			this.syncTileVisualState(tile);
+		}
+	}
+
+	setExpansionTilesVisible(visible: boolean): void {
+		if (this.world.areExpansionTilesVisible() === visible) return;
+		this.world.setExpansionTilesVisible(visible);
+		for (const tile of this.world.getTiles()) {
+			this.syncTileVisualState(tile);
 		}
 	}
 
@@ -41,6 +49,9 @@ export class ProjectionHexGrid {
 		}
 		if (scene.textures.exists(ProjectionHexGrid.HEX_OUTLINE_TEXTURE_KEY)) {
 			scene.textures.remove(ProjectionHexGrid.HEX_OUTLINE_TEXTURE_KEY);
+		}
+		if (scene.textures.exists(ProjectionHexGrid.HEX_PLUS_TEXTURE_KEY)) {
+			scene.textures.remove(ProjectionHexGrid.HEX_PLUS_TEXTURE_KEY);
 		}
 
 		const width = Math.sqrt(3) * hexSize + 2 * hexStroke;
@@ -60,6 +71,18 @@ export class ProjectionHexGrid {
 			.strokePoints(hex.points, true)
 			.generateTexture(ProjectionHexGrid.HEX_OUTLINE_TEXTURE_KEY, width, height)
 			.destroy();
+
+		const plusSize = Math.round(hexSize * 0.75);
+		const plusHalf = plusSize / 2;
+		const plusBarThickness = Math.max(8, Math.round(hexSize * 0.16));
+
+		scene.add
+			.graphics()
+			.fillStyle(0xffffff, 1)
+			.fillRoundedRect(plusHalf - plusBarThickness / 2, 0, plusBarThickness, plusSize, 4)
+			.fillRoundedRect(0, plusHalf - plusBarThickness / 2, plusSize, plusBarThickness, 4)
+			.generateTexture(ProjectionHexGrid.HEX_PLUS_TEXTURE_KEY, plusSize, plusSize)
+			.destroy();
 	}
 
 	ensureTileExists(q: number, r: number): ProjectionTile {
@@ -70,10 +93,7 @@ export class ProjectionHexGrid {
 		const { x, y } = this.screenPosFor(q, r);
 		const hex = this.scene.add.image(x, y, ProjectionHexGrid.HEX_FILL_TEXTURE_KEY);
 		const hexOutline = this.scene.add.image(x, y, ProjectionHexGrid.HEX_OUTLINE_TEXTURE_KEY);
-		hex.setVisible(this.visible);
-		hexOutline.setVisible(this.visible);
 		hex.setTintFill(EMPTY_HEX_TILE_COLOR);
-		hex.setInteractive(ProjectionHexGrid.getHexagon(this.options.hexSize, hex.width / 2, hex.height / 2), Phaser.Geom.Polygon.Contains);
 
 		const tile: ProjectionTile = {
 			id,
@@ -87,6 +107,7 @@ export class ProjectionHexGrid {
 			}
 		};
 		this.world.addTile(tile);
+		this.syncTileVisualState(tile);
 
 		hex.on('pointerover', () => {
 			tile.render.hexHovered = true;
@@ -110,7 +131,12 @@ export class ProjectionHexGrid {
 			const { x, y } = this.screenPosFor(tile.position.q, tile.position.r);
 			tile.render.hex.setPosition(x, y);
 			tile.render.hexOutline.setPosition(x, y);
+			tile.render.expansion?.setPosition(x, y);
 		}
+	}
+
+	refreshTileVisualState(tile: ProjectionTile): void {
+		this.syncTileVisualState(tile);
 	}
 
 	private screenPosFor(q: number, r: number): { x: number; y: number } {
@@ -141,6 +167,19 @@ export class ProjectionHexGrid {
 		if (displayColor === tile.render.hexDisplayColor) return;
 		tile.render.hexDisplayColor = displayColor;
 		tile.render.hex.setTintFill(displayColor);
+	}
+
+	private syncTileVisualState(tile: ProjectionTile): void {
+		const shouldShowExpansionTile = this.visible && (!tile.isExpansionSite || this.world.areExpansionTilesVisible());
+		tile.render.hex.setVisible(shouldShowExpansionTile);
+		tile.render.hexOutline.setVisible(shouldShowExpansionTile);
+		tile.render.expansion?.setVisible(shouldShowExpansionTile && !!tile.isExpansionSite);
+
+		if (shouldShowExpansionTile) {
+			tile.render.hex.setInteractive(ProjectionHexGrid.getHexagon(this.options.hexSize, tile.render.hex.width / 2, tile.render.hex.height / 2), Phaser.Geom.Polygon.Contains);
+		} else {
+			tile.render.hex.disableInteractive();
+		}
 	}
 
 	private isPointerFromUi(pointer: Phaser.Input.Pointer): boolean {

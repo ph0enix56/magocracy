@@ -16,7 +16,7 @@ export const shopPanelState = derived(gameSessionState, ($state): ShopPanelViewS
 	offers: $state.shop.offers,
 	buyCost: $state.shop.buyCost,
 	rerollCost: $state.shop.rerollCost,
-	purchasableBuildings: $state.catalog.filter((entry) => !entry.parentId && !entry.isBlocker),
+	purchasableBuildings: $state.catalog.filter((entry) => !entry.parentId),
 	canTownInteract: $state.canTownInteract,
 	isScouting: $state.isScouting,
 	viewedPlayerName: $state.viewedPlayer?.name ?? null

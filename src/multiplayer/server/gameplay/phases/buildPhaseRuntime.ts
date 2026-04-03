@@ -1,9 +1,7 @@
 import { kingdomCoordKey } from '../../../../shared/kingdom/kingdomGrid';
 import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
-import { getBuildingDef } from '../../config/buildings';
 import type { ServerGameState } from '../ServerGameState';
-import { pickRandomBlockerId } from '../board/blockerPicker';
-import { revealNeighborTiles } from '../board/kingdomBoard';
+import { expandKingdomTile } from '../board/kingdomBoard';
 import { ArmyService } from '../services/ArmyService';
 import { BuildService } from '../services/BuildService';
 import { ProductionService } from '../services/ProductionService';
@@ -71,6 +69,11 @@ export class BuildPhaseRuntime implements RuntimePhase {
 				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
 				return { handled: true, ok: true, emitSnapshot: true };
 			}
+			case 'kingdom/expand': {
+				const result = this.handleExpandRequest(runtime, action);
+				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
+				return { handled: true, ok: true, emitSnapshot: true };
+			}
 			case 'destroy/request': {
 				const result = this.handleDestroyRequest(runtime, action);
 				if (!result.ok) return { handled: true, ok: false, reason: result.reason };
@@ -117,8 +120,25 @@ export class BuildPhaseRuntime implements RuntimePhase {
 		action: Extract<GameActionCommand, { type: 'build/request' }>
 	): ActionResult {
 		const tileId = kingdomCoordKey(action.q, action.r);
-		if (!runtime.run.world.getKingdomTile(tileId)) return { ok: false, reason: 'Unknown tile.' };
+		const tile = runtime.run.world.getKingdomTile(tileId);
+		if (!tile) return { ok: false, reason: 'Unknown tile.' };
+		if (tile.isExpansionSite) return { ok: false, reason: 'Tile must be expanded first.' };
 		runtime.buildService.startBuild(tileId, action.buildingId);
+		return { ok: true };
+	}
+
+	handleExpandRequest(
+		runtime: BuildPhasePlayerRuntime,
+		action: Extract<GameActionCommand, { type: 'kingdom/expand' }>
+	): ActionResult {
+		const tileId = kingdomCoordKey(action.q, action.r);
+		const tile = runtime.run.world.getKingdomTile(tileId);
+		if (!tile) return { ok: false, reason: 'Unknown tile.' };
+		if (!tile.isExpansionSite) return { ok: false, reason: 'Tile is not expandable.' };
+		const expansion = runtime.run.world.resources.get('expansion') || 0;
+		if (expansion < 1) return { ok: false, reason: 'No expansion tokens available.' };
+		runtime.run.world.resources.set('expansion', expansion - 1);
+		expandKingdomTile(runtime.run.world, action.q, action.r);
 		return { ok: true };
 	}
 
@@ -129,12 +149,7 @@ export class BuildPhaseRuntime implements RuntimePhase {
 		const tileId = kingdomCoordKey(action.q, action.r);
 		const tile = runtime.run.world.getKingdomTile(tileId);
 		if (!tile?.building) return { ok: false, reason: 'No building on that tile.' };
-		const buildingDef = getBuildingDef(tile.building.buildingId);
-		const wasBlocker = buildingDef?.isBlocker === true;
 		runtime.buildService.destroyBuilding(tileId);
-		if (wasBlocker) {
-			revealNeighborTiles(runtime.run.world, action.q, action.r, pickRandomBlockerId);
-		}
 		return { ok: true };
 	}
 

@@ -4,7 +4,7 @@ export type KingdomCoord = {
 };
 
 export type KingdomSeedTile = KingdomCoord & {
-	blockerId?: string;
+	isExpansionSite?: true;
 };
 
 const NEIGHBOR_DELTAS: Array<{ dq: number; dr: number }> = [
@@ -33,7 +33,7 @@ export function getKingdomNeighbors(q: number, r: number): KingdomCoord[] {
 	return NEIGHBOR_DELTAS.map((delta) => ({ q: q + delta.dq, r: r + delta.dr }));
 }
 
-export function createInitialKingdomTiles(pickBlockerId: () => string): KingdomSeedTile[] {
+export function createInitialKingdomTiles(): KingdomSeedTile[] {
 	const center = { q: 0, r: 0 };
 	const free = new Set<string>();
 	free.add(kingdomCoordKey(center.q, center.r));
@@ -54,22 +54,21 @@ export function createInitialKingdomTiles(pickBlockerId: () => string): KingdomS
 	const tiles: KingdomSeedTile[] = [...free].map((key) => parseKingdomCoordKey(key));
 	for (const key of blocked) {
 		const coord = parseKingdomCoordKey(key);
-		tiles.push({ ...coord, blockerId: pickBlockerId() });
+		tiles.push({ ...coord, isExpansionSite: true });
 	}
 
 	return tiles;
 }
 
-export function createRevealTilesAround(
+export function createExpansionTilesAround(
 	q: number,
 	r: number,
 	isKnown: (coord: KingdomCoord) => boolean,
-	pickBlockerId: () => string
 ): KingdomSeedTile[] {
 	const revealed: KingdomSeedTile[] = [];
 	for (const neighbor of getKingdomNeighbors(q, r)) {
 		if (isKnown(neighbor)) continue;
-		revealed.push({ ...neighbor, blockerId: pickBlockerId() });
+		revealed.push({ ...neighbor, isExpansionSite: true });
 	}
 	return revealed;
 }

@@ -16,6 +16,7 @@ export interface ProjectionBuilding {
 export interface ProjectionRenderState {
 	hex: Phaser.GameObjects.Image;
 	hexOutline: Phaser.GameObjects.Image;
+	expansion?: Phaser.GameObjects.Image;
 	hexBaseColor: number;
 	hexDisplayColor: number;
 	hexHovered: boolean;
@@ -26,12 +27,14 @@ export interface ProjectionRenderState {
 export interface ProjectionTile {
 	id: string;
 	position: ProjectionPosition;
+	isExpansionSite?: boolean;
 	render: ProjectionRenderState;
 	building?: ProjectionBuilding;
 }
 
 export class ProjectionWorld {
 	private readonly tiles = new Map<string, ProjectionTile>();
+	private expansionTilesVisible = false;
 
 	addTile(tile: ProjectionTile): void {
 		this.tiles.set(tile.id, tile);
@@ -47,5 +50,13 @@ export class ProjectionWorld {
 
 	getTiles(): ProjectionTile[] {
 		return [...this.tiles.values()];
+	}
+
+	setExpansionTilesVisible(visible: boolean): void {
+		this.expansionTilesVisible = visible;
+	}
+
+	areExpansionTilesVisible(): boolean {
+		return this.expansionTilesVisible;
 	}
 }

@@ -1,37 +1,35 @@
-import { createInitialKingdomTiles, createRevealTilesAround, kingdomCoordKey } from '../../../../shared/kingdom/kingdomGrid';
+import { createExpansionTilesAround, createInitialKingdomTiles, kingdomCoordKey } from '../../../../shared/kingdom/kingdomGrid';
 import type { KingdomTileState } from '../model';
 import type { WorldStore } from '../WorldStore';
 
-export function initializeKingdomGrid(world: WorldStore, pickBlockerId: () => string): void {
-	for (const tile of createInitialKingdomTiles(pickBlockerId)) {
-		world.upsertKingdomTile(buildTileState(tile.q, tile.r, tile.blockerId));
+export function initializeKingdomGrid(world: WorldStore): void {
+	for (const tile of createInitialKingdomTiles()) {
+		world.upsertKingdomTile(buildTileState(tile.q, tile.r, tile.isExpansionSite));
 	}
 }
 
-export function revealNeighborTiles(world: WorldStore, q: number, r: number, pickBlockerId: () => string): void {
+export function expandKingdomTile(world: WorldStore, q: number, r: number): void {
 	const known = new Set(world.getKingdomTiles().map((tile) => kingdomCoordKey(tile.coord.q, tile.coord.r)));
-	const revealed = createRevealTilesAround(
+	const revealed = createExpansionTilesAround(
 		q,
 		r,
 		(coord) => known.has(kingdomCoordKey(coord.q, coord.r)),
-		pickBlockerId
 	);
+	const tileId = kingdomCoordKey(q, r);
+	const tile = world.getKingdomTile(tileId);
+	if (!tile) throw new Error('Unknown tile.');
+	tile.isExpansionSite = undefined;
 
 	for (const tile of revealed) {
-		world.upsertKingdomTile(buildTileState(tile.q, tile.r, tile.blockerId));
+		world.upsertKingdomTile(buildTileState(tile.q, tile.r, tile.isExpansionSite));
 	}
 }
 
-function buildTileState(q: number, r: number, blockerId?: string): KingdomTileState {
+function buildTileState(q: number, r: number, isExpansionSite?: true): KingdomTileState {
 	return {
 		tileId: kingdomCoordKey(q, r),
 		coord: { q, r },
-		building: blockerId
-			? {
-				buildingId: blockerId,
-				status: 'active',
-				progress: 0
-			}
-			: undefined
+		isExpansionSite,
+		building: undefined
 	};
 }

@@ -1,17 +1,5 @@
 [
   {
-    "id": "blocker",
-    "school": "neutral",
-    "tier": 0,
-    "name": "Obstacle",
-    "description": "A natural obstacle blocking construction. Costs one expansion to remove.",
-    "textureId": "blocker",
-    "assetPath": "board_icons/token.png",
-    "cost": { "expansion": 1 },
-    "buildTime": 15,
-    "isBlocker": true
-  },
-  {
     "id": "stone_mine",
     "school": "geomancy",
     "tier": 1,

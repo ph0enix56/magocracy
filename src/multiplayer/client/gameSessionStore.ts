@@ -27,6 +27,7 @@ type GameSessionRuntime = {
 		scoutPlayer: (playerId: string) => void;
 		viewOwnTown: () => void;
 		requestBuild: (q: number, r: number, buildingId: string) => Promise<CommandResult>;
+		requestExpandTile: (q: number, r: number) => Promise<CommandResult>;
 		requestDestroy: (q: number, r: number) => Promise<CommandResult>;
 		requestUpgrade: (q: number, r: number, upgradeBuildingId: string) => Promise<CommandResult>;
 		requestShopBuy: (slotIndex: number) => Promise<CommandResult>;
@@ -171,6 +172,9 @@ function createGameSessionRuntime(): GameSessionRuntime {
 			},
 			requestBuild(q: number, r: number, buildingId: string): Promise<CommandResult> {
 				return sendTrackedAction({ type: 'build/request', q, r, buildingId });
+			},
+			requestExpandTile(q: number, r: number): Promise<CommandResult> {
+				return sendTrackedAction({ type: 'kingdom/expand', q, r });
 			},
 			requestDestroy(q: number, r: number): Promise<CommandResult> {
 				return sendTrackedAction({ type: 'destroy/request', q, r });

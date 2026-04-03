@@ -30,5 +30,6 @@ export interface ArmyUnitState {
 export interface KingdomTileState {
 	tileId: string;
 	coord: KingdomCoord;
+	isExpansionSite?: true;
 	building?: BuildingState;
 }

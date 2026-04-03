@@ -109,7 +109,6 @@ function pickBlueprintBuildingForRule(
 	rule: NonNullable<CharterTemplateDef['blueprints']>[number]
 ): BuildingDef | null {
 	const filterByRule = (building: BuildingDef, strictTier: boolean): boolean => {
-		if (building.isBlocker) return false;
 		if (rule.buildingType === 'production' && !building.production) return false;
 		if (rule.buildingType === 'army' && !building.army) return false;
 		if (strictTier && (tierByBuildingId.get(building.id) ?? 1) !== Math.max(1, Math.floor(rule.tier))) return false;
@@ -118,7 +117,7 @@ function pickBlueprintBuildingForRule(
 
 	let candidates = allBuildings.filter((building) => filterByRule(building, true));
 	if (candidates.length === 0) candidates = allBuildings.filter((building) => filterByRule(building, false));
-	if (candidates.length === 0) candidates = allBuildings.filter((building) => !building.isBlocker);
+	if (candidates.length === 0) candidates = allBuildings;
 	if (candidates.length === 0) return null;
 	return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
 }

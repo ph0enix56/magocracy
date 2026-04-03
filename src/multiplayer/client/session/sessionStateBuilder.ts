@@ -46,6 +46,7 @@ export function buildGameSessionState(input: BuildGameSessionStateInput): BuildG
 
 	const viewedPlayer = getViewedPlayer(base, resolvedViewedPlayerId);
 	const viewedGameView = getViewedGameView(base, resolvedViewedPlayerId);	
+	const expansionTokens = getResourceAmount(viewedGameView?.resources, 'expansion');
 	const isScouting = viewedGameView !== null && selfGameView !== null && viewedGameView.playerId !== selfGameView.playerId;
 	const currentPhase: GamePhase = base.game?.phase ?? 'setup';
 	const isFightPhase = currentPhase === 'combat';
@@ -66,13 +67,24 @@ export function buildGameSessionState(input: BuildGameSessionStateInput): BuildG
 		nextContext.selectedTileAnchor = null;
 	}
 
+	if (nextContext.selectedTileCoords && viewedGameView) {
+		const selectedTileSnapshot = viewedGameView.kingdom.tiles.find(
+			(entry) => entry.q === nextContext.selectedTileCoords?.q && entry.r === nextContext.selectedTileCoords?.r
+		);
+		if (selectedTileSnapshot?.isExpansionSite && expansionTokens <= 0) {
+			nextContext.selectedTileCoords = null;
+			nextContext.selectedTileAnchor = null;
+		}
+	}
+
 	const selectedTile = viewedGameView && nextContext.selectedTileCoords
 		? buildSelectedTileView(
 			nextContext.selectedTileCoords.q,
 			nextContext.selectedTileCoords.r,
 			viewedGameView.kingdom,
 			catalog,
-			nextContext.selectedTileAnchor
+			nextContext.selectedTileAnchor,
+			expansionTokens
 		)
 		: null;
 
@@ -141,7 +153,8 @@ function buildSelectedTileView(
 	r: number,
 	kingdom: KingdomSnapshot,
 	catalog: BuildingCatalogEntry[],
-	anchor: TileScreenAnchor | null
+	anchor: TileScreenAnchor | null,
+	expansionTokens: number
 ): SelectedTileView {
 	const tile = kingdom.tiles.find((entry) => entry.q === q && entry.r === r);
 	const built = !!tile?.building;
@@ -197,6 +210,8 @@ function buildSelectedTileView(
 		q,
 		r,
 		anchor: anchor ?? undefined,
+		isExpansionSite: tile?.isExpansionSite === true,
+		canExpand: tile?.isExpansionSite === true && expansionTokens > 0,
 		built,
 		buildingId,
 		buildingName,
@@ -213,6 +228,11 @@ function buildSelectedTileView(
 		upgradingToId,
 		upgradeProgress
 	};
+}
+
+function getResourceAmount(resources: ResourceMap | undefined, resource: string): number {
+	const value = resources?.[resource];
+	return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
 }
 
 function toProgressPercent(progress: number, total: number): number {

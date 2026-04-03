@@ -28,6 +28,7 @@ export function serializeKingdom(tiles: KingdomTileState[], productionService: P
 		tiles: tiles.map((tile) => ({
 				q: tile.coord.q,
 				r: tile.coord.r,
+				isExpansionSite: tile.isExpansionSite,
 				building: tile.building
 					? (() => {
 						const def = getBuildingDef(tile.building.buildingId);

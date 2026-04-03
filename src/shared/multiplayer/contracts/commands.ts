@@ -1,5 +1,6 @@
 export type GameActionCommand =
 	| { type: 'build/request'; q: number; r: number; buildingId: string }
+	| { type: 'kingdom/expand'; q: number; r: number }
 	| { type: 'destroy/request'; q: number; r: number }
 	| { type: 'upgrade/request'; q: number; r: number; upgradeBuildingId: string }
 	| { type: 'shop/buy'; slotIndex: number }

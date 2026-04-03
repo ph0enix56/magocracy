@@ -56,6 +56,7 @@ export class BuildService {
 	startBuild(tileId: string, buildingId: string): void {
 		const tile = this.getTileWithThrow(tileId);
 		if (tile.building) throw new Error('Tile already has a building');
+		if (tile.isExpansionSite) throw new Error('Tile must be expanded first');
 
 		const def = getBuildingDef(buildingId);
 		if (!def) throw new Error(`Invalid buildingId: ${buildingId}`);
@@ -90,9 +91,6 @@ export class BuildService {
 		if (!tile.building) throw new Error('Tile has no building to destroy');
 		const def = getBuildingDef(tile.building.buildingId);
 		if (!def) throw new Error(`Invalid buildingId: ${tile.building.buildingId}`);
-		if (def.isBlocker) {
-			this.deductCostWithThrow(def.cost);
-		}
 		delete tile.building.housedUnitId;
 		delete tile.building;
 	}

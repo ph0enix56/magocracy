@@ -6,6 +6,7 @@ export type RoutedActionResult = ActionResult & { emitSnapshot: boolean };
 
 type HandlerMap = {
 	onBuildRequest: (action: Extract<GameActionCommand, { type: 'build/request' }>) => ActionResult;
+	onKingdomExpand: (action: Extract<GameActionCommand, { type: 'kingdom/expand' }>) => ActionResult;
 	onDestroyRequest: (action: Extract<GameActionCommand, { type: 'destroy/request' }>) => ActionResult;
 	onUpgradeRequest: (action: Extract<GameActionCommand, { type: 'upgrade/request' }>) => ActionResult;
 	onShopBuy: (action: Extract<GameActionCommand, { type: 'shop/buy' }>) => ActionResult;
@@ -21,6 +22,10 @@ export function routeGameAction(command: GameActionCommand, handlers: HandlerMap
 	switch (command.type) {
 		case 'build/request': {
 			const result = handlers.onBuildRequest(command);
+			return { ...result, emitSnapshot: result.ok };
+		}
+		case 'kingdom/expand': {
+			const result = handlers.onKingdomExpand(command);
 			return { ...result, emitSnapshot: result.ok };
 		}
 		case 'destroy/request': {

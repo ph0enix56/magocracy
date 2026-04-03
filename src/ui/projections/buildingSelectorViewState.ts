@@ -13,7 +13,7 @@ export type BuildingSelectorViewState = {
 
 export const buildingSelectorState = derived(gameSessionState, ($state): BuildingSelectorViewState => ({
 	blueprintInventory: $state.blueprints,
-	purchasableBuildings: $state.catalog.filter((entry) => !entry.parentId && !entry.isBlocker),
+	purchasableBuildings: $state.catalog.filter((entry) => !entry.parentId),
 	canTownInteract: $state.canTownInteract,
 	isScouting: $state.isScouting,
 	viewedPlayerName: $state.viewedPlayer?.name ?? null

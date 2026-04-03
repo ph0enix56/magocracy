@@ -8,7 +8,7 @@
 
 <div class="ui-chip resource">
 	<div class="icon">{icon}</div>
-	<div class="value">{$valueState}</div>
+	<div class="value">{$valueState.toFixed(0)}</div>
 </div>
 
 <style>

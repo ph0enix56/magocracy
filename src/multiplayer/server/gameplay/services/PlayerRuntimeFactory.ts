@@ -1,6 +1,5 @@
 import { ServerGameState } from '../ServerGameState';
 import { initializeKingdomGrid } from '../board/kingdomBoard';
-import { pickRandomBlockerId } from '../board/blockerPicker';
 import { ArmyService } from './ArmyService';
 import { BuildService } from './BuildService';
 import { ProductionService } from './ProductionService';
@@ -23,7 +22,7 @@ export class PlayerRuntimeFactory {
 		const armyService = new ArmyService(run.world);
 
 		shopService.rerollFree();
-		initializeKingdomGrid(run.world, pickRandomBlockerId);
+		initializeKingdomGrid(run.world);
 
 		return { run, buildService, armyService, productionService, shopService };
 	}

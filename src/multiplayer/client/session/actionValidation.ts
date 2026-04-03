@@ -15,6 +15,11 @@ export function validateActionSanity(action: GameActionCommand): CommandResult |
 				return { ok: false, reason: 'Building ID is required.' };
 			}
 			return null;
+		case 'kingdom/expand':
+			if (!isInteger(action.q) || !isInteger(action.r)) {
+				return { ok: false, reason: 'Expansion coordinates must be integers.' };
+			}
+			return null;
 		case 'destroy/request':
 			if (!isInteger(action.q) || !isInteger(action.r)) {
 				return { ok: false, reason: 'Destroy coordinates must be integers.' };

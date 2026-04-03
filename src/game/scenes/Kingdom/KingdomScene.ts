@@ -11,7 +11,7 @@ import {
 import { ConstructionBadge } from './projection/ConstructionBadge';
 import { ProjectionRenderSystem } from './projection/ProjectionRenderSystem';
 import { ProjectionHexGrid } from './projection/ProjectionHexGrid';
-import { kingdomCatalogProjectionState, kingdomTileProjectionState } from './projection/kingdomSceneProjectionState';
+import { kingdomCatalogProjectionState, kingdomExpansionTilesVisibleState, kingdomTileProjectionState } from './projection/kingdomSceneProjectionState';
 import { ProjectionWorld, type ProjectionRenderState } from './projection/model';
 
 export class KingdomScene extends Scene {
@@ -26,6 +26,7 @@ export class KingdomScene extends Scene {
 	private readonly CAMERA_ZOOM_STEP = 0.12;
 	private catalogUnsubscribe: (() => void) | null = null;
 	private tileProjectionUnsubscribe: (() => void) | null = null;
+	private expansionVisibilityUnsubscribe: (() => void) | null = null;
 	private isPanning = false;
 	private panPointerStart = new Phaser.Math.Vector2();
 	private panCameraStart = new Phaser.Math.Vector2();
@@ -136,6 +137,9 @@ export class KingdomScene extends Scene {
 			this.applyKingdomSnapshot(tiles);
 			this.hexGridSystem.relayout();
 		});
+		this.expansionVisibilityUnsubscribe = kingdomExpansionTilesVisibleState.subscribe((visible) => {
+			this.hexGridSystem.setExpansionTilesVisible(visible);
+		});
 		this.applyOverlayRenderMode();
 		window.addEventListener(OVERLAY_TOWN_VISIBILITY_EVENT, this.handleOverlayTownVisibilityChanged as EventListener);
 		window.addEventListener(OVERLAY_BACKGROUND_EVENT, this.handleOverlayBackgroundChanged as EventListener);
@@ -151,8 +155,10 @@ export class KingdomScene extends Scene {
 			window.removeEventListener(OVERLAY_BACKGROUND_EVENT, this.handleOverlayBackgroundChanged as EventListener);
 			this.catalogUnsubscribe?.();
 			this.tileProjectionUnsubscribe?.();
+			this.expansionVisibilityUnsubscribe?.();
 			this.catalogUnsubscribe = null;
 			this.tileProjectionUnsubscribe = null;
+			this.expansionVisibilityUnsubscribe = null;
 		});
 
 		this.input.on('pointerdown', this.handlePointerDown);
@@ -197,6 +203,7 @@ export class KingdomScene extends Scene {
 		for (const tile of tiles) {
 			const entity = this.hexGridSystem.ensureTileExists(tile.q, tile.r);
 			entity.position = { q: tile.q, r: tile.r };
+			entity.isExpansionSite = tile.isExpansionSite === true;
 			if (tile.building) {
 				entity.building = {
 					buildingId: tile.building.buildingId,
@@ -209,6 +216,7 @@ export class KingdomScene extends Scene {
 			} else {
 				delete entity.building;
 			}
+			this.hexGridSystem.refreshTileVisualState(entity);
 		}
 
 		for (const tile of this.world.getTiles()) {

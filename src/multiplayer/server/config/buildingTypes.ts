@@ -63,12 +63,10 @@ export interface BuildingDef {
 	textureId: string;
 	/** Path relative to public/assets/ for the building icon. */
 	assetPath: string;
-	/** Resource cost to build/upgrade. For blockers this is the removal cost instead. */
+	/** Resource cost to build/upgrade. */
 	cost: ResourceMap;
-	/** Time to build/upgrade in game ticks. For blockers this is removal time instead. */
+	/** Time to build/upgrade in game ticks. */
 	buildTime: number;
-	/** If true, this is a pre-placed obstacle — not purchasable, removed by paying expansion. */
-	isBlocker?: true;
 	/** Attached production component. */
 	production?: ProductionComponent;
 	/** Attached army component. */

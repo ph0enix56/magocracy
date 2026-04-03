@@ -96,7 +96,25 @@
 	function onBuild() {
 		if (!selected) return;
 		if (!canInteract) return;
+		if (selected.isExpansionSite) {
+			void onExpand();
+			return;
+		}
 		blueprintModalState.set({ isOpen: true, mode: 'build', q: selected.q, r: selected.r });
+		visible = false;
+		selected = null;
+	}
+
+	async function onExpand() {
+		if (!selected) return;
+		if (!canInteract) return;
+		const ok = confirm('Expand this tile by spending 1 expansion token?');
+		if (!ok) return;
+		const result = await gameSessionClient.requestExpandTile(selected.q, selected.r);
+		if (!result.ok) {
+			alert(result.reason);
+			return;
+		}
 		visible = false;
 		selected = null;
 	}
@@ -151,10 +169,12 @@
 				{/if}
 			</div>
 			<div class="tile-card__titles">
-				<h2>{selected.built ? (selected.buildingName ?? selected.buildingId ?? 'Building') : 'Empty space'}</h2>
+				<h2>{selected.isExpansionSite ? 'Expansion site' : selected.built ? (selected.buildingName ?? selected.buildingId ?? 'Building') : 'Empty space'}</h2>
 				{#if selected.built}
 					<p>Tier {selected.buildingTier ?? '?'} {schoolDistrictLabel(selected.buildingSchool)}</p>
 					<p>{kindLabel(selected.buildingKind)}</p>
+				{:else if selected.isExpansionSite}
+					<p>Spend 1 expansion token to unlock this tile.</p>
 				{/if}
 			</div>
 		</div>
@@ -172,7 +192,9 @@
 
 		{#if canInteract}
 			<div class="tile-card__actions">
-				{#if selected.built}
+				{#if selected.isExpansionSite}
+					<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onExpand}>Expand</button>
+				{:else if selected.built}
 					{#if selected.nextUpgradeId}
 						<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onUpgradeClick}>Upgrade</button>
 					{/if}

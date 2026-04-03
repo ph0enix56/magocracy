@@ -141,7 +141,6 @@ function parseBuildingDef(raw: unknown, index: number): BuildingDef {
 	}
 
 	const parentIdRaw = raw['parentId'];
-	const isBlockerRaw = raw['isBlocker'];
 
 	return {
 		id: asString(raw['id'], `${path}.id`),
@@ -154,7 +153,6 @@ function parseBuildingDef(raw: unknown, index: number): BuildingDef {
 		assetPath: asString(raw['assetPath'], `${path}.assetPath`),
 		cost: asNumberRecord(raw['cost'], `${path}.cost`),
 		buildTime: asNumber(raw['buildTime'], `${path}.buildTime`),
-		isBlocker: isBlockerRaw === undefined ? undefined : (asBoolean(isBlockerRaw, `${path}.isBlocker`) ? true : undefined),
 		production,
 		army,
 		effects: raw['effects'] === undefined ? undefined : asStringArray(raw['effects'], `${path}.effects`),
@@ -186,9 +184,6 @@ function loadAllBuildings(): Record<string, BuildingDef> {
 		if (def.parentId && !out[def.parentId]) {
 			throw new Error(`Building '${def.id}' references unknown parentId '${def.parentId}'`);
 		}
-	}
-	if (!Object.values(out).some(def => def.isBlocker)) {
-		throw new Error('No blocker building defs configured. Add at least one building with isBlocker=true.');
 	}
 	return out;
 }
@@ -233,11 +228,7 @@ export function getAllUnitDefs(): UnitDef[] {
 	return Object.values(UNITS);
 }
 
-export function getBlockingBuildingDefs(): BuildingDef[] {
-	return Object.values(BUILDINGS).filter(def => def.isBlocker);
-}
-
-/** Returns all root (non-upgrade, non-blocker) buildings available for purchase. */
+/** Returns all root buildings available for purchase. */
 export function getPurchasableBuildings(): BuildingDef[] {
-	return Object.values(BUILDINGS).filter(b => !b.parentId && !b.isBlocker);
+	return Object.values(BUILDINGS).filter(b => !b.parentId);
 }

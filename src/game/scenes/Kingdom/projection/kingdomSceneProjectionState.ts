@@ -25,3 +25,14 @@ export const kingdomTileProjectionState = readable<KingdomTileSnapshot[]>(EMPTY_
 		set(nextTiles);
 	});
 });
+
+/** Projection stream that controls whether expansion sites are visible in the Kingdom scene. */
+export const kingdomExpansionTilesVisibleState = readable(false, (set) => {
+	let previousVisible: boolean | null = null;
+	return gameSessionState.subscribe((state) => {
+		const visible = Math.max(0, Math.floor(state.resources.expansion ?? 0)) > 0;
+		if (visible === previousVisible) return;
+		previousVisible = visible;
+		set(visible);
+	});
+});

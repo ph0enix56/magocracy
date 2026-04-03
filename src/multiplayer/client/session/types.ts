@@ -33,6 +33,8 @@ export type SelectedTileView = {
 	q: number;
 	r: number;
 	anchor?: TileScreenAnchor;
+	isExpansionSite?: boolean;
+	canExpand?: boolean;
 	built: boolean;
 	buildingId?: string;
 	buildingName?: string;
