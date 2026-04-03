@@ -1,5 +1,5 @@
-import type { ClientCommand, GameActionCommand } from '../../../shared/multiplayer/contracts/commands';
-import type { GameSnapshot } from '../../../shared/multiplayer/contracts/snapshots';
+import type { ClientCommand, GameActionCommand } from '../../../shared/multiplayer/commands';
+import type { GameSnapshot } from '../../../shared/multiplayer/snapshots';
 import { buildBuildingCatalog, toLobbySnapshot } from '../gameplay/snapshots/lobbySnapshot';
 import type { LobbyRecord, ServerEventGateway } from './lobbyTypes';
 

@@ -1,4 +1,4 @@
-import type { BuildingCatalogEntry, BuildingCatalogSnapshot } from '../../shared/multiplayer/contracts/snapshots';
+import type { BuildingCatalogEntry, BuildingCatalogSnapshot } from '../../shared/multiplayer/snapshots';
 
 type Listener = (entries: BuildingCatalogEntry[]) => void;
 

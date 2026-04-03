@@ -10,7 +10,7 @@ import type {
 	LobbyPlayerSnapshot,
 	PlayerGameView,
 	ShopSnapshot
-} from '../../../shared/multiplayer/contracts/snapshots';
+} from '../../../shared/multiplayer/snapshots';
 import type { MultiplayerClientState } from '../MultiplayerClient';
 
 /** Coordinates of a selected kingdom tile in axial hex space. */

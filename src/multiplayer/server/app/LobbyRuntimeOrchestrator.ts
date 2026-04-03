@@ -1,6 +1,6 @@
 import { RoomGameRuntime } from '../RoomGameRuntime';
-import type { GameActionCommand } from '../../../shared/multiplayer/contracts/commands';
-import type { GameSnapshot } from '../../../shared/multiplayer/contracts/snapshots';
+import type { GameActionCommand } from '../../../shared/multiplayer/commands';
+import type { GameSnapshot } from '../../../shared/multiplayer/snapshots';
 
 /**
  * Owns authoritative runtime instances per lobby and routes gameplay actions

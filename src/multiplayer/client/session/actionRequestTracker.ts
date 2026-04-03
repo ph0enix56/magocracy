@@ -1,4 +1,4 @@
-import type { GameActionCommand } from '../../../shared/multiplayer/contracts/commands';
+import type { GameActionCommand } from '../../../shared/multiplayer/commands';
 import type { CommandResult } from './types';
 
 export type PendingActionRequestStatus = 'sent' | 'acknowledged';

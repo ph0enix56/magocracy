@@ -1,4 +1,4 @@
-import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
+import type { GameActionCommand } from '../../../../shared/multiplayer/commands';
 import type { ServerGameState } from '../ServerGameState';
 import type { ArmyService } from '../services/armyService';
 import type { BuildService } from '../services/BuildService';

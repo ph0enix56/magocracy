@@ -1,4 +1,4 @@
-import type { BuildingCatalogEntry, LobbyPlayerSnapshot, LobbySnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import type { BuildingCatalogEntry, LobbyPlayerSnapshot, LobbySnapshot } from '../../../../shared/multiplayer/snapshots';
 import { getAllBuildingDefs } from '../../config/buildings';
 import type { LobbyRecord } from '../../app/lobbyTypes';
 
@@ -30,7 +30,6 @@ export function buildBuildingCatalog(): BuildingCatalogEntry[] {
 		parentId: def.parentId,
 		name: def.name,
 		description: def.description,
-		textureId: def.textureId,
 		assetPath: def.assetPath,
 		cost: def.cost,
 		buildTime: def.buildTime

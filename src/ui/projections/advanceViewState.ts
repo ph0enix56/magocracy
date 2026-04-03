@@ -1,5 +1,5 @@
 import { derived } from 'svelte/store';
-import type { AdvanceSnapshot } from '../../shared/multiplayer/contracts/snapshots';
+import type { AdvanceSnapshot } from '../../shared/multiplayer/snapshots';
 import { gameSessionState } from '../../multiplayer/client/gameSessionStore';
 
 export type AdvancePanelViewState = {

@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
-import type { GameActionCommand } from '../../shared/multiplayer/contracts/commands';
-import type { ServerEvent } from '../../shared/multiplayer/contracts/events';
-import type { BuildingCatalogEntry } from '../../shared/multiplayer/contracts/snapshots';
+import type { GameActionCommand } from '../../shared/multiplayer/commands';
+import type { ServerEvent } from '../../shared/multiplayer/events';
+import type { BuildingCatalogEntry } from '../../shared/multiplayer/snapshots';
 import type { MultiplayerClientState } from './MultiplayerClient';
 import { buildingCatalog } from './buildingCatalog';
 import { multiplayerClient } from './clientSingleton';

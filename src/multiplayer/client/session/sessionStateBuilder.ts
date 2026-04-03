@@ -5,7 +5,7 @@ import type {
 	KingdomSnapshot,
 	LobbyPlayerSnapshot,
 	PlayerGameView
-} from '../../../shared/multiplayer/contracts/snapshots';
+} from '../../../shared/multiplayer/snapshots';
 import type { BuildingStatus, ResourceMap } from '../../../shared/domain/types';
 import {
 	EMPTY_ADVANCE,

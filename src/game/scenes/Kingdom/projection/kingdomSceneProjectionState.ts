@@ -1,5 +1,5 @@
 import { readable } from 'svelte/store';
-import type { BuildingCatalogSnapshot, KingdomTileSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import type { BuildingCatalogSnapshot, KingdomTileSnapshot } from '../../../../shared/multiplayer/snapshots';
 import { gameSessionState } from '../../../../multiplayer/client/gameSessionStore';
 
 const EMPTY_BUILDING_CATALOG: BuildingCatalogSnapshot = { buildings: [] };

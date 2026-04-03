@@ -1,5 +1,5 @@
 import { derived } from 'svelte/store';
-import type { FightSnapshot } from '../../shared/multiplayer/contracts/snapshots';
+import type { FightSnapshot } from '../../shared/multiplayer/snapshots';
 import { gameSessionState } from '../../multiplayer/client/gameSessionStore';
 
 export type FightPanelViewState = {

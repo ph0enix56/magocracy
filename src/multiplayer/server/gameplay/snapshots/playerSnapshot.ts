@@ -1,4 +1,4 @@
-import type { KingdomSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import type { KingdomSnapshot } from '../../../../shared/multiplayer/snapshots';
 import type { ArmyUnit } from '../../../../shared/domain/gameViews';
 import type { ResourceMap } from '../../../../shared/domain/types';
 import { getBuildingDef, getUnitDef } from '../../config/buildings';

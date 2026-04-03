@@ -44,18 +44,18 @@ export class ProjectionRenderSystem {
 
 			if (tile.building) {
 				if (!def) continue;
-				if (!this.scene.textures.exists(def.textureId)) continue;
+				const textureKey = `building_${def.id}`;
 
 				if (!render.building) {
-					const sprite = this.scene.add.image(render.hex.x, render.hex.y, def.textureId);
+					const sprite = this.scene.add.image(render.hex.x, render.hex.y, textureKey);
 					sprite.setScale(this.getTargetBuildingScale(sprite, buildingCfg.spriteFillScaleMultiplier));
 					sprite.setAlpha(buildingCfg.alpha.initial);
 					sprite.setVisible(this.visible);
 					render.building = sprite;
 				}
 
-				if (render.building.texture.key !== def.textureId) {
-					render.building.setTexture(def.textureId);
+				if (render.building.texture.key !== textureKey) {
+					render.building.setTexture(textureKey);
 				}
 
 				render.building.setPosition(render.hex.x, render.hex.y);

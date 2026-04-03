@@ -40,8 +40,6 @@ export interface BuildingDef {
 	name: string;
 	/** In-game building card description. */
 	description: string;
-	/** Phaser texture key (can be the same as id). */
-	textureId: string;
 	/** Path relative to public/assets/ for the building icon. */
 	assetPath: string;
 	/** Resource cost to build/upgrade. */
@@ -77,8 +75,6 @@ export interface UnitDef {
 	actionPoints: number;
 	/** Initiative on the world map / combat ordering. */
 	initiative: number;
-	/** Phaser texture key. */
-	textureId: string;
 	/** Path relative to public/assets/ for the unit icon. */
 	assetPath: string;
 }

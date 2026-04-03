@@ -1,4 +1,4 @@
-import type { ClientCommand } from '../../../shared/multiplayer/contracts/commands';
+import type { ClientCommand } from '../../../shared/multiplayer/commands';
 
 /**
  * Shape of the command handlers that are registered for processing client commands. Each handler corresponds to a specific client command type,

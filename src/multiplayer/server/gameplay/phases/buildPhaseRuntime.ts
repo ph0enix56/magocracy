@@ -1,5 +1,5 @@
 import { kingdomCoordKey } from '../../../../shared/kingdom/kingdomGrid';
-import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
+import type { GameActionCommand } from '../../../../shared/multiplayer/commands';
 import type { ServerGameState } from '../ServerGameState';
 import { expandKingdomTile } from '../board/kingdomBoard';
 import { ArmyService } from '../services/armyService';

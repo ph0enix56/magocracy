@@ -2,7 +2,7 @@
 	import { shopModalState } from './uiState';
 	import { shopPanelState } from './projections/shopViewState';
 	import BuildingCard from './BuildingCard.svelte';
-	import type { BuildingCatalogEntry } from '../shared/multiplayer/contracts/snapshots';
+	import type { BuildingCatalogEntry } from '../shared/multiplayer/snapshots';
 	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 
 	let state: { isOpen: boolean } = { isOpen: false };

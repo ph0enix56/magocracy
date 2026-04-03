@@ -1,4 +1,4 @@
-import type { ClientCommand } from '../../../shared/multiplayer/contracts/commands';
+import type { ClientCommand } from '../../../shared/multiplayer/commands';
 import { LobbyLifecycleService } from './LobbyLifecycleService';
 import { LobbyRuntimeOrchestrator } from './LobbyRuntimeOrchestrator';
 import { routeClientCommand } from './CommandRouter';

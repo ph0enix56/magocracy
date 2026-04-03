@@ -1,4 +1,4 @@
-import type { FightSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import type { FightSnapshot } from '../../../../shared/multiplayer/snapshots';
 import type { FightArmyUnitSummary } from '../../../../shared/domain/gameViews';
 import type { ArmyUnitState } from '../model';
 import type { FightPhaseStateData } from './fightPhase';

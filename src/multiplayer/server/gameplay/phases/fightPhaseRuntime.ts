@@ -1,6 +1,6 @@
 import type { CombatSnapshot } from '../../../../shared/domain/combatTypes';
-import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
-import type { FightPlayerRoundSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import type { GameActionCommand } from '../../../../shared/multiplayer/commands';
+import type { FightPlayerRoundSnapshot } from '../../../../shared/multiplayer/snapshots';
 import { configuration } from '../../../../game/configuration';
 import { getUnitDef } from '../../config/buildings';
 import type { ArmyUnitState } from '../model';

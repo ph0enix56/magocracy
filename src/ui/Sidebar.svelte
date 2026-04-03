@@ -59,7 +59,7 @@
 
 	function kindLabel(kind: SelectedTileView['buildingKind']): string {
 		if (kind === 'army') return 'Army';
-		if (kind === 'production') return 'Production / Aura';
+		if (kind === 'production') return 'Production';
 		return 'District';
 	}
 

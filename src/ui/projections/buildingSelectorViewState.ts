@@ -1,5 +1,5 @@
 import { derived } from 'svelte/store';
-import type { BuildingCatalogEntry } from '../../shared/multiplayer/contracts/snapshots';
+import type { BuildingCatalogEntry } from '../../shared/multiplayer/snapshots';
 import type { ResourceMap } from '../../shared/domain/types';
 import { gameSessionState } from '../../multiplayer/client/gameSessionStore';
 

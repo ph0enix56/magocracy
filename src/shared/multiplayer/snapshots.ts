@@ -1,10 +1,8 @@
-import type { BuildingStatus, ResourceMap } from '../../domain/types';
-import type { CharterOption } from '../../domain/charter';
-import type { ArmyUnit, FightArmyUnitSummary } from '../../domain/gameViews';
-import type {
-	CombatSnapshot
-} from '../../domain/combatTypes';
-import type { KingdomCoord } from '../../kingdom/kingdomGrid';
+import type { BuildingStatus, ResourceMap } from '../domain/types';
+import type { CharterOption } from '../domain/charter';
+import type { ArmyUnit, FightArmyUnitSummary } from '../domain/gameViews';
+import type { CombatSnapshot } from '../domain/combatTypes';
+import type { KingdomCoord } from '../kingdom/kingdomGrid';
 
 export type LobbyStatus = 'open' | 'in-game';
 export type GamePhase = 'setup' | 'build' | 'combat' | 'advance';
@@ -92,7 +90,6 @@ export type BuildingCatalogEntry = {
 	parentId?: string;
 	name: string;
 	description: string;
-	textureId: string;
 	assetPath: string;
 	cost: ResourceMap;
 	buildTime: number;

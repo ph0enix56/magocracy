@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 import { configuration } from '../../configuration';
-import type { BuildingCatalogSnapshot, KingdomTileSnapshot } from '../../../shared/multiplayer/contracts/snapshots';
+import type { BuildingCatalogSnapshot, KingdomTileSnapshot } from '../../../shared/multiplayer/snapshots';
 import { gameSessionClient } from '../../../multiplayer/client/gameSessionStore';
 import {
 	OVERLAY_BACKGROUND_EVENT,
@@ -176,13 +176,14 @@ export class KingdomScene extends Scene {
 	private loadCatalogAssets(catalog: BuildingCatalogSnapshot): void {
 		let queued = false;
 		for (const building of catalog.buildings) {
-			if (this.textures.exists(building.textureId)) continue;
+			const texKey = `building_${building.id}`;
+			if (this.textures.exists(texKey)) continue;
 			const assetUrl = `assets/${building.assetPath}`;
 			if (assetUrl.toLowerCase().endsWith('.svg')) {
 				const targetSize = this.getBuildingRasterSize();
-				this.load.svg(building.textureId, assetUrl, { width: targetSize, height: targetSize });
+				this.load.svg(texKey, assetUrl, { width: targetSize, height: targetSize });
 			} else {
-				this.load.image(building.textureId, assetUrl);
+				this.load.image(texKey, assetUrl);
 			}
 			queued = true;
 		}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BuildingCatalogEntry } from '../shared/multiplayer/contracts/snapshots';
+	import type { BuildingCatalogEntry } from '../shared/multiplayer/snapshots';
 	import { createEventDispatcher } from 'svelte';
 
 	export let def: BuildingCatalogEntry;

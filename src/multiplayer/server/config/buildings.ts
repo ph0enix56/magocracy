@@ -98,7 +98,6 @@ function parseUnitDef(raw: unknown, index: number): UnitDef {
 		actions,
 		actionPoints: asNumber(raw['actionPoints'], `${path}.actionPoints`),
 		initiative: asNumber(raw['initiative'], `${path}.initiative`),
-		textureId: asString(raw['textureId'], `${path}.textureId`),
 		assetPath: asString(raw['assetPath'], `${path}.assetPath`)
 	};
 }
@@ -128,7 +127,6 @@ function parseBuildingDef(raw: unknown, index: number): BuildingDef {
 		parentId: parentIdRaw === undefined ? undefined : asString(parentIdRaw, `${path}.parentId`),
 		name: asString(raw['name'], `${path}.name`),
 		description: asString(raw['description'], `${path}.description`),
-		textureId: asString(raw['textureId'], `${path}.textureId`),
 		assetPath: asString(raw['assetPath'], `${path}.assetPath`),
 		cost: asNumberRecord(raw['cost'], `${path}.cost`),
 		buildTime: asNumber(raw['buildTime'], `${path}.buildTime`),

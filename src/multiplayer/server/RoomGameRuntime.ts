@@ -1,6 +1,6 @@
 import { configuration } from '../../game/configuration';
 import type { CombatSnapshot } from '../../shared/domain/combatTypes';
-import type { GameActionCommand } from '../../shared/multiplayer/contracts/commands';
+import type { GameActionCommand } from '../../shared/multiplayer/commands';
 import type {
 	AdvanceSnapshot,
 	GameStandingSnapshot,
@@ -8,7 +8,7 @@ import type {
 	GamePhase,
 	GameSnapshot,
 	PlayerGameView
-} from '../../shared/multiplayer/contracts/snapshots';
+} from '../../shared/multiplayer/snapshots';
 import { AdvancePhaseRuntime } from './gameplay/phases/advancePhaseRuntime';
 import { BuildPhaseRuntime } from './gameplay/phases/buildPhaseRuntime';
 import { FightPhaseRuntime } from './gameplay/phases/fightPhaseRuntime';

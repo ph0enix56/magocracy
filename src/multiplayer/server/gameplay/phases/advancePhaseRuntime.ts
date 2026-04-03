@@ -1,8 +1,8 @@
 import { configuration } from '../../../../game/configuration';
 import { CHARTER_TEMPLATES } from '../../config/charters';
 import { getAllBuildingDefs } from '../../config/buildings';
-import type { GameActionCommand } from '../../../../shared/multiplayer/contracts/commands';
-import type { AdvanceSnapshot } from '../../../../shared/multiplayer/contracts/snapshots';
+import type { GameActionCommand } from '../../../../shared/multiplayer/commands';
+import type { AdvanceSnapshot } from '../../../../shared/multiplayer/snapshots';
 import type { CharterOption, CharterBlueprintGrant, CharterResourceGrant } from '../../../../shared/domain/charter';
 import type { PhaseActionResult, PhaseTickResult, RuntimePhase, RuntimePhaseContext } from './runtimePhase';
 import {
