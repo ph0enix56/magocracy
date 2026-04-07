@@ -9,12 +9,12 @@
       "stone": 40
     },
     "buildTime": 3,
+    "description": "Produces wood and gains +1 wood per neighboring district.",
     "productions": {
       "wood": 5
     },
-    "description": "+1 wood per 2 neighboring districts",
     "effects": [
-      "self-foreach; hasProd | hasArmy; prod:wood; add; 0.5"
+      "self-foreach; tier=1 | tier=2 | tier=3 | tier=4; prod:wood; add; 1"
     ]
   },
   {
@@ -23,18 +23,18 @@
     "assetPath": "game_icons/axe-in-stump.svg",
     "school": "geomancy",
     "tier": 1,
-    "parentId": "logging_camp",
     "cost": {
-      "stone": 60,
-      "wood": 30
+      "stone": 95,
+      "wood": 20
     },
     "buildTime": 5,
+    "description": "Produces wood and gains +1 wood per neighboring district.",
+    "parentId": "logging_camp",
     "productions": {
       "wood": 8
     },
-    "description": "+1 wood per 2 neighboring districts",
     "effects": [
-      "self-foreach; hasProd | hasArmy; prod:wood; add; 0.5"
+      "self-foreach; tier=1 | tier=2 | tier=3 | tier=4; prod:wood; add; 1"
     ]
   },
   {
@@ -43,35 +43,35 @@
     "assetPath": "game_icons/axe-in-stump.svg",
     "school": "geomancy",
     "tier": 1,
-    "parentId": "logging_camp_2",
     "cost": {
-      "stone": 60,
+      "stone": 115,
       "wood": 30
     },
     "buildTime": 5,
+    "description": "Produces wood and gains +1 wood per neighboring district.",
+    "parentId": "logging_camp_2",
     "productions": {
       "wood": 11
     },
-    "description": "+1 wood per 2 neighboring districts",
     "effects": [
-      "self-foreach; hasProd | hasArmy; prod:wood; add; 0.5"
+      "self-foreach; tier=1 | tier=2 | tier=3 | tier=4; prod:wood; add; 1"
     ]
   },
   {
     "id": "forest_school",
     "name": "Forest School",
-    "assetPath": "game_icons/forest.svg",
+    "assetPath": "game_icons/pine-tree.svg",
     "school": "sylvan",
     "tier": 1,
     "cost": {
-      "wood": 15,
-      "food": 30
+      "wood": 30,
+      "food": 20
     },
-    "buildTime": 10,
+    "buildTime": 4,
+    "description": "Produces wood and gains extra wood if adjacent to Sylvan or empty districts (+2 each).",
     "productions": {
-      "wood": 2
+      "wood": 3
     },
-    "description": "+2 wood if adjacent to Sylvan district, +2 wood if it has an empty neighbor",
     "effects": [
       "self-if; school=sylvan; prod:wood; add; 2",
       "self-if; empty; prod:wood; add; 2"
@@ -80,19 +80,19 @@
   {
     "id": "forest_school_2",
     "name": "Forest School II",
-    "assetPath": "game_icons/forest.svg",
+    "assetPath": "game_icons/pine-tree.svg",
     "school": "sylvan",
     "tier": 1,
-    "parentId": "forest_school",
     "cost": {
-      "wood": 35,
-      "food": 60
+      "wood": 95,
+      "food": 25
     },
-    "buildTime": 6,
+    "buildTime": 5,
+    "description": "Produces wood and gains extra wood if adjacent to Sylvan or empty districts (+3 each).",
+    "parentId": "forest_school",
     "productions": {
-      "wood": 3
+      "wood": 5
     },
-    "description": "+3 wood if adjacent to Sylvan district, +3 wood if it has an empty neighbor",
     "effects": [
       "self-if; school=sylvan; prod:wood; add; 3",
       "self-if; empty; prod:wood; add; 3"
@@ -101,19 +101,19 @@
   {
     "id": "forest_school_3",
     "name": "Forest School III",
-    "assetPath": "game_icons/forest.svg",
+    "assetPath": "game_icons/pine-tree.svg",
     "school": "sylvan",
     "tier": 1,
-    "parentId": "forest_school_2",
     "cost": {
-      "wood": 35,
-      "food": 60
+      "wood": 115,
+      "food": 35
     },
-    "buildTime": 6,
+    "buildTime": 5,
+    "description": "Produces wood and gains extra wood if adjacent to Sylvan or empty districts (+4 each).",
+    "parentId": "forest_school_2",
     "productions": {
-      "wood": 4
+      "wood": 7
     },
-    "description": "+4 wood if adjacent to Sylvan district, +4 wood if it has an empty neighbor",
     "effects": [
       "self-if; school=sylvan; prod:wood; add; 4",
       "self-if; empty; prod:wood; add; 4"
@@ -122,118 +122,118 @@
   {
     "id": "mining_camp",
     "name": "Mining Camp",
-    "assetPath": "game_icons/stone-crafting.svg",
+    "assetPath": "game_icons/mining.svg",
     "school": "geomancy",
     "tier": 1,
     "cost": {
       "wood": 40
     },
     "buildTime": 3,
+    "description": "Produces stone and gains +1 stone per neighboring district.",
     "productions": {
       "stone": 5
     },
-    "description": "+1 stone per 2 neighboring districts",
     "effects": [
-      "self-foreach; hasProd | hasArmy; prod:stone; add; 0.5"
+      "self-foreach; tier=1 | tier=2 | tier=3 | tier=4; prod:stone; add; 1"
     ]
   },
   {
     "id": "mining_camp_2",
     "name": "Mining Camp II",
-    "assetPath": "game_icons/stone-crafting.svg",
+    "assetPath": "game_icons/mining.svg",
     "school": "geomancy",
     "tier": 1,
-    "parentId": "mining_camp",
     "cost": {
-      "wood": 30,
-      "stone": 60
+      "stone": 90,
+      "wood": 25
     },
     "buildTime": 5,
+    "description": "Produces stone and gains +1 stone per neighboring district.",
+    "parentId": "mining_camp",
     "productions": {
       "stone": 8
     },
-    "description": "+1 stone per 2 neighboring districts",
     "effects": [
-      "self-foreach; hasProd | hasArmy; prod:stone; add; 0.5"
+      "self-foreach; tier=1 | tier=2 | tier=3 | tier=4; prod:stone; add; 1"
     ]
   },
   {
     "id": "mining_camp_3",
     "name": "Mining Camp III",
-    "assetPath": "game_icons/stone-crafting.svg",
+    "assetPath": "game_icons/mining.svg",
     "school": "geomancy",
     "tier": 1,
-    "parentId": "mining_camp_2",
     "cost": {
-      "wood": 30,
-      "stone": 60
+      "stone": 110,
+      "wood": 35
     },
     "buildTime": 5,
+    "description": "Produces stone and gains +1 stone per neighboring district.",
+    "parentId": "mining_camp_2",
     "productions": {
       "stone": 11
     },
-    "description": "+1 stone per 2 neighboring districts",
     "effects": [
-      "self-foreach; hasProd | hasArmy; prod:stone; add; 0.5"
+      "self-foreach; tier=1 | tier=2 | tier=3 | tier=4; prod:stone; add; 1"
     ]
   },
   {
     "id": "quarry",
     "name": "Quarry",
-    "assetPath": "game_icons/stone-pile.svg",
+    "assetPath": "game_icons/stone-block.svg",
     "school": "pyromancy",
     "tier": 1,
     "cost": {
       "wood": 25,
       "food": 20
     },
-    "buildTime": 5,
+    "buildTime": 4,
+    "description": "Produces stone and gains bonus output only when no producing neighbors are present (+4).",
     "productions": {
-      "stone": 3
+      "stone": 7
     },
-    "description": "+4 stone if it has no producing neighbors",
     "effects": [
-      "self-if; hasProd; prod:stone; add; 4"
+      "self-if; hasProd; prod:stone; add; -4"
     ]
   },
   {
     "id": "quarry_2",
     "name": "Quarry II",
-    "assetPath": "game_icons/stone-pile.svg",
+    "assetPath": "game_icons/stone-block.svg",
     "school": "pyromancy",
     "tier": 1,
-    "parentId": "quarry",
     "cost": {
-      "wood": 50,
-      "food": 45
+      "wood": 90,
+      "food": 20
     },
-    "buildTime": 8,
+    "buildTime": 5,
+    "description": "Produces stone and gains bonus output only when no producing neighbors are present (+7).",
+    "parentId": "quarry",
     "productions": {
-      "stone": 5
+      "stone": 12
     },
-    "description": "+7 stone if it has no producing neighbors",
     "effects": [
-      "self-if; hasProd; prod:stone; add; 7"
+      "self-if; hasProd; prod:stone; add; -7"
     ]
   },
   {
     "id": "quarry_3",
     "name": "Quarry III",
-    "assetPath": "game_icons/stone-pile.svg",
+    "assetPath": "game_icons/stone-block.svg",
     "school": "pyromancy",
     "tier": 1,
-    "parentId": "quarry_2",
     "cost": {
-      "wood": 50,
-      "food": 45
+      "wood": 110,
+      "food": 30
     },
-    "buildTime": 8,
+    "buildTime": 5,
+    "description": "Produces stone and gains bonus output only when no producing neighbors are present (+10).",
+    "parentId": "quarry_2",
     "productions": {
-      "stone": 7
+      "stone": 17
     },
-    "description": "+10 stone if it has no producing neighbors",
     "effects": [
-      "self-if; hasProd; prod:stone; add; 10"
+      "self-if; hasProd; prod:stone; add; -10"
     ]
   },
   {
@@ -243,14 +243,14 @@
     "school": "sylvan",
     "tier": 1,
     "cost": {
-      "wood": 15,
-      "stone": 15
+      "wood": 20,
+      "stone": 20
     },
-    "buildTime": 12,
+    "buildTime": 4,
+    "description": "Produces food and gains +1 food per empty neighboring district.",
     "productions": {
-      "food": 2
+      "food": 3
     },
-    "description": "+1 food per empty neighbor",
     "effects": [
       "self-foreach; empty; prod:food; add; 1"
     ]
@@ -261,18 +261,38 @@
     "assetPath": "game_icons/wheat.svg",
     "school": "sylvan",
     "tier": 1,
-    "parentId": "farm",
     "cost": {
-      "wood": 85,
-      "stone": 85
+      "wood": 90,
+      "stone": 30
     },
-    "buildTime": 10,
+    "buildTime": 5,
+    "description": "Produces food and gains +2 food per empty neighboring district.",
+    "parentId": "farm",
     "productions": {
-      "food": 4
+      "food": 5
     },
-    "description": "+2 food per empty neighbor",
     "effects": [
       "self-foreach; empty; prod:food; add; 2"
+    ]
+  },
+  {
+    "id": "farm_3",
+    "name": "Farm III",
+    "assetPath": "game_icons/wheat.svg",
+    "school": "sylvan",
+    "tier": 1,
+    "cost": {
+      "wood": 105,
+      "stone": 40
+    },
+    "buildTime": 5,
+    "description": "Produces food and gains +3 food per empty neighboring district.",
+    "parentId": "farm_2",
+    "productions": {
+      "food": 7
+    },
+    "effects": [
+      "self-foreach; empty; prod:food; add; 3"
     ]
   },
   {
@@ -285,13 +305,13 @@
       "wood": 25,
       "stone": 25
     },
-    "buildTime": 5,
+    "buildTime": 4,
+    "description": "Produces food and reduces HP of adjacent armies by 8%.",
     "productions": {
-      "food": 7
+      "food": 5
     },
-    "description": "-100 % food production in adjacent districts",
     "effects": [
-      "neighbor; hasProd; prod:food; mul; -1"
+      "neighbor; hasArmy; unit:hp; mult; -0.08"
     ]
   },
   {
@@ -300,37 +320,38 @@
     "assetPath": "game_icons/half-dead.svg",
     "school": "necromancy",
     "tier": 1,
-    "parentId": "cursed_field",
     "cost": {
-      "wood": 125,
-      "stone": 125
+      "wood": 95,
+      "stone": 25
     },
-    "buildTime": 8,
+    "buildTime": 5,
+    "description": "Produces food and reduces HP of adjacent armies by 12%.",
+    "parentId": "cursed_field",
     "productions": {
-      "food": 16
+      "food": 8
     },
-    "description": "-80 % food production in adjacent districts",
     "effects": [
-      "neighbor; hasProd; prod:food; mul; -0.8"
+      "neighbor; hasArmy; unit:hp; mult; -0.12"
     ]
   },
   {
-    "id": "essence_harvester",
-    "name": "Essence Harvester",
-    "assetPath": "game_icons/heart-inside.svg",
+    "id": "cursed_field_3",
+    "name": "Cursed Field III",
+    "assetPath": "game_icons/half-dead.svg",
     "school": "necromancy",
     "tier": 1,
     "cost": {
-      "stone": 40,
-      "wood": 15
+      "wood": 110,
+      "stone": 35
     },
     "buildTime": 5,
+    "description": "Produces food and reduces HP of adjacent armies by 16%.",
+    "parentId": "cursed_field_2",
     "productions": {
-      "mana": 0
+      "food": 11
     },
-    "description": "Gain 1 mana per adjacent army district",
     "effects": [
-      "self-foreach; hasArmy; prod:mana; add; 1"
+      "neighbor; hasArmy; unit:hp; mult; -0.16"
     ]
   },
   {
@@ -340,33 +361,633 @@
     "school": "pyromancy",
     "tier": 1,
     "cost": {
-      "stone": 15,
-      "wood": 10
+      "wood": 20,
+      "stone": 20
     },
-    "buildTime": 3,
+    "buildTime": 4,
+    "description": "Produces mana and halves all neighboring production.",
     "productions": {
-      "mana": 5
+      "mana": 6
     },
-    "description": "Neighbor district production -50 %",
     "effects": [
-      "neighbor; hasProd; prod:all; mul; -0.5"
+      "neighbor; hasProd; prod:all; mult; -0.5"
     ]
   },
   {
-    "id": "dwellings",
-    "name": "Dwellings",
-    "assetPath": "game_icons/house.svg",
+    "id": "essence_harvester",
+    "name": "Essence Harvester",
+    "assetPath": "game_icons/heart-inside.svg",
+    "school": "necromancy",
+    "tier": 1,
+    "cost": {
+      "stone": 35,
+      "wood": 15
+    },
+    "buildTime": 4,
+    "description": "Produces mana for each adjacent army district.",
+    "productions": {
+      "mana": 0
+    },
+    "effects": [
+      "self-foreach; hasArmy; prod:mana; add; 2"
+    ]
+  },
+  {
+    "id": "swordsman_camp",
+    "name": "Swordsman Camp",
+    "assetPath": "game_icons/sword-brandish.svg",
+    "school": "geomancy",
+    "tier": 1,
+    "cost": {
+      "food": 26,
+      "stone": 9,
+      "wood": 5
+    },
+    "buildTime": 4,
+    "description": "Balanced melee fighter. Gains flat resist per neighboring Geomancy or Artifact district.",
+    "housedUnitDefId": "swordsman",
+    "effects": [
+      "self-foreach; school=geomancy | school=artifact; unit:drflat; add; 1"
+    ]
+  },
+  {
+    "id": "swordsman_camp_2",
+    "name": "Swordsman Camp II",
+    "assetPath": "game_icons/sword-brandish.svg",
+    "school": "geomancy",
+    "tier": 1,
+    "cost": {
+      "food": 54,
+      "stone": 20,
+      "wood": 11
+    },
+    "buildTime": 5,
+    "description": "Balanced melee fighter. Gains flat resist per neighboring Geomancy or Artifact district.",
+    "parentId": "swordsman_camp",
+    "housedUnitDefId": "swordsman",
+    "effects": [
+      "self-foreach; school=geomancy | school=artifact; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 18",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 1"
+    ]
+  },
+  {
+    "id": "swordsman_camp_3",
+    "name": "Swordsman Camp III",
+    "assetPath": "game_icons/sword-brandish.svg",
+    "school": "geomancy",
+    "tier": 1,
+    "cost": {
+      "food": 82,
+      "stone": 28,
+      "wood": 16
+    },
+    "buildTime": 5,
+    "description": "Balanced melee fighter. Gains flat resist per neighboring Geomancy or Artifact district.",
+    "parentId": "swordsman_camp_2",
+    "housedUnitDefId": "swordsman",
+    "effects": [
+      "self-foreach; school=geomancy | school=artifact; unit:drflat; add; 3",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 36",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2"
+    ]
+  },
+  {
+    "id": "archer_camp",
+    "name": "Archer Camp",
+    "assetPath": "game_icons/high-shot.svg",
+    "school": "sylvan",
+    "tier": 1,
+    "cost": {
+      "food": 28,
+      "wood": 12
+    },
+    "buildTime": 4,
+    "description": "Range-4 shredder. Gains damage multiplier per neighboring Sylvan or empty district.",
+    "housedUnitDefId": "archer",
+    "effects": [
+      "self-foreach; school=sylvan | empty; unit:damage; mult; 0.06"
+    ]
+  },
+  {
+    "id": "archer_camp_2",
+    "name": "Archer Camp II",
+    "assetPath": "game_icons/high-shot.svg",
+    "school": "sylvan",
+    "tier": 1,
+    "cost": {
+      "food": 58,
+      "wood": 22
+    },
+    "buildTime": 5,
+    "description": "Range-4 shredder. Gains damage multiplier per neighboring Sylvan or empty district.",
+    "parentId": "archer_camp",
+    "housedUnitDefId": "archer",
+    "effects": [
+      "self-foreach; school=sylvan | empty; unit:damage; mult; 0.08",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 12"
+    ]
+  },
+  {
+    "id": "archer_camp_3",
+    "name": "Archer Camp III",
+    "assetPath": "game_icons/high-shot.svg",
+    "school": "sylvan",
+    "tier": 1,
+    "cost": {
+      "food": 88,
+      "wood": 32
+    },
+    "buildTime": 5,
+    "description": "Range-4 shredder. Gains damage multiplier per neighboring Sylvan or empty district.",
+    "parentId": "archer_camp_2",
+    "housedUnitDefId": "archer",
+    "effects": [
+      "self-foreach; school=sylvan | empty; unit:damage; mult; 0.1",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 24"
+    ]
+  },
+  {
+    "id": "defender_camp",
+    "name": "Defender Camp",
+    "assetPath": "game_icons/checked-shield.svg",
     "school": "artifact",
     "tier": 1,
     "cost": {
-      "wood": 20,
-      "stone": 20,
-      "food": 30
+      "food": 25,
+      "stone": 15
     },
-    "buildTime": 15,
-    "description": "Neighbor district production +10 %",
+    "buildTime": 4,
+    "description": "Melee tank. Gains HP multiplier if adjacent to both tier-1 production and tier-1 army districts.",
+    "housedUnitDefId": "defender",
     "effects": [
-      "neighbor; hasProd; prod:all; mul; 0.1"
+      "self-if; tier=1 & hasProd; unit:hp; mult; 0.1",
+      "self-if; tier=1 & hasArmy; unit:hp; mult; 0.1"
+    ]
+  },
+  {
+    "id": "defender_camp_2",
+    "name": "Defender Camp II",
+    "assetPath": "game_icons/checked-shield.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 52,
+      "stone": 28
+    },
+    "buildTime": 5,
+    "description": "Melee tank. Gains HP multiplier if adjacent to both tier-1 production and tier-1 army districts.",
+    "parentId": "defender_camp",
+    "housedUnitDefId": "defender",
+    "effects": [
+      "self-if; tier=1 & hasProd; unit:hp; mult; 0.14",
+      "self-if; tier=1 & hasArmy; unit:hp; mult; 0.14",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 24",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2"
+    ]
+  },
+  {
+    "id": "defender_camp_3",
+    "name": "Defender Camp III",
+    "assetPath": "game_icons/checked-shield.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 80,
+      "stone": 40
+    },
+    "buildTime": 5,
+    "description": "Melee tank. Gains HP multiplier if adjacent to both tier-1 production and tier-1 army districts.",
+    "parentId": "defender_camp_2",
+    "housedUnitDefId": "defender",
+    "effects": [
+      "self-if; tier=1 & hasProd; unit:hp; mult; 0.18",
+      "self-if; tier=1 & hasArmy; unit:hp; mult; 0.18",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 4",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 4"
+    ]
+  },
+  {
+    "id": "goblin_camp",
+    "name": "Goblin Camp",
+    "assetPath": "game_icons/goblin.svg",
+    "school": "pyromancy",
+    "tier": 1,
+    "cost": {
+      "food": 27,
+      "wood": 13
+    },
+    "buildTime": 4,
+    "description": "Range-3 assassin. Gains damage multiplier per neighboring Pyromancy or Artifact district.",
+    "housedUnitDefId": "goblin",
+    "effects": [
+      "self-foreach; school=pyromancy | school=artifact; unit:damage; mult; 0.06"
+    ]
+  },
+  {
+    "id": "goblin_camp_2",
+    "name": "Goblin Camp II",
+    "assetPath": "game_icons/goblin.svg",
+    "school": "pyromancy",
+    "tier": 1,
+    "cost": {
+      "food": 56,
+      "wood": 24
+    },
+    "buildTime": 5,
+    "description": "Range-3 assassin. Gains damage multiplier per neighboring Pyromancy or Artifact district.",
+    "parentId": "goblin_camp",
+    "housedUnitDefId": "goblin",
+    "effects": [
+      "self-foreach; school=pyromancy | school=artifact; unit:damage; mult; 0.08",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 14"
+    ]
+  },
+  {
+    "id": "goblin_camp_3",
+    "name": "Goblin Camp III",
+    "assetPath": "game_icons/goblin.svg",
+    "school": "pyromancy",
+    "tier": 1,
+    "cost": {
+      "food": 86,
+      "wood": 34
+    },
+    "buildTime": 5,
+    "description": "Range-3 assassin. Gains damage multiplier per neighboring Pyromancy or Artifact district.",
+    "parentId": "goblin_camp_2",
+    "housedUnitDefId": "goblin",
+    "effects": [
+      "self-foreach; school=pyromancy | school=artifact; unit:damage; mult; 0.1",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 28"
+    ]
+  },
+  {
+    "id": "ghost_camp",
+    "name": "Ghost Camp",
+    "assetPath": "game_icons/ghost.svg",
+    "school": "necromancy",
+    "tier": 1,
+    "cost": {
+      "food": 24,
+      "stone": 16
+    },
+    "buildTime": 4,
+    "description": "Range-3 spirit attacker. Gains HP multiplier per neighboring Necromancy or empty district.",
+    "housedUnitDefId": "ghost",
+    "effects": [
+      "self-foreach; school=necromancy | empty; unit:hp; mult; 0.08"
+    ]
+  },
+  {
+    "id": "ghost_camp_2",
+    "name": "Ghost Camp II",
+    "assetPath": "game_icons/ghost.svg",
+    "school": "necromancy",
+    "tier": 1,
+    "cost": {
+      "food": 50,
+      "stone": 30
+    },
+    "buildTime": 5,
+    "description": "Range-3 spirit attacker. Gains HP multiplier per neighboring Necromancy or empty district.",
+    "parentId": "ghost_camp",
+    "housedUnitDefId": "ghost",
+    "effects": [
+      "self-foreach; school=necromancy | empty; unit:hp; mult; 0.1",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 16"
+    ]
+  },
+  {
+    "id": "ghost_camp_3",
+    "name": "Ghost Camp III",
+    "assetPath": "game_icons/ghost.svg",
+    "school": "necromancy",
+    "tier": 1,
+    "cost": {
+      "food": 78,
+      "stone": 42
+    },
+    "buildTime": 5,
+    "description": "Range-3 spirit attacker. Gains HP multiplier per neighboring Necromancy or empty district.",
+    "parentId": "ghost_camp_2",
+    "housedUnitDefId": "ghost",
+    "effects": [
+      "self-foreach; school=necromancy | empty; unit:hp; mult; 0.12",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 32"
+    ]
+  },
+  {
+    "id": "prototype_soldier_camp",
+    "name": "Prototype Soldier Camp",
+    "assetPath": "game_icons/sword-tie.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 24,
+      "stone": 11,
+      "wood": 4
+    },
+    "buildTime": 4,
+    "description": "Low-start melee fighter that scales strongly with upgrades.",
+    "housedUnitDefId": "prototype_soldier",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0"
+    ]
+  },
+  {
+    "id": "prototype_soldier_camp_2",
+    "name": "Prototype Soldier Camp II",
+    "assetPath": "game_icons/sword-tie.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 55,
+      "stone": 25,
+      "wood": 9
+    },
+    "buildTime": 4,
+    "description": "Low-start melee fighter that scales strongly with upgrades.",
+    "parentId": "prototype_soldier_camp",
+    "housedUnitDefId": "prototype_soldier",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.08",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 24",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 1"
+    ]
+  },
+  {
+    "id": "prototype_soldier_camp_3",
+    "name": "Prototype Soldier Camp III",
+    "assetPath": "game_icons/sword-tie.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 99,
+      "stone": 44,
+      "wood": 16
+    },
+    "buildTime": 5,
+    "description": "Low-start melee fighter that scales strongly with upgrades.",
+    "parentId": "prototype_soldier_camp_2",
+    "housedUnitDefId": "prototype_soldier",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.16",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2"
+    ]
+  },
+  {
+    "id": "prototype_soldier_camp_4",
+    "name": "Prototype Soldier Camp IV",
+    "assetPath": "game_icons/sword-tie.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 217,
+      "stone": 98,
+      "wood": 35
+    },
+    "buildTime": 6,
+    "description": "Low-start melee fighter that scales strongly with upgrades.",
+    "parentId": "prototype_soldier_camp_3",
+    "housedUnitDefId": "prototype_soldier",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.24",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 72",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 3",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 3"
+    ]
+  },
+  {
+    "id": "prototype_soldier_camp_5",
+    "name": "Prototype Soldier Camp V",
+    "assetPath": "game_icons/sword-tie.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 446,
+      "stone": 201,
+      "wood": 72
+    },
+    "buildTime": 7,
+    "description": "Low-start melee fighter that scales strongly with upgrades.",
+    "parentId": "prototype_soldier_camp_4",
+    "housedUnitDefId": "prototype_soldier",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.32",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 96",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 4",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 4"
+    ]
+  },
+  {
+    "id": "prototype_soldier_camp_6",
+    "name": "Prototype Soldier Camp VI",
+    "assetPath": "game_icons/sword-tie.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 892,
+      "stone": 403,
+      "wood": 144
+    },
+    "buildTime": 8,
+    "description": "Low-start melee fighter that scales strongly with upgrades.",
+    "parentId": "prototype_soldier_camp_5",
+    "housedUnitDefId": "prototype_soldier",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.4",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 120",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 5",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 5",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "prototype_soldier_camp_7",
+    "name": "Prototype Soldier Camp VII",
+    "assetPath": "game_icons/sword-tie.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 1860,
+      "stone": 840,
+      "wood": 300
+    },
+    "buildTime": 9,
+    "description": "Fully matured prototype line. Houses Super Soldier.",
+    "parentId": "prototype_soldier_camp_6",
+    "housedUnitDefId": "super_soldier",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.48",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 144",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 6",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 6",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "prototype_marksman_camp",
+    "name": "Prototype Marksman Camp",
+    "assetPath": "game_icons/archer.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 24,
+      "wood": 12,
+      "stone": 4
+    },
+    "buildTime": 4,
+    "description": "Low-start range-6 shredder that scales strongly with upgrades.",
+    "housedUnitDefId": "prototype_marksman",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0"
+    ]
+  },
+  {
+    "id": "prototype_marksman_camp_2",
+    "name": "Prototype Marksman Camp II",
+    "assetPath": "game_icons/archer.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 54,
+      "wood": 27,
+      "stone": 9
+    },
+    "buildTime": 4,
+    "description": "Low-start range-6 shredder that scales strongly with upgrades.",
+    "parentId": "prototype_marksman_camp",
+    "housedUnitDefId": "prototype_marksman",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.08",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 16"
+    ]
+  },
+  {
+    "id": "prototype_marksman_camp_3",
+    "name": "Prototype Marksman Camp III",
+    "assetPath": "game_icons/archer.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 96,
+      "wood": 48,
+      "stone": 16
+    },
+    "buildTime": 5,
+    "description": "Low-start range-6 shredder that scales strongly with upgrades.",
+    "parentId": "prototype_marksman_camp_2",
+    "housedUnitDefId": "prototype_marksman",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.16",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 32"
+    ]
+  },
+  {
+    "id": "prototype_marksman_camp_4",
+    "name": "Prototype Marksman Camp IV",
+    "assetPath": "game_icons/archer.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 210,
+      "wood": 105,
+      "stone": 35
+    },
+    "buildTime": 6,
+    "description": "Low-start range-6 shredder that scales strongly with upgrades.",
+    "parentId": "prototype_marksman_camp_3",
+    "housedUnitDefId": "prototype_marksman",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.24",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48"
+    ]
+  },
+  {
+    "id": "prototype_marksman_camp_5",
+    "name": "Prototype Marksman Camp V",
+    "assetPath": "game_icons/archer.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 432,
+      "wood": 216,
+      "stone": 72
+    },
+    "buildTime": 7,
+    "description": "Low-start range-6 shredder that scales strongly with upgrades.",
+    "parentId": "prototype_marksman_camp_4",
+    "housedUnitDefId": "prototype_marksman",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.32",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 64"
+    ]
+  },
+  {
+    "id": "prototype_marksman_camp_6",
+    "name": "Prototype Marksman Camp VI",
+    "assetPath": "game_icons/archer.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 864,
+      "wood": 432,
+      "stone": 144
+    },
+    "buildTime": 8,
+    "description": "Low-start range-6 shredder that scales strongly with upgrades.",
+    "parentId": "prototype_marksman_camp_5",
+    "housedUnitDefId": "prototype_marksman",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.4",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 80",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "prototype_marksman_camp_7",
+    "name": "Prototype Marksman Camp VII",
+    "assetPath": "game_icons/archer.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "food": 1800,
+      "wood": 900,
+      "stone": 300
+    },
+    "buildTime": 9,
+    "description": "Fully matured prototype line. Houses Super Marksman.",
+    "parentId": "prototype_marksman_camp_6",
+    "housedUnitDefId": "super_marksman",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:damage; mult; 0.48",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 96",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "dwelling",
+    "name": "Dwelling",
+    "assetPath": "game_icons/wood-cabin.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "wood": 45,
+      "stone": 45,
+      "food": 60
+    },
+    "buildTime": 6,
+    "description": "Small neighboring production bonus.",
+    "effects": [
+      "neighbor; hasProd; prod:all; mult; 0.08"
     ]
   },
   {
@@ -376,59 +997,2309 @@
     "school": "artifact",
     "tier": 1,
     "cost": {
-      "stone": 15,
-      "mana": 3
+      "stone": 120,
+      "wood": 80
     },
-    "buildTime": 60,
-    "description": "Takes long to build, then blesses adjacent armies with +10 HP and +5 damage",
+    "buildTime": 24,
+    "description": "Very long construction. Grants flat HP and damage bonuses to adjacent armies.",
     "effects": [
-      "neighbor; hasArmy; army:hp; add; 10",
-      "neighbor; hasArmy; army:damage; add; 5"
+      "neighbor; hasArmy; unit:hp; add; 12",
+      "neighbor; hasArmy; unit:damage; add; 4"
     ]
   },
   {
-    "id": 
-  }
+    "id": "dolmen_2",
+    "name": "Dolmen II",
+    "assetPath": "game_icons/dolmen.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "stone": 260,
+      "wood": 170
+    },
+    "buildTime": 24,
+    "description": "Very long construction. Grants flat HP and damage bonuses to adjacent armies.",
+    "parentId": "dolmen",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 24",
+      "neighbor; hasArmy; unit:damage; add; 8"
+    ]
+  },
   {
-    "id": "mana_tree",
-    "name": "Mana Tree",
-    "assetPath": "game_icons/holy-oak.svg",
+    "id": "dolmen_3",
+    "name": "Dolmen III",
+    "assetPath": "game_icons/dolmen.svg",
+    "school": "artifact",
+    "tier": 1,
+    "cost": {
+      "stone": 520,
+      "wood": 340
+    },
+    "buildTime": 24,
+    "description": "Very long construction. Grants flat HP and damage bonuses to adjacent armies.",
+    "parentId": "dolmen_2",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 36",
+      "neighbor; hasArmy; unit:damage; add; 12"
+    ]
+  },
+  {
+    "id": "granary",
+    "name": "Granary",
+    "assetPath": "game_icons/granary.svg",
     "school": "sylvan",
     "tier": 2,
     "cost": {
-      "wood": 135,
-      "food": 55
+      "wood": 60,
+      "food": 40
     },
-    "buildTime": 30,
+    "buildTime": 8,
+    "description": "Mixed production district that houses a Peasant militia unit.",
     "productions": {
+      "food": 10
+    },
+    "housedUnitDefId": "peasant"
+  },
+  {
+    "id": "granary_2",
+    "name": "Granary II",
+    "assetPath": "game_icons/granary.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "wood": 140,
+      "food": 80
+    },
+    "buildTime": 9,
+    "description": "Mixed production district that houses a Peasant militia unit.",
+    "parentId": "granary",
+    "productions": {
+      "food": 15
+    },
+    "housedUnitDefId": "peasant"
+  },
+  {
+    "id": "granary_3",
+    "name": "Granary III",
+    "assetPath": "game_icons/granary.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "wood": 220,
+      "food": 120
+    },
+    "buildTime": 9,
+    "description": "Mixed production district that houses a Peasant militia unit.",
+    "parentId": "granary_2",
+    "productions": {
+      "food": 20
+    },
+    "housedUnitDefId": "peasant"
+  },
+  {
+    "id": "strip_mine",
+    "name": "Strip Mine",
+    "assetPath": "game_icons/gold-mine.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "stone": 55,
+      "food": 45
+    },
+    "buildTime": 8,
+    "description": "Produces stone and wood, with extra stone near armies and extra wood near producers.",
+    "productions": {
+      "stone": 7,
+      "wood": 3
+    },
+    "effects": [
+      "self-if; hasArmy; prod:stone; add; 4",
+      "self-if; hasProd; prod:wood; add; 2"
+    ]
+  },
+  {
+    "id": "strip_mine_2",
+    "name": "Strip Mine II",
+    "assetPath": "game_icons/gold-mine.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "stone": 130,
+      "food": 90
+    },
+    "buildTime": 9,
+    "description": "Produces stone and wood, with extra stone near armies and extra wood near producers.",
+    "parentId": "strip_mine",
+    "productions": {
+      "stone": 11,
+      "wood": 4
+    },
+    "effects": [
+      "self-if; hasArmy; prod:stone; add; 6",
+      "self-if; hasProd; prod:wood; add; 3"
+    ]
+  },
+  {
+    "id": "strip_mine_3",
+    "name": "Strip Mine III",
+    "assetPath": "game_icons/gold-mine.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "stone": 210,
+      "food": 130
+    },
+    "buildTime": 9,
+    "description": "Produces stone and wood, with extra stone near armies and extra wood near producers.",
+    "parentId": "strip_mine_2",
+    "productions": {
+      "stone": 15,
+      "wood": 6
+    },
+    "effects": [
+      "self-if; hasArmy; prod:stone; add; 8",
+      "self-if; hasProd; prod:wood; add; 4"
+    ]
+  },
+  {
+    "id": "fire_shrine",
+    "name": "Fire Shrine",
+    "assetPath": "game_icons/fire-shrine.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "stone": 60,
+      "food": 40
+    },
+    "buildTime": 8,
+    "description": "Produces stone and mana; its heat weakens adjacent armies by reducing HP.",
+    "productions": {
+      "stone": 5,
       "mana": 3
     },
-    "description": "+4 mana if it has an empty neighbor",
     "effects": [
-      "self-if; empty; prod:mana; add; 4"
+      "neighbor; hasArmy; unit:hp; mult; -0.06"
+    ]
+  },
+  {
+    "id": "fire_shrine_2",
+    "name": "Fire Shrine II",
+    "assetPath": "game_icons/fire-shrine.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "stone": 140,
+      "food": 90
+    },
+    "buildTime": 9,
+    "description": "Produces stone and mana; its heat weakens adjacent armies by reducing HP.",
+    "parentId": "fire_shrine",
+    "productions": {
+      "stone": 8,
+      "mana": 5
+    },
+    "effects": [
+      "neighbor; hasArmy; unit:hp; mult; -0.09"
+    ]
+  },
+  {
+    "id": "fire_shrine_3",
+    "name": "Fire Shrine III",
+    "assetPath": "game_icons/fire-shrine.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "stone": 220,
+      "food": 130
+    },
+    "buildTime": 9,
+    "description": "Produces stone and mana; its heat weakens adjacent armies by reducing HP.",
+    "parentId": "fire_shrine_2",
+    "productions": {
+      "stone": 11,
+      "mana": 7
+    },
+    "effects": [
+      "neighbor; hasArmy; unit:hp; mult; -0.12"
+    ]
+  },
+  {
+    "id": "death_shrine",
+    "name": "Death Shrine",
+    "assetPath": "game_icons/telefrag.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 60,
+      "food": 40
+    },
+    "buildTime": 8,
+    "description": "Produces wood and mana; adjacent armies suffer reduced damage output.",
+    "productions": {
+      "wood": 5,
+      "mana": 3
+    },
+    "effects": [
+      "neighbor; hasArmy; unit:damage; mult; -0.06"
+    ]
+  },
+  {
+    "id": "death_shrine_2",
+    "name": "Death Shrine II",
+    "assetPath": "game_icons/telefrag.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 140,
+      "food": 90
+    },
+    "buildTime": 9,
+    "description": "Produces wood and mana; adjacent armies suffer reduced damage output.",
+    "parentId": "death_shrine",
+    "productions": {
+      "wood": 8,
+      "mana": 5
+    },
+    "effects": [
+      "neighbor; hasArmy; unit:damage; mult; -0.09"
+    ]
+  },
+  {
+    "id": "death_shrine_3",
+    "name": "Death Shrine III",
+    "assetPath": "game_icons/telefrag.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 220,
+      "food": 130
+    },
+    "buildTime": 9,
+    "description": "Produces wood and mana; adjacent armies suffer reduced damage output.",
+    "parentId": "death_shrine_2",
+    "productions": {
+      "wood": 11,
+      "mana": 7
+    },
+    "effects": [
+      "neighbor; hasArmy; unit:damage; mult; -0.12"
     ]
   },
   {
     "id": "academy",
     "name": "Academy",
-    "assetPath": "game_icons/archive-research.svg",
+    "assetPath": "game_icons/book-pile.svg",
     "school": "artifact",
     "tier": 2,
     "cost": {
-      "wood": 65,
-      "stone": 65,
-      "food": 55
+      "wood": 40,
+      "stone": 40,
+      "food": 35
     },
     "buildTime": 8,
+    "description": "Adaptive production hub; gains outputs from adjacent schools (scale 1).",
+    "productions": {
+      "wood": 0,
+      "stone": 0,
+      "food": 0,
+      "mana": 0
+    },
+    "effects": [
+      "self-if; school=sylvan; prod:wood; add; 4",
+      "self-if; school=geomancy; prod:stone; add; 4",
+      "self-if; school=necromancy; prod:food; add; 4",
+      "self-if; school=pyromancy; prod:mana; add; 3"
+    ]
+  },
+  {
+    "id": "academy_2",
+    "name": "Academy II",
+    "assetPath": "game_icons/book-pile.svg",
+    "school": "artifact",
+    "tier": 2,
+    "cost": {
+      "wood": 95,
+      "stone": 95,
+      "food": 70
+    },
+    "buildTime": 9,
+    "description": "Adaptive production hub; gains outputs from adjacent schools (scale 2).",
+    "parentId": "academy",
+    "productions": {
+      "wood": 0,
+      "stone": 0,
+      "food": 0,
+      "mana": 0
+    },
+    "effects": [
+      "self-if; school=sylvan; prod:wood; add; 6",
+      "self-if; school=geomancy; prod:stone; add; 6",
+      "self-if; school=necromancy; prod:food; add; 6",
+      "self-if; school=pyromancy; prod:mana; add; 5"
+    ]
+  },
+  {
+    "id": "academy_3",
+    "name": "Academy III",
+    "assetPath": "game_icons/book-pile.svg",
+    "school": "artifact",
+    "tier": 2,
+    "cost": {
+      "wood": 150,
+      "stone": 150,
+      "food": 120
+    },
+    "buildTime": 9,
+    "description": "Adaptive production hub; gains outputs from adjacent schools (scale 3).",
+    "parentId": "academy_2",
+    "productions": {
+      "wood": 0,
+      "stone": 0,
+      "food": 0,
+      "mana": 0
+    },
+    "effects": [
+      "self-if; school=sylvan; prod:wood; add; 8",
+      "self-if; school=geomancy; prod:stone; add; 8",
+      "self-if; school=necromancy; prod:food; add; 8",
+      "self-if; school=pyromancy; prod:mana; add; 7"
+    ]
+  },
+  {
+    "id": "sawmill",
+    "name": "Sawmill",
+    "assetPath": "game_icons/cleaver.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "wood": 70,
+      "food": 50
+    },
+    "buildTime": 5,
+    "description": "Exclusive wood producer that shuts down neighboring wood production.",
+    "productions": {
+      "wood": 16
+    },
+    "effects": [
+      "neighbor; hasProd; prod:wood; mult; -1"
+    ]
+  },
+  {
+    "id": "sawmill_2",
+    "name": "Sawmill II",
+    "assetPath": "game_icons/cleaver.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "wood": 180,
+      "food": 120
+    },
+    "buildTime": 6,
+    "description": "Exclusive wood producer that shuts down neighboring wood production.",
+    "parentId": "sawmill",
+    "productions": {
+      "wood": 28
+    },
+    "effects": [
+      "neighbor; hasProd; prod:wood; mult; -1"
+    ]
+  },
+  {
+    "id": "sawmill_3",
+    "name": "Sawmill III",
+    "assetPath": "game_icons/cleaver.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "wood": 300,
+      "food": 200
+    },
+    "buildTime": 7,
+    "description": "Exclusive wood producer that shuts down neighboring wood production.",
+    "parentId": "sawmill_2",
+    "productions": {
+      "wood": 42
+    },
+    "effects": [
+      "neighbor; hasProd; prod:wood; mult; -1"
+    ]
+  },
+  {
+    "id": "deep_mine",
+    "name": "Deep Mine",
+    "assetPath": "game_icons/diamond-hard.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "wood": 70,
+      "food": 50
+    },
+    "buildTime": 5,
+    "description": "Exclusive stone producer that shuts down neighboring stone production.",
+    "productions": {
+      "stone": 16
+    },
+    "effects": [
+      "neighbor; hasProd; prod:stone; mult; -1"
+    ]
+  },
+  {
+    "id": "deep_mine_2",
+    "name": "Deep Mine II",
+    "assetPath": "game_icons/diamond-hard.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "wood": 180,
+      "food": 120
+    },
+    "buildTime": 6,
+    "description": "Exclusive stone producer that shuts down neighboring stone production.",
+    "parentId": "deep_mine",
+    "productions": {
+      "stone": 28
+    },
+    "effects": [
+      "neighbor; hasProd; prod:stone; mult; -1"
+    ]
+  },
+  {
+    "id": "deep_mine_3",
+    "name": "Deep Mine III",
+    "assetPath": "game_icons/diamond-hard.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "wood": 300,
+      "food": 200
+    },
+    "buildTime": 7,
+    "description": "Exclusive stone producer that shuts down neighboring stone production.",
+    "parentId": "deep_mine_2",
+    "productions": {
+      "stone": 42
+    },
+    "effects": [
+      "neighbor; hasProd; prod:stone; mult; -1"
+    ]
+  },
+  {
+    "id": "mana_refinery",
+    "name": "Mana Refinery",
+    "assetPath": "game_icons/refinery.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "stone": 70,
+      "food": 50
+    },
+    "buildTime": 5,
+    "description": "Exclusive mana producer that shuts down neighboring mana production.",
+    "productions": {
+      "mana": 16
+    },
+    "effects": [
+      "neighbor; hasProd; prod:mana; mult; -1"
+    ]
+  },
+  {
+    "id": "mana_refinery_2",
+    "name": "Mana Refinery II",
+    "assetPath": "game_icons/refinery.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "stone": 180,
+      "food": 120
+    },
+    "buildTime": 6,
+    "description": "Exclusive mana producer that shuts down neighboring mana production.",
+    "parentId": "mana_refinery",
+    "productions": {
+      "mana": 28
+    },
+    "effects": [
+      "neighbor; hasProd; prod:mana; mult; -1"
+    ]
+  },
+  {
+    "id": "mana_refinery_3",
+    "name": "Mana Refinery III",
+    "assetPath": "game_icons/refinery.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "stone": 300,
+      "food": 200
+    },
+    "buildTime": 7,
+    "description": "Exclusive mana producer that shuts down neighboring mana production.",
+    "parentId": "mana_refinery_2",
+    "productions": {
+      "mana": 42
+    },
+    "effects": [
+      "neighbor; hasProd; prod:mana; mult; -1"
+    ]
+  },
+  {
+    "id": "corpse_pile",
+    "name": "Corpse Pile",
+    "assetPath": "game_icons/carrion.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 70,
+      "food": 50
+    },
+    "buildTime": 5,
+    "description": "Exclusive food producer that shuts down neighboring food production.",
+    "productions": {
+      "food": 16
+    },
+    "effects": [
+      "neighbor; hasProd; prod:food; mult; -1"
+    ]
+  },
+  {
+    "id": "corpse_pile_2",
+    "name": "Corpse Pile II",
+    "assetPath": "game_icons/carrion.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 180,
+      "food": 120
+    },
+    "buildTime": 6,
+    "description": "Exclusive food producer that shuts down neighboring food production.",
+    "parentId": "corpse_pile",
+    "productions": {
+      "food": 28
+    },
+    "effects": [
+      "neighbor; hasProd; prod:food; mult; -1"
+    ]
+  },
+  {
+    "id": "corpse_pile_3",
+    "name": "Corpse Pile III",
+    "assetPath": "game_icons/carrion.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 300,
+      "food": 200
+    },
+    "buildTime": 7,
+    "description": "Exclusive food producer that shuts down neighboring food production.",
+    "parentId": "corpse_pile_2",
+    "productions": {
+      "food": 42
+    },
+    "effects": [
+      "neighbor; hasProd; prod:food; mult; -1"
+    ]
+  },
+  {
+    "id": "warehouse",
+    "name": "Warehouse",
+    "assetPath": "game_icons/warehouse.svg",
+    "school": "artifact",
+    "tier": 2,
+    "cost": {
+      "wood": 45,
+      "stone": 45,
+      "food": 30
+    },
+    "buildTime": 5,
+    "description": "Conditional mixed output: food turns off near tier-2 armies, wood+stone turn off near tier-2 producers.",
+    "productions": {
+      "food": 8,
+      "wood": 6,
+      "stone": 6
+    },
+    "effects": [
+      "self-if; tier=2 & hasArmy; prod:food; add; -8",
+      "self-if; tier=2 & hasProd; prod:wood; add; -6",
+      "self-if; tier=2 & hasProd; prod:stone; add; -6"
+    ]
+  },
+  {
+    "id": "warehouse_2",
+    "name": "Warehouse II",
+    "assetPath": "game_icons/warehouse.svg",
+    "school": "artifact",
+    "tier": 2,
+    "cost": {
+      "wood": 120,
+      "stone": 120,
+      "food": 60
+    },
+    "buildTime": 6,
+    "description": "Conditional mixed output: food turns off near tier-2 armies, wood+stone turn off near tier-2 producers.",
+    "parentId": "warehouse",
+    "productions": {
+      "food": 12,
+      "wood": 9,
+      "stone": 9
+    },
+    "effects": [
+      "self-if; tier=2 & hasArmy; prod:food; add; -12",
+      "self-if; tier=2 & hasProd; prod:wood; add; -9",
+      "self-if; tier=2 & hasProd; prod:stone; add; -9"
+    ]
+  },
+  {
+    "id": "warehouse_3",
+    "name": "Warehouse III",
+    "assetPath": "game_icons/warehouse.svg",
+    "school": "artifact",
+    "tier": 2,
+    "cost": {
+      "wood": 220,
+      "stone": 220,
+      "food": 120
+    },
+    "buildTime": 7,
+    "description": "Conditional mixed output: food turns off near tier-2 armies, wood+stone turn off near tier-2 producers.",
+    "parentId": "warehouse_2",
+    "productions": {
+      "food": 16,
+      "wood": 12,
+      "stone": 12
+    },
+    "effects": [
+      "self-if; tier=2 & hasArmy; prod:food; add; -16",
+      "self-if; tier=2 & hasProd; prod:wood; add; -12",
+      "self-if; tier=2 & hasProd; prod:stone; add; -12"
+    ]
+  },
+  {
+    "id": "ranger_camp",
+    "name": "Ranger Camp",
+    "assetPath": "game_icons/double-shot.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "food": 70,
+      "wood": 50
+    },
+    "buildTime": 5,
+    "description": "Support shredder that grants initiative to adjacent armies.",
+    "housedUnitDefId": "ranger",
+    "effects": [
+      "neighbor; hasArmy; unit:initiative; add; 1"
+    ]
+  },
+  {
+    "id": "ranger_camp_2",
+    "name": "Ranger Camp II",
+    "assetPath": "game_icons/double-shot.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "food": 170,
+      "wood": 130
+    },
+    "buildTime": 6,
+    "description": "Support shredder that grants initiative to adjacent armies.",
+    "parentId": "ranger_camp",
+    "housedUnitDefId": "ranger",
+    "effects": [
+      "neighbor; hasArmy; unit:initiative; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 18"
+    ]
+  },
+  {
+    "id": "ranger_camp_3",
+    "name": "Ranger Camp III",
+    "assetPath": "game_icons/double-shot.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "food": 260,
+      "wood": 190
+    },
+    "buildTime": 7,
+    "description": "Support shredder that grants initiative to adjacent armies.",
+    "parentId": "ranger_camp_2",
+    "housedUnitDefId": "ranger",
+    "effects": [
+      "neighbor; hasArmy; unit:initiative; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 36"
+    ]
+  },
+  {
+    "id": "ranger_camp_4",
+    "name": "Ranger Camp IV",
+    "assetPath": "game_icons/double-shot.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "food": 350,
+      "wood": 250
+    },
+    "buildTime": 7,
+    "description": "Support shredder that grants initiative to adjacent armies.",
+    "parentId": "ranger_camp_3",
+    "housedUnitDefId": "ranger",
+    "effects": [
+      "neighbor; hasArmy; unit:initiative; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 54"
+    ]
+  },
+  {
+    "id": "halberdier_camp",
+    "name": "Halberdier Camp",
+    "assetPath": "game_icons/sharp-halberd.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "food": 65,
+      "stone": 55
+    },
+    "buildTime": 5,
+    "description": "Range-2 tank support that grants HP to adjacent armies.",
+    "housedUnitDefId": "halberdier",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 12"
+    ]
+  },
+  {
+    "id": "halberdier_camp_2",
+    "name": "Halberdier Camp II",
+    "assetPath": "game_icons/sharp-halberd.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "food": 160,
+      "stone": 140
+    },
+    "buildTime": 6,
+    "description": "Range-2 tank support that grants HP to adjacent armies.",
+    "parentId": "halberdier_camp",
+    "housedUnitDefId": "halberdier",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 16",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 24",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 1"
+    ]
+  },
+  {
+    "id": "halberdier_camp_3",
+    "name": "Halberdier Camp III",
+    "assetPath": "game_icons/sharp-halberd.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "food": 245,
+      "stone": 205
+    },
+    "buildTime": 7,
+    "description": "Range-2 tank support that grants HP to adjacent armies.",
+    "parentId": "halberdier_camp_2",
+    "housedUnitDefId": "halberdier",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 20",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2"
+    ]
+  },
+  {
+    "id": "halberdier_camp_4",
+    "name": "Halberdier Camp IV",
+    "assetPath": "game_icons/sharp-halberd.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "food": 330,
+      "stone": 270
+    },
+    "buildTime": 7,
+    "description": "Range-2 tank support that grants HP to adjacent armies.",
+    "parentId": "halberdier_camp_3",
+    "housedUnitDefId": "halberdier",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 24",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 72",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 3",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 3"
+    ]
+  },
+  {
+    "id": "berserker_camp",
+    "name": "Berserker Camp",
+    "assetPath": "game_icons/sharp-axe.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "food": 70,
+      "wood": 50
+    },
+    "buildTime": 5,
+    "description": "Alternating melee/ranged fighter that grants HP to adjacent armies.",
+    "housedUnitDefId": "berserker",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 12"
+    ]
+  },
+  {
+    "id": "berserker_camp_2",
+    "name": "Berserker Camp II",
+    "assetPath": "game_icons/sharp-axe.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "food": 170,
+      "wood": 130
+    },
+    "buildTime": 6,
+    "description": "Alternating melee/ranged fighter that grants HP to adjacent armies.",
+    "parentId": "berserker_camp",
+    "housedUnitDefId": "berserker",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 16",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 20"
+    ]
+  },
+  {
+    "id": "berserker_camp_3",
+    "name": "Berserker Camp III",
+    "assetPath": "game_icons/sharp-axe.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "food": 260,
+      "wood": 190
+    },
+    "buildTime": 7,
+    "description": "Alternating melee/ranged fighter that grants HP to adjacent armies.",
+    "parentId": "berserker_camp_2",
+    "housedUnitDefId": "berserker",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 20",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 40"
+    ]
+  },
+  {
+    "id": "berserker_camp_4",
+    "name": "Berserker Camp IV",
+    "assetPath": "game_icons/sharp-axe.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "food": 350,
+      "wood": 250
+    },
+    "buildTime": 7,
+    "description": "Alternating melee/ranged fighter that grants HP to adjacent armies.",
+    "parentId": "berserker_camp_3",
+    "housedUnitDefId": "berserker",
+    "effects": [
+      "neighbor; hasArmy; unit:hp; add; 24",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 60"
+    ]
+  },
+  {
+    "id": "rogue_camp",
+    "name": "Rogue Camp",
+    "assetPath": "game_icons/cloak-dagger.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "food": 65,
+      "stone": 55
+    },
+    "buildTime": 5,
+    "description": "Range-3 assassin support that grants initiative to adjacent armies.",
+    "housedUnitDefId": "rogue",
+    "effects": [
+      "neighbor; hasArmy; unit:initiative; add; 1"
+    ]
+  },
+  {
+    "id": "rogue_camp_2",
+    "name": "Rogue Camp II",
+    "assetPath": "game_icons/cloak-dagger.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "food": 160,
+      "stone": 140
+    },
+    "buildTime": 6,
+    "description": "Range-3 assassin support that grants initiative to adjacent armies.",
+    "parentId": "rogue_camp",
+    "housedUnitDefId": "rogue",
+    "effects": [
+      "neighbor; hasArmy; unit:initiative; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 16"
+    ]
+  },
+  {
+    "id": "rogue_camp_3",
+    "name": "Rogue Camp III",
+    "assetPath": "game_icons/cloak-dagger.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "food": 245,
+      "stone": 205
+    },
+    "buildTime": 7,
+    "description": "Range-3 assassin support that grants initiative to adjacent armies.",
+    "parentId": "rogue_camp_2",
+    "housedUnitDefId": "rogue",
+    "effects": [
+      "neighbor; hasArmy; unit:initiative; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 32"
+    ]
+  },
+  {
+    "id": "rogue_camp_4",
+    "name": "Rogue Camp IV",
+    "assetPath": "game_icons/cloak-dagger.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "food": 330,
+      "stone": 270
+    },
+    "buildTime": 7,
+    "description": "Range-3 assassin support that grants initiative to adjacent armies.",
+    "parentId": "rogue_camp_3",
+    "housedUnitDefId": "rogue",
+    "effects": [
+      "neighbor; hasArmy; unit:initiative; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48"
+    ]
+  },
+  {
+    "id": "shambling_mound_grounds",
+    "name": "Shambling Mound Grounds",
+    "assetPath": "game_icons/shambling-mound.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "food": 105,
+      "wood": 45,
+      "mana": 15
+    },
+    "buildTime": 7,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "housedUnitDefId": "shambling_mound"
+  },
+  {
+    "id": "shambling_mound_grounds_2",
+    "name": "Shambling Mound Grounds II",
+    "assetPath": "game_icons/shambling-mound.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "food": 270,
+      "wood": 130,
+      "mana": 40
+    },
+    "buildTime": 8,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "parentId": "shambling_mound_grounds",
+    "housedUnitDefId": "shambling_mound",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 30",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 1"
+    ]
+  },
+  {
+    "id": "shambling_mound_grounds_3",
+    "name": "Shambling Mound Grounds III",
+    "assetPath": "game_icons/shambling-mound.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "food": 470,
+      "wood": 230,
+      "mana": 75
+    },
+    "buildTime": 9,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "parentId": "shambling_mound_grounds_2",
+    "housedUnitDefId": "shambling_mound",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 60",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "rock_golem_grounds",
+    "name": "Rock Golem Grounds",
+    "assetPath": "game_icons/rock-golem.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "food": 105,
+      "stone": 45,
+      "mana": 15
+    },
+    "buildTime": 7,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "housedUnitDefId": "rock_golem"
+  },
+  {
+    "id": "rock_golem_grounds_2",
+    "name": "Rock Golem Grounds II",
+    "assetPath": "game_icons/rock-golem.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "food": 270,
+      "stone": 130,
+      "mana": 40
+    },
+    "buildTime": 8,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "parentId": "rock_golem_grounds",
+    "housedUnitDefId": "rock_golem",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 30",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 1"
+    ]
+  },
+  {
+    "id": "rock_golem_grounds_3",
+    "name": "Rock Golem Grounds III",
+    "assetPath": "game_icons/rock-golem.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "food": 470,
+      "stone": 230,
+      "mana": 75
+    },
+    "buildTime": 9,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "parentId": "rock_golem_grounds_2",
+    "housedUnitDefId": "rock_golem",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 60",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "fire_elemental_grounds",
+    "name": "Fire Elemental Grounds",
+    "assetPath": "game_icons/ifrit.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "food": 105,
+      "wood": 45,
+      "mana": 15
+    },
+    "buildTime": 7,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "housedUnitDefId": "fire_elemental"
+  },
+  {
+    "id": "fire_elemental_grounds_2",
+    "name": "Fire Elemental Grounds II",
+    "assetPath": "game_icons/ifrit.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "food": 270,
+      "wood": 130,
+      "mana": 40
+    },
+    "buildTime": 8,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "parentId": "fire_elemental_grounds",
+    "housedUnitDefId": "fire_elemental",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 30",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 1"
+    ]
+  },
+  {
+    "id": "fire_elemental_grounds_3",
+    "name": "Fire Elemental Grounds III",
+    "assetPath": "game_icons/ifrit.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "food": 470,
+      "wood": 230,
+      "mana": 75
+    },
+    "buildTime": 9,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "parentId": "fire_elemental_grounds_2",
+    "housedUnitDefId": "fire_elemental",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 60",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "slasher_grounds",
+    "name": "Slasher Grounds",
+    "assetPath": "game_icons/barbed-nails.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "food": 105,
+      "stone": 45,
+      "mana": 15
+    },
+    "buildTime": 7,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "housedUnitDefId": "slasher"
+  },
+  {
+    "id": "slasher_grounds_2",
+    "name": "Slasher Grounds II",
+    "assetPath": "game_icons/barbed-nails.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "food": 270,
+      "stone": 130,
+      "mana": 40
+    },
+    "buildTime": 8,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "parentId": "slasher_grounds",
+    "housedUnitDefId": "slasher",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 30",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 1"
+    ]
+  },
+  {
+    "id": "slasher_grounds_3",
+    "name": "Slasher Grounds III",
+    "assetPath": "game_icons/barbed-nails.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "food": 470,
+      "stone": 230,
+      "mana": 75
+    },
+    "buildTime": 9,
+    "description": "Magical army district with mana cost and stronger scaling per upgrade.",
+    "parentId": "slasher_grounds_2",
+    "housedUnitDefId": "slasher",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 60",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "holy_oak",
+    "name": "Holy Oak",
+    "assetPath": "game_icons/holy-oak.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "wood": 175,
+      "stone": 175
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "effects": [
+      "neighbor; school=sylvan & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=sylvan & hasArmy; unit:damage; mult; 0.15"
+    ]
+  },
+  {
+    "id": "holy_oak_2",
+    "name": "Holy Oak II",
+    "assetPath": "game_icons/holy-oak.svg",
+    "school": "sylvan",
+    "tier": 2,
+    "cost": {
+      "wood": 350,
+      "stone": 350
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "parentId": "holy_oak",
+    "effects": [
+      "neighbor; school=sylvan & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=sylvan & hasArmy; unit:damage; mult; 0.15",
+      "neighbor; school=sylvan & hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "workers_guild",
+    "name": "Worker's Guild",
+    "assetPath": "game_icons/stone-crafting.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "wood": 175,
+      "stone": 175
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "effects": [
+      "neighbor; school=geomancy & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=geomancy & hasArmy; unit:damage; mult; 0.15"
+    ]
+  },
+  {
+    "id": "workers_guild_2",
+    "name": "Worker's Guild II",
+    "assetPath": "game_icons/stone-crafting.svg",
+    "school": "geomancy",
+    "tier": 2,
+    "cost": {
+      "wood": 350,
+      "stone": 350
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "parentId": "workers_guild",
+    "effects": [
+      "neighbor; school=geomancy & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=geomancy & hasArmy; unit:damage; mult; 0.15",
+      "neighbor; school=geomancy & hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "graveyard",
+    "name": "Graveyard",
+    "assetPath": "game_icons/tombstone.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 175,
+      "stone": 175
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "effects": [
+      "neighbor; school=necromancy & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=necromancy & hasArmy; unit:damage; mult; 0.15"
+    ]
+  },
+  {
+    "id": "graveyard_2",
+    "name": "Graveyard II",
+    "assetPath": "game_icons/tombstone.svg",
+    "school": "necromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 350,
+      "stone": 350
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "parentId": "graveyard",
+    "effects": [
+      "neighbor; school=necromancy & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=necromancy & hasArmy; unit:damage; mult; 0.15",
+      "neighbor; school=necromancy & hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "volcano",
+    "name": "Volcano",
+    "assetPath": "game_icons/caldera.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 175,
+      "stone": 175
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "effects": [
+      "neighbor; school=pyromancy & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=pyromancy & hasArmy; unit:damage; mult; 0.15"
+    ]
+  },
+  {
+    "id": "volcano_2",
+    "name": "Volcano II",
+    "assetPath": "game_icons/caldera.svg",
+    "school": "pyromancy",
+    "tier": 2,
+    "cost": {
+      "wood": 350,
+      "stone": 350
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "parentId": "volcano",
+    "effects": [
+      "neighbor; school=pyromancy & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=pyromancy & hasArmy; unit:damage; mult; 0.15",
+      "neighbor; school=pyromancy & hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "workshop",
+    "name": "Workshop",
+    "assetPath": "game_icons/freemasonry.svg",
+    "school": "artifact",
+    "tier": 2,
+    "cost": {
+      "wood": 175,
+      "stone": 175
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "effects": [
+      "neighbor; school=artifact & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=artifact & hasArmy; unit:damage; mult; 0.15"
+    ]
+  },
+  {
+    "id": "workshop_2",
+    "name": "Workshop II",
+    "assetPath": "game_icons/freemasonry.svg",
+    "school": "artifact",
+    "tier": 2,
+    "cost": {
+      "wood": 350,
+      "stone": 350
+    },
+    "buildTime": 14,
+    "description": "School node: boosts same-school production and army damage; upgrade adds AP.",
+    "parentId": "workshop",
+    "effects": [
+      "neighbor; school=artifact & hasProd; prod:all; mult; 0.15",
+      "neighbor; school=artifact & hasArmy; unit:damage; mult; 0.15",
+      "neighbor; school=artifact & hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "blacksmith",
+    "name": "Blacksmith",
+    "assetPath": "game_icons/chest-armor.svg",
+    "school": "artifact",
+    "tier": 2,
+    "cost": {
+      "wood": 140,
+      "stone": 140,
+      "food": 40
+    },
+    "buildTime": 8,
+    "description": "Adds percent resist to adjacent armies.",
+    "effects": [
+      "neighbor; hasArmy; unit:drpercent; add; 12"
+    ]
+  },
+  {
+    "id": "tailor",
+    "name": "Tailor",
+    "assetPath": "game_icons/rolled-cloth.svg",
+    "school": "artifact",
+    "tier": 2,
+    "cost": {
+      "wood": 140,
+      "stone": 140,
+      "food": 40
+    },
+    "buildTime": 8,
+    "description": "Adds flat resist to adjacent armies.",
+    "effects": [
+      "neighbor; hasArmy; unit:drflat; add; 10"
+    ]
+  },
+  {
+    "id": "windmill",
+    "name": "Windmill",
+    "assetPath": "game_icons/windmill.svg",
+    "school": "sylvan",
+    "tier": 3,
+    "cost": {
+      "wood": 180,
+      "stone": 130,
+      "food": 90
+    },
+    "buildTime": 8,
+    "description": "Payoff producer: empty/tier1 Sylvan/tier2 Geomancy adjacency unlocks food/wood/stone output spikes.",
+    "productions": {
+      "food": 6,
+      "wood": 0,
+      "stone": 0
+    },
+    "effects": [
+      "self-if; empty; prod:food; add; 4",
+      "self-if; tier=1 & school=sylvan; prod:wood; add; 5",
+      "self-if; tier=2 & school=geomancy; prod:stone; add; 5"
+    ]
+  },
+  {
+    "id": "windmill_2",
+    "name": "Windmill II",
+    "assetPath": "game_icons/windmill.svg",
+    "school": "sylvan",
+    "tier": 3,
+    "cost": {
+      "wood": 380,
+      "stone": 260,
+      "food": 160
+    },
+    "buildTime": 9,
+    "description": "Payoff producer: empty/tier1 Sylvan/tier2 Geomancy adjacency unlocks food/wood/stone output spikes.",
+    "parentId": "windmill",
+    "productions": {
+      "food": 6,
+      "wood": 0,
+      "stone": 0
+    },
+    "effects": [
+      "self-if; empty; prod:food; add; 6",
+      "self-if; tier=1 & school=sylvan; prod:wood; add; 8",
+      "self-if; tier=2 & school=geomancy; prod:stone; add; 8"
+    ]
+  },
+  {
+    "id": "windmill_3",
+    "name": "Windmill III",
+    "assetPath": "game_icons/windmill.svg",
+    "school": "sylvan",
+    "tier": 3,
+    "cost": {
+      "wood": 760,
+      "stone": 500,
+      "food": 340
+    },
+    "buildTime": 10,
+    "description": "Payoff producer: empty/tier1 Sylvan/tier2 Geomancy adjacency unlocks food/wood/stone output spikes.",
+    "parentId": "windmill_2",
+    "productions": {
+      "food": 6,
+      "wood": 0,
+      "stone": 0
+    },
+    "effects": [
+      "self-if; empty; prod:food; add; 8",
+      "self-if; tier=1 & school=sylvan; prod:wood; add; 12",
+      "self-if; tier=2 & school=geomancy; prod:stone; add; 12"
+    ]
+  },
+  {
+    "id": "architects_guild",
+    "name": "Architect's Guild",
+    "assetPath": "game_icons/crane.svg",
+    "school": "geomancy",
+    "tier": 3,
+    "cost": {
+      "stone": 190,
+      "wood": 120,
+      "food": 90
+    },
+    "buildTime": 8,
+    "description": "Payoff producer: empty/tier1 Geomancy/tier2 Pyromancy adjacency unlocks wood/stone/mana output spikes.",
+    "productions": {
+      "wood": 6,
+      "stone": 0,
+      "mana": 0
+    },
+    "effects": [
+      "self-if; empty; prod:wood; add; 4",
+      "self-if; tier=1 & school=geomancy; prod:stone; add; 5",
+      "self-if; tier=2 & school=pyromancy; prod:mana; add; 3"
+    ]
+  },
+  {
+    "id": "architects_guild_2",
+    "name": "Architect's Guild II",
+    "assetPath": "game_icons/crane.svg",
+    "school": "geomancy",
+    "tier": 3,
+    "cost": {
+      "stone": 390,
+      "wood": 250,
+      "food": 160
+    },
+    "buildTime": 9,
+    "description": "Payoff producer: empty/tier1 Geomancy/tier2 Pyromancy adjacency unlocks wood/stone/mana output spikes.",
+    "parentId": "architects_guild",
+    "productions": {
+      "wood": 6,
+      "stone": 0,
+      "mana": 0
+    },
+    "effects": [
+      "self-if; empty; prod:wood; add; 6",
+      "self-if; tier=1 & school=geomancy; prod:stone; add; 8",
+      "self-if; tier=2 & school=pyromancy; prod:mana; add; 5"
+    ]
+  },
+  {
+    "id": "architects_guild_3",
+    "name": "Architect's Guild III",
+    "assetPath": "game_icons/crane.svg",
+    "school": "geomancy",
+    "tier": 3,
+    "cost": {
+      "stone": 780,
+      "wood": 480,
+      "food": 340
+    },
+    "buildTime": 10,
+    "description": "Payoff producer: empty/tier1 Geomancy/tier2 Pyromancy adjacency unlocks wood/stone/mana output spikes.",
+    "parentId": "architects_guild_2",
+    "productions": {
+      "wood": 6,
+      "stone": 0,
+      "mana": 0
+    },
+    "effects": [
+      "self-if; empty; prod:wood; add; 8",
+      "self-if; tier=1 & school=geomancy; prod:stone; add; 12",
+      "self-if; tier=2 & school=pyromancy; prod:mana; add; 8"
+    ]
+  },
+  {
+    "id": "factory",
+    "name": "Factory",
+    "assetPath": "game_icons/factory.svg",
+    "school": "pyromancy",
+    "tier": 3,
+    "cost": {
+      "stone": 180,
+      "food": 110,
+      "wood": 110
+    },
+    "buildTime": 8,
+    "description": "Payoff producer: empty/tier1 Pyromancy/tier2 Necromancy adjacency unlocks stone/mana/food output spikes.",
+    "productions": {
+      "stone": 6,
+      "mana": 0,
+      "food": 0
+    },
+    "effects": [
+      "self-if; empty; prod:stone; add; 4",
+      "self-if; tier=1 & school=pyromancy; prod:mana; add; 3",
+      "self-if; tier=2 & school=necromancy; prod:food; add; 5"
+    ]
+  },
+  {
+    "id": "factory_2",
+    "name": "Factory II",
+    "assetPath": "game_icons/factory.svg",
+    "school": "pyromancy",
+    "tier": 3,
+    "cost": {
+      "stone": 370,
+      "food": 240,
+      "wood": 240
+    },
+    "buildTime": 9,
+    "description": "Payoff producer: empty/tier1 Pyromancy/tier2 Necromancy adjacency unlocks stone/mana/food output spikes.",
+    "parentId": "factory",
+    "productions": {
+      "stone": 6,
+      "mana": 0,
+      "food": 0
+    },
+    "effects": [
+      "self-if; empty; prod:stone; add; 6",
+      "self-if; tier=1 & school=pyromancy; prod:mana; add; 5",
+      "self-if; tier=2 & school=necromancy; prod:food; add; 8"
+    ]
+  },
+  {
+    "id": "factory_3",
+    "name": "Factory III",
+    "assetPath": "game_icons/factory.svg",
+    "school": "pyromancy",
+    "tier": 3,
+    "cost": {
+      "stone": 740,
+      "food": 470,
+      "wood": 470
+    },
+    "buildTime": 10,
+    "description": "Payoff producer: empty/tier1 Pyromancy/tier2 Necromancy adjacency unlocks stone/mana/food output spikes.",
+    "parentId": "factory_2",
+    "productions": {
+      "stone": 6,
+      "mana": 0,
+      "food": 0
+    },
+    "effects": [
+      "self-if; empty; prod:stone; add; 8",
+      "self-if; tier=1 & school=pyromancy; prod:mana; add; 8",
+      "self-if; tier=2 & school=necromancy; prod:food; add; 12"
+    ]
+  },
+  {
+    "id": "laboratory",
+    "name": "Laboratory",
+    "assetPath": "game_icons/test-tube-rack.svg",
+    "school": "necromancy",
+    "tier": 3,
+    "cost": {
+      "wood": 180,
+      "food": 110,
+      "stone": 110
+    },
+    "buildTime": 8,
+    "description": "Payoff producer: empty/tier1 Necromancy/tier2 Sylvan adjacency unlocks mana/food/wood output spikes.",
+    "productions": {
+      "mana": 4,
+      "food": 0,
+      "wood": 0
+    },
+    "effects": [
+      "self-if; empty; prod:mana; add; 3",
+      "self-if; tier=1 & school=necromancy; prod:food; add; 5",
+      "self-if; tier=2 & school=sylvan; prod:wood; add; 5"
+    ]
+  },
+  {
+    "id": "laboratory_2",
+    "name": "Laboratory II",
+    "assetPath": "game_icons/test-tube-rack.svg",
+    "school": "necromancy",
+    "tier": 3,
+    "cost": {
+      "wood": 370,
+      "food": 240,
+      "stone": 240
+    },
+    "buildTime": 9,
+    "description": "Payoff producer: empty/tier1 Necromancy/tier2 Sylvan adjacency unlocks mana/food/wood output spikes.",
+    "parentId": "laboratory",
+    "productions": {
+      "mana": 4,
+      "food": 0,
+      "wood": 0
+    },
+    "effects": [
+      "self-if; empty; prod:mana; add; 5",
+      "self-if; tier=1 & school=necromancy; prod:food; add; 8",
+      "self-if; tier=2 & school=sylvan; prod:wood; add; 8"
+    ]
+  },
+  {
+    "id": "laboratory_3",
+    "name": "Laboratory III",
+    "assetPath": "game_icons/test-tube-rack.svg",
+    "school": "necromancy",
+    "tier": 3,
+    "cost": {
+      "wood": 740,
+      "food": 470,
+      "stone": 470
+    },
+    "buildTime": 10,
+    "description": "Payoff producer: empty/tier1 Necromancy/tier2 Sylvan adjacency unlocks mana/food/wood output spikes.",
+    "parentId": "laboratory_2",
+    "productions": {
+      "mana": 4,
+      "food": 0,
+      "wood": 0
+    },
+    "effects": [
+      "self-if; empty; prod:mana; add; 8",
+      "self-if; tier=1 & school=necromancy; prod:food; add; 12",
+      "self-if; tier=2 & school=sylvan; prod:wood; add; 12"
+    ]
+  },
+  {
+    "id": "tinkers_guild",
+    "name": "Tinker's Guild",
+    "assetPath": "game_icons/lightning-spanner.svg",
+    "school": "artifact",
+    "tier": 3,
+    "cost": {
+      "wood": 160,
+      "stone": 160,
+      "food": 110
+    },
+    "buildTime": 8,
+    "description": "Mana per neighboring tier-1/2 district; boosts neighboring tier-1/2 school productions.",
     "productions": {
       "mana": 0
     },
-    "description": "+5 wood/stone/food if adjacent to Sylvan/Geomancy/Pyromancy district, +2 mana if adjacent to Necromancy district",
     "effects": [
-      "self-if; school=sylvan; prod:wood; add; 5",
-      "self-if; school=geomancy; prod:stone; add; 5",
-      "self-if; school=pyromancy; prod:mana; add; 2",
-      "self-if; school=necromancy; prod:food; add; 5"
+      "self-foreach; tier=1 | tier=2; prod:mana; add; 2",
+      "neighbor; tier=1 & school=sylvan & hasProd; prod:food; add; 2",
+      "neighbor; tier=2 & school=sylvan & hasProd; prod:food; add; 2",
+      "neighbor; tier=1 & school=geomancy & hasProd; prod:wood; add; 2",
+      "neighbor; tier=2 & school=geomancy & hasProd; prod:wood; add; 2",
+      "neighbor; tier=1 & school=pyromancy & hasProd; prod:stone; add; 2",
+      "neighbor; tier=2 & school=pyromancy & hasProd; prod:stone; add; 2",
+      "neighbor; tier=1 & school=necromancy & hasProd; prod:food; add; 2",
+      "neighbor; tier=2 & school=necromancy & hasProd; prod:food; add; 2"
+    ]
+  },
+  {
+    "id": "tinkers_guild_2",
+    "name": "Tinker's Guild II",
+    "assetPath": "game_icons/lightning-spanner.svg",
+    "school": "artifact",
+    "tier": 3,
+    "cost": {
+      "wood": 330,
+      "stone": 330,
+      "food": 230
+    },
+    "buildTime": 9,
+    "description": "Mana per neighboring tier-1/2 district; boosts neighboring tier-1/2 school productions.",
+    "parentId": "tinkers_guild",
+    "productions": {
+      "mana": 0
+    },
+    "effects": [
+      "self-foreach; tier=1 | tier=2; prod:mana; add; 3",
+      "neighbor; tier=1 & school=sylvan & hasProd; prod:food; add; 3",
+      "neighbor; tier=2 & school=sylvan & hasProd; prod:food; add; 3",
+      "neighbor; tier=1 & school=geomancy & hasProd; prod:wood; add; 3",
+      "neighbor; tier=2 & school=geomancy & hasProd; prod:wood; add; 3",
+      "neighbor; tier=1 & school=pyromancy & hasProd; prod:stone; add; 3",
+      "neighbor; tier=2 & school=pyromancy & hasProd; prod:stone; add; 3",
+      "neighbor; tier=1 & school=necromancy & hasProd; prod:food; add; 3",
+      "neighbor; tier=2 & school=necromancy & hasProd; prod:food; add; 3"
+    ]
+  },
+  {
+    "id": "tinkers_guild_3",
+    "name": "Tinker's Guild III",
+    "assetPath": "game_icons/lightning-spanner.svg",
+    "school": "artifact",
+    "tier": 3,
+    "cost": {
+      "wood": 660,
+      "stone": 660,
+      "food": 460
+    },
+    "buildTime": 10,
+    "description": "Mana per neighboring tier-1/2 district; boosts neighboring tier-1/2 school productions.",
+    "parentId": "tinkers_guild_2",
+    "productions": {
+      "mana": 0
+    },
+    "effects": [
+      "self-foreach; tier=1 | tier=2; prod:mana; add; 4",
+      "neighbor; tier=1 & school=sylvan & hasProd; prod:food; add; 4",
+      "neighbor; tier=2 & school=sylvan & hasProd; prod:food; add; 4",
+      "neighbor; tier=1 & school=geomancy & hasProd; prod:wood; add; 4",
+      "neighbor; tier=2 & school=geomancy & hasProd; prod:wood; add; 4",
+      "neighbor; tier=1 & school=pyromancy & hasProd; prod:stone; add; 4",
+      "neighbor; tier=2 & school=pyromancy & hasProd; prod:stone; add; 4",
+      "neighbor; tier=1 & school=necromancy & hasProd; prod:food; add; 4",
+      "neighbor; tier=2 & school=necromancy & hasProd; prod:food; add; 4"
+    ]
+  },
+  {
+    "id": "knight_camp",
+    "name": "Knight Camp",
+    "assetPath": "game_icons/visored-helm.svg",
+    "school": "geomancy",
+    "tier": 3,
+    "cost": {
+      "food": 320,
+      "stone": 120,
+      "wood": 60
+    },
+    "buildTime": 5,
+    "description": "Elite melee fighter with added base resist and geomancy/artifact adjacency scaling.",
+    "housedUnitDefId": "knight",
+    "effects": [
+      "self-foreach; school=geomancy | school=artifact; unit:drflat; add; 2"
+    ]
+  },
+  {
+    "id": "knight_camp_2",
+    "name": "Knight Camp II",
+    "assetPath": "game_icons/visored-helm.svg",
+    "school": "geomancy",
+    "tier": 3,
+    "cost": {
+      "food": 760,
+      "stone": 300,
+      "wood": 140
+    },
+    "buildTime": 6,
+    "description": "Elite melee fighter with added base resist and geomancy/artifact adjacency scaling.",
+    "parentId": "knight_camp",
+    "housedUnitDefId": "knight",
+    "effects": [
+      "self-foreach; school=geomancy | school=artifact; unit:drflat; add; 3",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 28",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 1",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 1"
+    ]
+  },
+  {
+    "id": "knight_camp_3",
+    "name": "Knight Camp III",
+    "assetPath": "game_icons/visored-helm.svg",
+    "school": "geomancy",
+    "tier": 3,
+    "cost": {
+      "food": 1400,
+      "stone": 560,
+      "wood": 240
+    },
+    "buildTime": 7,
+    "description": "Elite melee fighter with added base resist and geomancy/artifact adjacency scaling.",
+    "parentId": "knight_camp_2",
+    "housedUnitDefId": "knight",
+    "effects": [
+      "self-foreach; school=geomancy | school=artifact; unit:drflat; add; 4",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 56",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2"
+    ]
+  },
+  {
+    "id": "crossbowman_camp",
+    "name": "Crossbowman Camp",
+    "assetPath": "game_icons/crossbow.svg",
+    "school": "sylvan",
+    "tier": 3,
+    "cost": {
+      "food": 320,
+      "wood": 140
+    },
+    "buildTime": 5,
+    "description": "Range-7 shredder with Sylvan/Artifact adjacency damage scaling.",
+    "housedUnitDefId": "crossbowman",
+    "effects": [
+      "self-foreach; school=sylvan | school=artifact; unit:damage; mult; 0.08"
+    ]
+  },
+  {
+    "id": "crossbowman_camp_2",
+    "name": "Crossbowman Camp II",
+    "assetPath": "game_icons/crossbow.svg",
+    "school": "sylvan",
+    "tier": 3,
+    "cost": {
+      "food": 760,
+      "wood": 340
+    },
+    "buildTime": 6,
+    "description": "Range-7 shredder with Sylvan/Artifact adjacency damage scaling.",
+    "parentId": "crossbowman_camp",
+    "housedUnitDefId": "crossbowman",
+    "effects": [
+      "self-foreach; school=sylvan | school=artifact; unit:damage; mult; 0.1",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 18"
+    ]
+  },
+  {
+    "id": "crossbowman_camp_3",
+    "name": "Crossbowman Camp III",
+    "assetPath": "game_icons/crossbow.svg",
+    "school": "sylvan",
+    "tier": 3,
+    "cost": {
+      "food": 1400,
+      "wood": 620
+    },
+    "buildTime": 7,
+    "description": "Range-7 shredder with Sylvan/Artifact adjacency damage scaling.",
+    "parentId": "crossbowman_camp_2",
+    "housedUnitDefId": "crossbowman",
+    "effects": [
+      "self-foreach; school=sylvan | school=artifact; unit:damage; mult; 0.12",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 36"
+    ]
+  },
+  {
+    "id": "royal_defender_camp",
+    "name": "Royal Defender Camp",
+    "assetPath": "game_icons/crenulated-shield.svg",
+    "school": "artifact",
+    "tier": 3,
+    "cost": {
+      "food": 290,
+      "stone": 210
+    },
+    "buildTime": 5,
+    "description": "Elite tank with bonus HP when adjacent to both tier-3 production and tier-3 army districts.",
+    "housedUnitDefId": "royal_defender",
+    "effects": [
+      "self-if; tier=3 & hasProd; unit:hp; mult; 0.14",
+      "self-if; tier=3 & hasArmy; unit:hp; mult; 0.14"
+    ]
+  },
+  {
+    "id": "royal_defender_camp_2",
+    "name": "Royal Defender Camp II",
+    "assetPath": "game_icons/crenulated-shield.svg",
+    "school": "artifact",
+    "tier": 3,
+    "cost": {
+      "food": 700,
+      "stone": 500
+    },
+    "buildTime": 6,
+    "description": "Elite tank with bonus HP when adjacent to both tier-3 production and tier-3 army districts.",
+    "parentId": "royal_defender_camp",
+    "housedUnitDefId": "royal_defender",
+    "effects": [
+      "self-if; tier=3 & hasProd; unit:hp; mult; 0.2",
+      "self-if; tier=3 & hasArmy; unit:hp; mult; 0.2",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 36",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 2",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 2"
+    ]
+  },
+  {
+    "id": "royal_defender_camp_3",
+    "name": "Royal Defender Camp III",
+    "assetPath": "game_icons/crenulated-shield.svg",
+    "school": "artifact",
+    "tier": 3,
+    "cost": {
+      "food": 1300,
+      "stone": 900
+    },
+    "buildTime": 7,
+    "description": "Elite tank with bonus HP when adjacent to both tier-3 production and tier-3 army districts.",
+    "parentId": "royal_defender_camp_2",
+    "housedUnitDefId": "royal_defender",
+    "effects": [
+      "self-if; tier=3 & hasProd; unit:hp; mult; 0.26",
+      "self-if; tier=3 & hasArmy; unit:hp; mult; 0.26",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 72",
+      "self-if; empty | hasProd | hasArmy; unit:drflat; add; 4",
+      "self-if; empty | hasProd | hasArmy; unit:drpercent; add; 4"
+    ]
+  },
+  {
+    "id": "elite_goblin_camp",
+    "name": "Elite Goblin Camp",
+    "assetPath": "game_icons/goblin-head.svg",
+    "school": "pyromancy",
+    "tier": 3,
+    "cost": {
+      "food": 320,
+      "wood": 140
+    },
+    "buildTime": 5,
+    "description": "Elite assassin with Pyromancy/Artifact adjacency damage scaling.",
+    "housedUnitDefId": "elite_goblin",
+    "effects": [
+      "self-foreach; school=pyromancy | school=artifact; unit:damage; mult; 0.08"
+    ]
+  },
+  {
+    "id": "elite_goblin_camp_2",
+    "name": "Elite Goblin Camp II",
+    "assetPath": "game_icons/goblin-head.svg",
+    "school": "pyromancy",
+    "tier": 3,
+    "cost": {
+      "food": 760,
+      "wood": 340
+    },
+    "buildTime": 6,
+    "description": "Elite assassin with Pyromancy/Artifact adjacency damage scaling.",
+    "parentId": "elite_goblin_camp",
+    "housedUnitDefId": "elite_goblin",
+    "effects": [
+      "self-foreach; school=pyromancy | school=artifact; unit:damage; mult; 0.1",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 20"
+    ]
+  },
+  {
+    "id": "elite_goblin_camp_3",
+    "name": "Elite Goblin Camp III",
+    "assetPath": "game_icons/goblin-head.svg",
+    "school": "pyromancy",
+    "tier": 3,
+    "cost": {
+      "food": 1400,
+      "wood": 620
+    },
+    "buildTime": 7,
+    "description": "Elite assassin with Pyromancy/Artifact adjacency damage scaling.",
+    "parentId": "elite_goblin_camp_2",
+    "housedUnitDefId": "elite_goblin",
+    "effects": [
+      "self-foreach; school=pyromancy | school=artifact; unit:damage; mult; 0.12",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 40"
+    ]
+  },
+  {
+    "id": "spectre_camp",
+    "name": "Spectre Camp",
+    "assetPath": "game_icons/spectre.svg",
+    "school": "necromancy",
+    "tier": 3,
+    "cost": {
+      "food": 290,
+      "stone": 210
+    },
+    "buildTime": 5,
+    "description": "Elite area attacker with Necromancy/empty adjacency HP scaling.",
+    "housedUnitDefId": "spectre",
+    "effects": [
+      "self-foreach; school=necromancy | empty; unit:hp; mult; 0.1"
+    ]
+  },
+  {
+    "id": "spectre_camp_2",
+    "name": "Spectre Camp II",
+    "assetPath": "game_icons/spectre.svg",
+    "school": "necromancy",
+    "tier": 3,
+    "cost": {
+      "food": 700,
+      "stone": 500
+    },
+    "buildTime": 6,
+    "description": "Elite area attacker with Necromancy/empty adjacency HP scaling.",
+    "parentId": "spectre_camp",
+    "housedUnitDefId": "spectre",
+    "effects": [
+      "self-foreach; school=necromancy | empty; unit:hp; mult; 0.12",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 24"
+    ]
+  },
+  {
+    "id": "spectre_camp_3",
+    "name": "Spectre Camp III",
+    "assetPath": "game_icons/spectre.svg",
+    "school": "necromancy",
+    "tier": 3,
+    "cost": {
+      "food": 1300,
+      "stone": 900
+    },
+    "buildTime": 7,
+    "description": "Elite area attacker with Necromancy/empty adjacency HP scaling.",
+    "parentId": "spectre_camp_2",
+    "housedUnitDefId": "spectre",
+    "effects": [
+      "self-foreach; school=necromancy | empty; unit:hp; mult; 0.14",
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48"
+    ]
+  },
+  {
+    "id": "forest_mage_tower",
+    "name": "Forest Mage Tower",
+    "assetPath": "game_icons/heavy-thorny-triskelion.svg",
+    "school": "sylvan",
+    "tier": 3,
+    "cost": {
+      "food": 500,
+      "mana": 60
+    },
+    "buildTime": 5,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "housedUnitDefId": "forest_mage"
+  },
+  {
+    "id": "forest_mage_tower_2",
+    "name": "Forest Mage Tower II",
+    "assetPath": "game_icons/heavy-thorny-triskelion.svg",
+    "school": "sylvan",
+    "tier": 3,
+    "cost": {
+      "food": 1200,
+      "mana": 150
+    },
+    "buildTime": 6,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "parentId": "forest_mage_tower",
+    "housedUnitDefId": "forest_mage",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 24",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "forest_mage_tower_3",
+    "name": "Forest Mage Tower III",
+    "assetPath": "game_icons/heavy-thorny-triskelion.svg",
+    "school": "sylvan",
+    "tier": 3,
+    "cost": {
+      "food": 2200,
+      "mana": 300
+    },
+    "buildTime": 7,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "parentId": "forest_mage_tower_2",
+    "housedUnitDefId": "forest_mage",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "earth_mage_tower",
+    "name": "Earth Mage Tower",
+    "assetPath": "game_icons/earth-crack.svg",
+    "school": "geomancy",
+    "tier": 3,
+    "cost": {
+      "food": 500,
+      "mana": 60
+    },
+    "buildTime": 5,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "housedUnitDefId": "earth_mage"
+  },
+  {
+    "id": "earth_mage_tower_2",
+    "name": "Earth Mage Tower II",
+    "assetPath": "game_icons/earth-crack.svg",
+    "school": "geomancy",
+    "tier": 3,
+    "cost": {
+      "food": 1200,
+      "mana": 150
+    },
+    "buildTime": 6,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "parentId": "earth_mage_tower",
+    "housedUnitDefId": "earth_mage",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 24",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "earth_mage_tower_3",
+    "name": "Earth Mage Tower III",
+    "assetPath": "game_icons/earth-crack.svg",
+    "school": "geomancy",
+    "tier": 3,
+    "cost": {
+      "food": 2200,
+      "mana": 300
+    },
+    "buildTime": 7,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "parentId": "earth_mage_tower_2",
+    "housedUnitDefId": "earth_mage",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "fire_mage_tower",
+    "name": "Fire Mage Tower",
+    "assetPath": "game_icons/wildfires.svg",
+    "school": "pyromancy",
+    "tier": 3,
+    "cost": {
+      "food": 500,
+      "mana": 60
+    },
+    "buildTime": 5,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "housedUnitDefId": "fire_mage"
+  },
+  {
+    "id": "fire_mage_tower_2",
+    "name": "Fire Mage Tower II",
+    "assetPath": "game_icons/wildfires.svg",
+    "school": "pyromancy",
+    "tier": 3,
+    "cost": {
+      "food": 1200,
+      "mana": 150
+    },
+    "buildTime": 6,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "parentId": "fire_mage_tower",
+    "housedUnitDefId": "fire_mage",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 24",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "fire_mage_tower_3",
+    "name": "Fire Mage Tower III",
+    "assetPath": "game_icons/wildfires.svg",
+    "school": "pyromancy",
+    "tier": 3,
+    "cost": {
+      "food": 2200,
+      "mana": 300
+    },
+    "buildTime": 7,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "parentId": "fire_mage_tower_2",
+    "housedUnitDefId": "fire_mage",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "death_mage_tower",
+    "name": "Death Mage Tower",
+    "assetPath": "game_icons/disintegrate.svg",
+    "school": "necromancy",
+    "tier": 3,
+    "cost": {
+      "food": 500,
+      "mana": 60
+    },
+    "buildTime": 5,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "housedUnitDefId": "death_mage"
+  },
+  {
+    "id": "death_mage_tower_2",
+    "name": "Death Mage Tower II",
+    "assetPath": "game_icons/disintegrate.svg",
+    "school": "necromancy",
+    "tier": 3,
+    "cost": {
+      "food": 1200,
+      "mana": 150
+    },
+    "buildTime": 6,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "parentId": "death_mage_tower",
+    "housedUnitDefId": "death_mage",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 24",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "death_mage_tower_3",
+    "name": "Death Mage Tower III",
+    "assetPath": "game_icons/disintegrate.svg",
+    "school": "necromancy",
+    "tier": 3,
+    "cost": {
+      "food": 2200,
+      "mana": 300
+    },
+    "buildTime": 7,
+    "description": "Long-range mage tower with low defenses and high spell pressure.",
+    "parentId": "death_mage_tower_2",
+    "housedUnitDefId": "death_mage",
+    "effects": [
+      "self-if; empty | hasProd | hasArmy; unit:hp; add; 48",
+      "self-if; empty | hasProd | hasArmy; unit:ap; add; 1"
     ]
   },
   {
@@ -438,28 +3309,108 @@
     "school": "artifact",
     "tier": 3,
     "cost": {
-      "wood": 80,
-      "stone": 160,
-      "food": 200
+      "wood": 600,
+      "stone": 600,
+      "food": 600
     },
     "buildTime": 10,
-    "description": "+60 % HP and damage bonus to adjacent tier 1 and 2 armies",
+    "description": "Boosts HP and damage for adjacent tier-1 and tier-2 armies (stronger for tier-1).",
     "effects": [
-      "neighbor; tier=1; army:hp; mult; 0.6",
-      "neighbor; tier=1; army:damage; mult; 0.6",
-      "neighbor; tier=2; army:hp; mult; 0.6",
-      "neighbor; tier=2; army:damage; mult; 0.6"
+      "neighbor; tier=1 & hasArmy; unit:hp; mult; 0.45",
+      "neighbor; tier=1 & hasArmy; unit:damage; mult; 0.45",
+      "neighbor; tier=2 & hasArmy; unit:hp; mult; 0.25",
+      "neighbor; tier=2 & hasArmy; unit:damage; mult; 0.25"
+    ]
+  },
+  {
+    "id": "the_yggdrasil_portal",
+    "name": "The Yggdrasil Portal",
+    "assetPath": "game_icons/tree-face.svg",
+    "school": "sylvan",
+    "tier": 4,
+    "cost": {
+      "food": 1800,
+      "wood": 2200
+    },
+    "buildTime": 12,
+    "description": "Ultimate army district with school-scaled neighborhood multipliers.",
+    "housedUnitDefId": "the_yggdrasil",
+    "effects": [
+      "self-foreach; school=sylvan; unit:hp; mult; 0.12"
+    ]
+  },
+  {
+    "id": "the_behemoth_portal",
+    "name": "The Behemoth Portal",
+    "assetPath": "game_icons/dragon-head.svg",
+    "school": "geomancy",
+    "tier": 4,
+    "cost": {
+      "food": 1700,
+      "stone": 2300
+    },
+    "buildTime": 12,
+    "description": "Ultimate army district with school-scaled neighborhood multipliers.",
+    "housedUnitDefId": "the_behemoth",
+    "effects": [
+      "self-foreach; school=geomancy; unit:drpercent; add; 6"
+    ]
+  },
+  {
+    "id": "the_phoenix_portal",
+    "name": "The Phoenix Portal",
+    "assetPath": "game_icons/condor-emblem.svg",
+    "school": "pyromancy",
+    "tier": 4,
+    "cost": {
+      "food": 1700,
+      "wood": 1800,
+      "stone": 500
+    },
+    "buildTime": 12,
+    "description": "Ultimate army district with school-scaled neighborhood multipliers.",
+    "housedUnitDefId": "the_phoenix",
+    "effects": [
+      "self-foreach; school=pyromancy; unit:ap; add; 1"
+    ]
+  },
+  {
+    "id": "the_grim_reaper_portal",
+    "name": "The Grim Reaper Portal",
+    "assetPath": "game_icons/grim-reaper.svg",
+    "school": "necromancy",
+    "tier": 4,
+    "cost": {
+      "food": 1700,
+      "stone": 1800,
+      "wood": 500
+    },
+    "buildTime": 12,
+    "description": "Ultimate army district with school-scaled neighborhood multipliers.",
+    "housedUnitDefId": "the_grim_reaper",
+    "effects": [
+      "self-foreach; school=necromancy; unit:hp; mult; 0.1"
+    ]
+  },
+  {
+    "id": "the_apex_construct_portal",
+    "name": "The Apex Construct Portal",
+    "assetPath": "game_icons/megabot.svg",
+    "school": "artifact",
+    "tier": 4,
+    "cost": {
+      "food": 1400,
+      "wood": 1300,
+      "stone": 1300
+    },
+    "buildTime": 12,
+    "description": "Ultimate army district with school-scaled neighborhood multipliers.",
+    "housedUnitDefId": "apex_construct",
+    "effects": [
+      "self-foreach; school=sylvan; unit:damage; mult; 0.08",
+      "self-foreach; school=geomancy; unit:drpercent; add; 4",
+      "self-foreach; school=pyromancy; unit:ap; add; 1",
+      "self-foreach; school=necromancy; unit:hp; mult; 0.12"
     ]
   }
-]
-    "assetPath": "game_icons/gold-mine.svg",
-    "assetPath": "game_icons/sword-brandish.svg",
-    "assetPath": "game_icons/high-shot.svg",
-    "assetPath": "game_icons/vibrating-shield.svg",
-    "assetPath": "game_icons/earth-crack.svg",
-    "assetPath": "game_icons/double-shot.svg",
-    "assetPath": "game_icons/crossbow.svg",
-    "assetPath": "game_icons/backstab.svg",
-    "assetPath": "game_icons/disintegrate.svg",
-    "assetPath": "game_icons/brutal-helm.svg",
 ]

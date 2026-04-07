@@ -2,12 +2,12 @@
   {
     "id": "swordsman",
     "name": "Swordsman",
-    "health": 100,
-    "drFlat": 5,
-    "drPercent": 5,
+    "health": 110,
+    "drFlat": 4,
+    "drPercent": 6,
     "actions": [
       {
-        "damage": 25,
+        "damage": 24,
         "canUpgrade": true,
         "range": 1,
         "targeting": "first",
@@ -21,15 +21,15 @@
   {
     "id": "archer",
     "name": "Archer",
-    "health": 50,
+    "health": 58,
     "drFlat": 0,
     "drPercent": 0,
     "actions": [
       {
-        "damage": 15,
+        "damage": 20,
         "canUpgrade": true,
-        "range": 5,
-        "targeting": "last",
+        "range": 4,
+        "targeting": "first",
         "actionPointCost": 1
       }
     ],
@@ -40,9 +40,9 @@
   {
     "id": "defender",
     "name": "Defender",
-    "health": 150,
-    "drFlat": 10,
-    "drPercent": 10,
+    "health": 190,
+    "drFlat": 12,
+    "drPercent": 12,
     "actions": [
       {
         "damage": 10,
@@ -50,56 +50,177 @@
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 1,
+    "assetPath": "game_icons/checked-shield.svg"
+  },
+  {
+    "id": "goblin",
+    "name": "Goblin",
+    "health": 45,
+    "drFlat": 2,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 18,
+        "canUpgrade": true,
+        "range": 3,
+        "targeting": "last",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 4,
+    "assetPath": "game_icons/goblin.svg"
+  },
+  {
+    "id": "ghost",
+    "name": "Ghost",
+    "health": 70,
+    "drFlat": 0,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 8,
+        "canUpgrade": true,
+        "range": 3,
+        "targeting": "all",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 2,
+    "assetPath": "game_icons/ghost.svg"
+  },
+  {
+    "id": "prototype_soldier",
+    "name": "Prototype Soldier",
+    "health": 90,
+    "drFlat": 2,
+    "drPercent": 3,
+    "actions": [
+      {
+        "damage": 16,
+        "canUpgrade": true,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 2,
+    "assetPath": "game_icons/sword-tie.svg"
+  },
+  {
+    "id": "super_soldier",
+    "name": "Super Soldier",
+    "health": 180,
+    "drFlat": 10,
+    "drPercent": 12,
+    "actions": [
+      {
+        "damage": 36,
+        "canUpgrade": true,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
       },
       {
-        "damage": 0,
-        "canUpgrade": false,
-        "range": 0,
+        "damage": 24,
+        "canUpgrade": true,
+        "range": 2,
+        "targeting": "first",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 2,
+    "initiative": 3,
+    "assetPath": "game_icons/sword-tie.svg"
+  },
+  {
+    "id": "prototype_marksman",
+    "name": "Prototype Marksman",
+    "health": 60,
+    "drFlat": 0,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 14,
+        "canUpgrade": true,
+        "range": 6,
+        "targeting": "first",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 3,
+    "assetPath": "game_icons/archer.svg"
+  },
+  {
+    "id": "super_marksman",
+    "name": "Super Marksman",
+    "health": 110,
+    "drFlat": 2,
+    "drPercent": 4,
+    "actions": [
+      {
+        "damage": 26,
+        "canUpgrade": true,
+        "range": 6,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 22,
+        "canUpgrade": true,
+        "range": 6,
+        "targeting": "last",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 2,
+    "initiative": 4,
+    "assetPath": "game_icons/archer.svg"
+  },
+  {
+    "id": "peasant",
+    "name": "Peasant",
+    "health": 65,
+    "drFlat": 0,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 12,
+        "canUpgrade": true,
+        "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       }
     ],
     "actionPoints": 1,
     "initiative": 1,
-    "assetPath": "game_icons/vibrating-shield.svg"
+    "assetPath": "game_icons/sword-brandish.svg"
   },
   {
-    "id": "earth_mage",
-    "name": "Earth Mage",
-    "health": 80,
-    "drFlat": 0,
-    "drPercent": 0,
+    "id": "ranger",
+    "name": "Ranger",
+    "health": 110,
+    "drFlat": 4,
+    "drPercent": 4,
     "actions": [
       {
-        "damage": 30,
+        "damage": 18,
         "canUpgrade": true,
-        "range": 100,
-        "targeting": "all",
-        "actionPointCost": 2
-      }
-    ],
-    "actionPoints": 2,
-    "initiative": 2,
-    "assetPath": "game_icons/earth-crack.svg"
-  },
-  {
-    "id": "magic_archer",
-    "name": "Magic Archer",
-    "health": 60,
-    "drFlat": 10,
-    "drPercent": 0,
-    "actions": [
-      {
-        "damage": 20,
-        "canUpgrade": true,
-        "range": 15,
+        "range": 6,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
-        "damage": 20,
+        "damage": 18,
         "canUpgrade": true,
-        "range": 30,
+        "range": 6,
         "targeting": "last",
         "actionPointCost": 1
       }
@@ -109,47 +230,177 @@
     "assetPath": "game_icons/double-shot.svg"
   },
   {
-    "id": "crossbowman",
-    "name": "Crossbowman",
-    "health": 70,
-    "drFlat": 0,
-    "drPercent": 0,
+    "id": "halberdier",
+    "name": "Halberdier",
+    "health": 180,
+    "drFlat": 8,
+    "drPercent": 14,
     "actions": [
       {
         "damage": 20,
         "canUpgrade": true,
-        "range": 5,
-        "targeting": "first",
-        "actionPointCost": 1
-      },
-      {
-        "damage": 20,
-        "canUpgrade": true,
-        "range": 5,
-        "targeting": "first",
-        "actionPointCost": 1
-      },
-      {
-        "damage": 20,
-        "canUpgrade": true,
-        "range": 5,
+        "range": 2,
         "targeting": "first",
         "actionPointCost": 1
       }
     ],
-    "actionPoints": 3,
-    "initiative": 3,
-    "assetPath": "game_icons/crossbow.svg"
+    "actionPoints": 1,
+    "initiative": 2,
+    "assetPath": "game_icons/sharp-halberd.svg"
   },
   {
-    "id": "assassin",
-    "name": "Assassin",
-    "health": 30,
-    "drFlat": 10,
+    "id": "berserker",
+    "name": "Berserker",
+    "health": 160,
+    "drFlat": 0,
     "drPercent": 0,
     "actions": [
       {
-        "damage": 15,
+        "damage": 28,
+        "canUpgrade": true,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 24,
+        "canUpgrade": true,
+        "range": 2,
+        "targeting": "first",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 3,
+    "assetPath": "game_icons/sharp-axe.svg"
+  },
+  {
+    "id": "rogue",
+    "name": "Rogue",
+    "health": 90,
+    "drFlat": 5,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 24,
+        "canUpgrade": true,
+        "range": 3,
+        "targeting": "weak",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 4,
+    "assetPath": "game_icons/cloak-dagger.svg"
+  },
+  {
+    "id": "shambling_mound",
+    "name": "Shambling Mound",
+    "health": 260,
+    "drFlat": 0,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 24,
+        "canUpgrade": true,
+        "range": 2,
+        "targeting": "all",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 1,
+    "assetPath": "game_icons/shambling-mound.svg"
+  },
+  {
+    "id": "rock_golem",
+    "name": "Rock Golem",
+    "health": 200,
+    "drFlat": 14,
+    "drPercent": 24,
+    "actions": [
+      {
+        "damage": 34,
+        "canUpgrade": true,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 1,
+    "assetPath": "game_icons/rock-golem.svg"
+  },
+  {
+    "id": "fire_elemental",
+    "name": "Fire Elemental",
+    "health": 140,
+    "drFlat": 0,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 32,
+        "canUpgrade": true,
+        "range": 3,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 28,
+        "canUpgrade": true,
+        "range": 3,
+        "targeting": "all",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 3,
+    "assetPath": "game_icons/ifrit.svg"
+  },
+  {
+    "id": "slasher",
+    "name": "Slasher",
+    "health": 95,
+    "drFlat": 2,
+    "drPercent": 4,
+    "actions": [
+      {
+        "damage": 18,
+        "canUpgrade": true,
+        "range": 3,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 18,
+        "canUpgrade": true,
+        "range": 3,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 20,
+        "canUpgrade": true,
+        "range": 4,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 20,
+        "canUpgrade": true,
+        "range": 4,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 22,
+        "canUpgrade": true,
+        "range": 5,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 26,
         "canUpgrade": true,
         "range": 5,
         "targeting": "weak",
@@ -157,55 +408,242 @@
       }
     ],
     "actionPoints": 1,
-    "initiative": 5,
-    "assetPath": "game_icons/backstab.svg"
+    "initiative": 4,
+    "assetPath": "game_icons/barbed-nails.svg"
   },
   {
-    "id": "death_mage",
-    "name": "Death Mage",
-    "health": 50,
+    "id": "knight",
+    "name": "Knight",
+    "health": 220,
+    "drFlat": 10,
+    "drPercent": 10,
+    "actions": [
+      {
+        "damage": 36,
+        "canUpgrade": true,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 3,
+    "assetPath": "game_icons/visored-helm.svg"
+  },
+  {
+    "id": "crossbowman",
+    "name": "Crossbowman",
+    "health": 120,
+    "drFlat": 0,
+    "drPercent": 2,
+    "actions": [
+      {
+        "damage": 34,
+        "canUpgrade": true,
+        "range": 7,
+        "targeting": "first",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 4,
+    "assetPath": "game_icons/crossbow.svg"
+  },
+  {
+    "id": "royal_defender",
+    "name": "Royal Defender",
+    "health": 320,
+    "drFlat": 18,
+    "drPercent": 24,
+    "actions": [
+      {
+        "damage": 18,
+        "canUpgrade": true,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 2,
+    "assetPath": "game_icons/crenulated-shield.svg"
+  },
+  {
+    "id": "elite_goblin",
+    "name": "Elite Goblin",
+    "health": 110,
+    "drFlat": 4,
+    "drPercent": 4,
+    "actions": [
+      {
+        "damage": 30,
+        "canUpgrade": true,
+        "range": 4,
+        "targeting": "last",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 5,
+    "assetPath": "game_icons/goblin-head.svg"
+  },
+  {
+    "id": "spectre",
+    "name": "Spectre",
+    "health": 130,
+    "drFlat": 0,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 14,
+        "canUpgrade": true,
+        "range": 4,
+        "targeting": "all",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 3,
+    "assetPath": "game_icons/spectre.svg"
+  },
+  {
+    "id": "forest_mage",
+    "name": "Forest Mage",
+    "health": 90,
+    "drFlat": 0,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 48,
+        "canUpgrade": true,
+        "range": 50,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 48,
+        "canUpgrade": true,
+        "range": 50,
+        "targeting": "last",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 3,
+    "assetPath": "game_icons/heavy-thorny-triskelion.svg"
+  },
+  {
+    "id": "earth_mage",
+    "name": "Earth Mage",
+    "health": 100,
     "drFlat": 0,
     "drPercent": 0,
     "actions": [
       {
         "damage": 0,
         "canUpgrade": false,
-        "range": 0,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 60,
+        "canUpgrade": true,
+        "range": 50,
+        "targeting": "all",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 2,
+    "assetPath": "game_icons/earth-crack.svg"
+  },
+  {
+    "id": "fire_mage",
+    "name": "Fire Mage",
+    "health": 95,
+    "drFlat": 0,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 52,
+        "canUpgrade": true,
+        "range": 50,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 44,
+        "canUpgrade": true,
+        "range": 50,
+        "targeting": "last",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 38,
+        "canUpgrade": true,
+        "range": 50,
+        "targeting": "weak",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 50,
+        "canUpgrade": true,
+        "range": 50,
+        "targeting": "all",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 4,
+    "assetPath": "game_icons/wildfires.svg"
+  },
+  {
+    "id": "death_mage",
+    "name": "Death Mage",
+    "health": 85,
+    "drFlat": 0,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 0,
+        "canUpgrade": false,
+        "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
         "damage": 0,
         "canUpgrade": false,
-        "range": 0,
+        "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
         "damage": 0,
         "canUpgrade": false,
-        "range": 0,
+        "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
         "damage": 0,
         "canUpgrade": false,
-        "range": 0,
+        "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
         "damage": 0,
         "canUpgrade": false,
-        "range": 0,
+        "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
         "damage": 9999,
         "canUpgrade": false,
-        "range": 5,
+        "range": 50,
         "targeting": "first",
         "actionPointCost": 1
       }
@@ -215,36 +653,182 @@
     "assetPath": "game_icons/disintegrate.svg"
   },
   {
-    "id": "champion",
-    "name": "Champion",
-    "health": 100,
-    "drFlat": 10,
-    "drPercent": 5,
+    "id": "the_yggdrasil",
+    "name": "The Yggdrasil",
+    "health": 650,
+    "drFlat": 8,
+    "drPercent": 10,
     "actions": [
       {
-        "damage": 20,
+        "damage": 50,
+        "canUpgrade": true,
+        "range": 50,
+        "targeting": "weak",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 2,
+    "assetPath": "game_icons/tree-face.svg"
+  },
+  {
+    "id": "the_behemoth",
+    "name": "The Behemoth",
+    "health": 500,
+    "drFlat": 20,
+    "drPercent": 50,
+    "actions": [
+      {
+        "damage": 0,
+        "canUpgrade": false,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 0,
+        "canUpgrade": false,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 120,
+        "canUpgrade": true,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 1,
+    "assetPath": "game_icons/dragon-head.svg"
+  },
+  {
+    "id": "the_phoenix",
+    "name": "The Phoenix",
+    "health": 260,
+    "drFlat": 6,
+    "drPercent": 0,
+    "actions": [
+      {
+        "damage": 0,
+        "canUpgrade": false,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 0,
+        "canUpgrade": false,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 0,
+        "canUpgrade": false,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 0,
+        "canUpgrade": false,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 0,
+        "canUpgrade": false,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 0,
+        "canUpgrade": false,
+        "range": 1,
+        "targeting": "first",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 240,
+        "canUpgrade": true,
+        "range": 50,
+        "targeting": "last",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 5,
+    "assetPath": "game_icons/condor-emblem.svg"
+  },
+  {
+    "id": "the_grim_reaper",
+    "name": "The Grim Reaper",
+    "health": 360,
+    "drFlat": 8,
+    "drPercent": 16,
+    "actions": [
+      {
+        "damage": 40,
+        "canUpgrade": true,
+        "range": 3,
+        "targeting": "all",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 46,
+        "canUpgrade": true,
+        "range": 4,
+        "targeting": "all",
+        "actionPointCost": 1
+      },
+      {
+        "damage": 52,
+        "canUpgrade": true,
+        "range": 5,
+        "targeting": "all",
+        "actionPointCost": 1
+      }
+    ],
+    "actionPoints": 1,
+    "initiative": 3,
+    "assetPath": "game_icons/grim-reaper.svg"
+  },
+  {
+    "id": "apex_construct",
+    "name": "The Apex Construct",
+    "health": 420,
+    "drFlat": 10,
+    "drPercent": 18,
+    "actions": [
+      {
+        "damage": 42,
         "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
-        "damage": 10,
+        "damage": 38,
         "canUpgrade": true,
-        "range": 2,
-        "targeting": "first",
+        "range": 5,
+        "targeting": "last",
         "actionPointCost": 1
       },
       {
-        "damage": 40,
+        "damage": 34,
         "canUpgrade": true,
-        "range": 4,
-        "targeting": "last",
-        "actionPointCost": 2
+        "range": 3,
+        "targeting": "weak",
+        "actionPointCost": 1
       }
     ],
-    "actionPoints": 2,
-    "initiative": 2,
-    "assetPath": "game_icons/brutal-helm.svg"
+    "actionPoints": 3,
+    "initiative": 4,
+    "assetPath": "game_icons/megabot.svg"
   }
 ]
