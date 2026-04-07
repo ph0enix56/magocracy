@@ -1,13 +1,12 @@
 import type { AttackAction, ResourceMap } from '../../../shared/domain/types';
 
 export const BUILDING_SCHOOLS = {
-	neutral: 'neutral',
+	founding: 'founding',
 	sylvan: 'sylvan',
 	geomancy: 'geomancy',
 	pyromancy: 'pyromancy',
-	hydromancy: 'hydromancy',
 	necromancy: 'necromancy',
-	arcane: 'arcane'
+	artifact: 'artifact'
 } as const;
 
 export type BuildingSchool = keyof typeof BUILDING_SCHOOLS;

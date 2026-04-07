@@ -3,13 +3,12 @@ export type BuildingSchool = 'neutral' | 'sylvan' | 'geomancy' | 'pyromancy' | '
 export const EMPTY_HEX_TILE_COLOR = 0x8b8b8b;
 
 export const BUILDING_SCHOOL_HEX_COLORS: Record<BuildingSchool, number> = {
-	neutral: 0x6f7f8f,
-	sylvan: 0x60a267,
-	geomancy: 0x96734e,
-	pyromancy: 0xb05353,
-	hydromancy: 0x4c79b8,
-	necromancy: 0x533e79,
-	arcane: 0x3d7f88
+	founding: 0xDFBF55,
+	sylvan: 0x60A267,
+	geomancy: 0x96734E,
+	pyromancy: 0xA3574D,
+	necromancy: 0x533E79,
+	artifact: 0x456C77
 };
 
 export function getHexTileColorForSchool(school: string | undefined): number {
