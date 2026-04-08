@@ -1,15 +1,4 @@
-import type { AttackAction, ResourceMap } from '../../../shared/domain/types';
-
-export const BUILDING_SCHOOLS = {
-	founding: 'founding',
-	sylvan: 'sylvan',
-	geomancy: 'geomancy',
-	pyromancy: 'pyromancy',
-	necromancy: 'necromancy',
-	artifact: 'artifact'
-} as const;
-
-export type BuildingSchool = keyof typeof BUILDING_SCHOOLS;
+import type { AttackAction, BuildingSchool, ResourceMap } from '../../../shared/domain/types';
 
 export type EffectTarget = 'self-if' | 'self-foreach' | 'neighbor';
 export type EffectApply = 'add' | 'mult';

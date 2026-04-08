@@ -7,7 +7,7 @@ export class WorldStore {
 	private readonly armyUnits = new Map<string, ArmyUnitState>();
 	readonly resources = new Map<string, number>();
 	readonly blueprintInventory = new Map<string, number>();
-	shopOffers: Array<string | null> = Array.from({ length: configuration.shop.size }, () => null);
+	shopOffers: Array<[id: string, tier: number] | null> = Array.from({ length: configuration.shop.size }, () => null);
 	armyUnitOrder: string[] = [];
 	private nextArmyUnitSeq = 1;
 

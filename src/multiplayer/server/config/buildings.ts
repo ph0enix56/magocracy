@@ -1,21 +1,20 @@
-import { BUILDING_SCHOOLS, type BuildingDef, type UnitDef } from './buildingTypes';
+import { type BuildingDef, type UnitDef } from './buildingTypes';
 import BUILDING_DEFS_JSON from './buildingDefs/buildings.json';
 import UNIT_DEFS_JSON from './buildingDefs/units.json';
-import type { ResourceMap } from '../../../shared/domain/types';
+import { AttackTargeting, BuildingSchool, type ResourceMap } from '../../../shared/domain/types';
 
 // Re-export all types so callers only need to import from this file.
 export type {
 	BuildingDef,
 	UnitDef,
-	BuildingSchool,
 	EffectTarget,
 	EffectApply,
-	EffectStat,
-	BUILDING_SCHOOLS
+	EffectStat
 } from './buildingTypes';
 
-const VALID_TARGETING = new Set<UnitDef['actions'][number]['targeting']>(['first', 'last', 'weak', 'all']);
-const VALID_SCHOOLS = new Set(Object.keys(BUILDING_SCHOOLS));
+function hasEnumValue<T extends Record<string, string>>(enumLike: T, value: string): value is T[keyof T] {
+	return (Object.values(enumLike) as string[]).includes(value);
+}
 
 function isObject(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -75,10 +74,10 @@ function parseUnitDef(raw: unknown, index: number): UnitDef {
 		if (!isObject(action)) throw new Error(`${actionPath} must be an object`);
 
 		const targetingRaw = asString(action['targeting'], `${actionPath}.targeting`);
-		if (!VALID_TARGETING.has(targetingRaw as UnitDef['actions'][number]['targeting'])) {
-			throw new Error(`${actionPath}.targeting must be one of: first, last, weak, all`);
+		if (!hasEnumValue(AttackTargeting, targetingRaw)) {
+			throw new Error(`${actionPath}.targeting must be a valid targeting type`);
 		}
-		const targeting = targetingRaw as UnitDef['actions'][number]['targeting'];
+		const targeting = targetingRaw;
 
 		return {
 			damage: asNumber(action['damage'], `${actionPath}.damage`),
@@ -107,8 +106,8 @@ function parseBuildingDef(raw: unknown, index: number): BuildingDef {
 	if (!isObject(raw)) throw new Error(`${path} must be an object`);
 
 	const school = asString(raw['school'], `${path}.school`);
-	if (!VALID_SCHOOLS.has(school)) {
-		throw new Error(`${path}.school must be one of: ${Object.keys(BUILDING_SCHOOLS).join(', ')}`);
+	if (!hasEnumValue(BuildingSchool, school)) {
+		throw new Error(`${path}.school must specify a valid school`);
 	}
 
 	const productionsRaw = raw['productions'];
@@ -122,7 +121,7 @@ function parseBuildingDef(raw: unknown, index: number): BuildingDef {
 
 	return {
 		id: asString(raw['id'], `${path}.id`),
-		school: school as BuildingDef['school'],
+		school,
 		tier: asNumber(raw['tier'], `${path}.tier`),
 		parentId: parentIdRaw === undefined ? undefined : asString(parentIdRaw, `${path}.parentId`),
 		name: asString(raw['name'], `${path}.name`),

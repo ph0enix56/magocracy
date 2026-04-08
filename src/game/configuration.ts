@@ -4,28 +4,38 @@ export const configuration = {
 	},
 
 	shop: {
-		size: 4,
-		buyCost: 10,
+		size: 6,
+		buyCostByTier: [10, 20, 40, 100],
 		rerollCost: 10
 	},
 
 	economy: {
 		startingResources: {
-			stone: 1000,
-			wood: 1000,
-			food: 1000,
-			mana: 1000,
-			gold: 1000,
+			stone: 100000,
+			wood: 100000,
+			food: 100000,
+			mana: 100000,
 			renown: 0,
-			expansion: 0
+			expansion: 5
 		},
 		starterBlueprintInventory: {
 			// [WIP] Starter blueprints for testing
-			mine: 2,
-			lumber_camp: 1,
-			farm: 1,
-			house: 1,
-			sword_barracks: 1
+			logging_camp: 2,
+			mana_pump: 2,
+			ghost_camp: 1,
+			prototype_marksman_camp: 1,
+			dolmen: 1,
+			granary: 1,
+			academy: 1,
+			deep_mine: 1,
+			berserker_camp: 1,
+			fire_elemental_grounds: 1,
+			holy_oak: 1,
+			blacksmith: 1,
+			factory: 1,
+			tinkers_guild: 1,
+			fire_mage_tower: 1,
+			the_apex_construct_portal: 1
 		}
 	},
 

@@ -80,7 +80,6 @@
 		<ResourceCounter keyName="wood" icon="🪵" />
 		<ResourceCounter keyName="food" icon="🍞" />
 		<ResourceCounter keyName="mana" icon="💧" />
-		<ResourceCounter keyName="gold" icon="💰" />
 		{#if $appViewState.isScouting && $appViewState.viewedPlayerName}
 			<div class="ui-chip scout-chip">Scouting {$appViewState.viewedPlayerName}</div>
 		{/if}

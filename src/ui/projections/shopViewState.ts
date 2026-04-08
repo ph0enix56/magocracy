@@ -1,10 +1,9 @@
 import { derived } from 'svelte/store';
-import type { BuildingCatalogEntry } from '../../shared/multiplayer/snapshots';
+import type { BuildingCatalogEntry, ShopOfferSnapshot } from '../../shared/multiplayer/snapshots';
 import { gameSessionState } from '../../multiplayer/client/gameSessionStore';
 
 export type ShopPanelViewState = {
-	offers: Array<string | null>;
-	buyCost: number;
+	offers: Array<ShopOfferSnapshot | null>;
 	rerollCost: number;
 	purchasableBuildings: BuildingCatalogEntry[];
 	canTownInteract: boolean;
@@ -14,7 +13,6 @@ export type ShopPanelViewState = {
 
 export const shopPanelState = derived(gameSessionState, ($state): ShopPanelViewState => ({
 	offers: $state.shop.offers,
-	buyCost: $state.shop.buyCost,
 	rerollCost: $state.shop.rerollCost,
 	purchasableBuildings: $state.catalog.filter((entry) => !entry.parentId),
 	canTownInteract: $state.canTownInteract,

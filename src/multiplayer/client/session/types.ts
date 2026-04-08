@@ -104,7 +104,6 @@ export const EMPTY_RESOURCES: ResourceMap = {};
 /** Empty fallback shop snapshot used before first game snapshot arrives. */
 export const EMPTY_SHOP: ShopSnapshot = {
 	offers: [],
-	buyCost: 0,
 	rerollCost: 0
 };
 

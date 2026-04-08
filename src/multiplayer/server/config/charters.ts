@@ -39,7 +39,7 @@ export const CHARTER_TEMPLATES: CharterTemplateDef[] = [
 		title: 'Architect Charter',
 		level: 1,
 		resources: [
-			{ resource: 'gold', min: 45, max: 80 },
+			{ resource: 'wood', min: 45, max: 80 },
 			{ resource: 'expansion', min: 1, max: 1 }
 		],
 		blueprints: [
@@ -64,7 +64,7 @@ export const CHARTER_TEMPLATES: CharterTemplateDef[] = [
 		level: 2,
 		resources: [
 			{ resource: 'food', min: 160, max: 220 },
-			{ resource: 'gold', min: 70, max: 120 },
+			{ resource: 'stone', min: 70, max: 120 },
 			{ resource: 'expansion', min: 1, max: 2 }
 		]
 	},
@@ -86,7 +86,7 @@ export const CHARTER_TEMPLATES: CharterTemplateDef[] = [
 		level: 2,
 		resources: [
 			{ resource: 'mana', min: 50, max: 90 },
-			{ resource: 'gold', min: 60, max: 100 }
+			{ resource: 'food', min: 60, max: 100 }
 		],
 		blueprints: [
 			{ tier: 2, countMin: 1, countMax: 1, buildingType: 'army' }
@@ -108,7 +108,7 @@ export const CHARTER_TEMPLATES: CharterTemplateDef[] = [
 		level: 3,
 		resources: [
 			{ resource: 'mana', min: 100, max: 160 },
-			{ resource: 'gold', min: 120, max: 180 }
+			{ resource: 'wood', min: 120, max: 180 }
 		],
 		blueprints: [
 			{ tier: 3, countMin: 1, countMax: 2, buildingType: 'army', magicSchool: 'arcane' }
@@ -132,7 +132,7 @@ export const CHARTER_TEMPLATES: CharterTemplateDef[] = [
 		title: 'Dynasty Founding Grant',
 		level: 4,
 		resources: [
-			{ resource: 'gold', min: 220, max: 300 },
+			{ resource: 'stone', min: 220, max: 300 },
 			{ resource: 'mana', min: 160, max: 230 },
 			{ resource: 'expansion', min: 3, max: 4 }
 		],
@@ -158,7 +158,7 @@ export const CHARTER_TEMPLATES: CharterTemplateDef[] = [
 		level: 4,
 		resources: [
 			{ resource: 'stone', min: 190, max: 260 },
-			{ resource: 'gold', min: 120, max: 180 },
+			{ resource: 'wood', min: 120, max: 180 },
 			{ resource: 'expansion', min: 2, max: 4 }
 		],
 		blueprints: [

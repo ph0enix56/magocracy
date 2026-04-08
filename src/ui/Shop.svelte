@@ -54,7 +54,7 @@
 				<h2 class="ui-modal-title">Blueprint Shop</h2>
 				<div class="header-actions">
 					<button class="ui-button ui-button--ghost" disabled={!canReroll()} on:click={requestReroll}>
-						Reroll ({$shopPanelState.rerollCost} gold)
+						Reroll ({$shopPanelState.rerollCost} mana)
 					</button>
 					<button class="ui-close-btn" on:click={close}>X</button>
 				</div>
@@ -64,14 +64,14 @@
 			{/if}
 
 			<div class="grid">
-				{#each $shopPanelState.offers as slot, i}
-					{#if slot}
-						{@const def = defFor(slot)}
+				{#each $shopPanelState.offers as offer, i}
+					{#if offer}
+						{@const def = defFor(offer.buildingId)}
 						{#if def}
 							<BuildingCard
 								def={def}
 								count={null}
-								actionLabel={`Buy (${$shopPanelState.buyCost} gold)`}
+								actionLabel={`Buy (${offer.buyCost} mana)`}
 								actionDisabled={pendingBuySlot !== null || pendingReroll || !$shopPanelState.canTownInteract}
 								on:action={() => buy(i)}
 							/>

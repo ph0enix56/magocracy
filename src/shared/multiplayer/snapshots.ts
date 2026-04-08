@@ -99,9 +99,14 @@ export type BuildingCatalogSnapshot = {
 	buildings: BuildingCatalogEntry[];
 };
 
-export type ShopSnapshot = {
-	offers: Array<string | null>;
+export type ShopOfferSnapshot = {
+	buildingId: string;
+	tier: number;
 	buyCost: number;
+};
+
+export type ShopSnapshot = {
+	offers: Array<ShopOfferSnapshot | null>;
 	rerollCost: number;
 };
 

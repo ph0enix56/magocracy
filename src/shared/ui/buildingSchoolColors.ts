@@ -1,4 +1,4 @@
-export type BuildingSchool = 'neutral' | 'sylvan' | 'geomancy' | 'pyromancy' | 'hydromancy' | 'necromancy' | 'arcane';
+import type { BuildingSchool } from "../domain/types";
 
 export const EMPTY_HEX_TILE_COLOR = 0x8b8b8b;
 

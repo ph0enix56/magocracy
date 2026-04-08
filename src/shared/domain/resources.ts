@@ -1,7 +1,6 @@
 export const RESOURCE_KEYS = [
 	'wood',
 	'stone',
-	'gold',
 	'food',
 	'mana',
 	'expansion',

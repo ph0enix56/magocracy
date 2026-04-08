@@ -812,7 +812,7 @@
   },
   {
     "id": "prototype_soldier_camp_7",
-    "name": "Prototype Soldier Camp VII",
+    "name": "Super Soldier Camp",
     "assetPath": "game_icons/sword-tie.svg",
     "school": "artifact",
     "tier": 1,
@@ -954,7 +954,7 @@
   },
   {
     "id": "prototype_marksman_camp_7",
-    "name": "Prototype Marksman Camp VII",
+    "name": "Super Marksman Camp",
     "assetPath": "game_icons/archer.svg",
     "school": "artifact",
     "tier": 1,
