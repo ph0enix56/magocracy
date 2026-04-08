@@ -12,7 +12,7 @@ export type FightReplayRecord = {
 
 export type FightPhaseStateData = {
 	isActive: boolean;
-	encountersPerPhase: number;
+	totalRounds: number;
 	secondsPerRound: number;
 	currentRoundIndex: number;
 	secondsToNextRound: number;
@@ -24,12 +24,12 @@ export type FightPhaseStateData = {
 
 export function createFightPhaseState(params: {
 	playerIds: string[];
-	encountersPerPhase: number;
+	totalRounds: number;
 	secondsPerRound: number;
 	nextRoundPairs: () => Array<[string, string?]>;
 	nextMatchId: () => string;
 }): FightPhaseStateData {
-	const { playerIds, encountersPerPhase, secondsPerRound, nextRoundPairs, nextMatchId } = params;
+	const { playerIds, totalRounds, secondsPerRound, nextRoundPairs, nextMatchId } = params;
 	const pairings: FightPairingSnapshot[] = [];
 	const results: FightRoundResultSnapshot[] = [];
 	const playerRoundsByPlayerId = new Map<string, FightPlayerRoundSnapshot[]>();
@@ -38,7 +38,7 @@ export function createFightPhaseState(params: {
 		playerRoundsByPlayerId.set(playerId, []);
 	}
 
-	for (let roundIndex = 0; roundIndex < encountersPerPhase; roundIndex += 1) {
+	for (let roundIndex = 0; roundIndex < totalRounds; roundIndex += 1) {
 		const pairs = nextRoundPairs();
 		for (const [playerAId, playerBId] of pairs) {
 			const matchId = nextMatchId();
@@ -77,7 +77,7 @@ export function createFightPhaseState(params: {
 
 	return {
 		isActive: true,
-		encountersPerPhase,
+		totalRounds,
 		secondsPerRound,
 		currentRoundIndex: 0,
 		secondsToNextRound: secondsPerRound,

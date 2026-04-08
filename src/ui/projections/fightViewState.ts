@@ -23,6 +23,6 @@ export const fightPanelState = derived(gameSessionState, ($state): FightPanelVie
 		selfPlayerId: $state.playerId,
 		playerNameById,
 		fight,
-		inFinalResultsReveal: fight.currentRoundIndex >= fight.encountersPerPhase
+		inFinalResultsReveal: fight.currentRoundIndex >= fight.totalRounds
 	};
 });

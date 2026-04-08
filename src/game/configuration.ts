@@ -40,7 +40,6 @@ export const configuration = {
 	},
 
 	fightPhase: {
-		encountersPerPhase: 2,
 		secondsPerRound: 60,
 		finalResultsSeconds: 10,
 		renownPerWin: 1

@@ -25,7 +25,7 @@ export function buildFightSnapshotForPlayer(params: {
 
 	return {
 		isActive: state.isActive,
-		encountersPerPhase: state.encountersPerPhase,
+		totalRounds: state.totalRounds,
 		secondsPerRound: state.secondsPerRound,
 		currentRoundIndex: state.currentRoundIndex,
 		secondsToNextRound: state.secondsToNextRound,

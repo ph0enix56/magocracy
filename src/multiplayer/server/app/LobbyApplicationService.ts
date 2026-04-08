@@ -5,7 +5,7 @@ import { routeClientCommand } from './CommandRouter';
 import { ServerEventPublisher } from './ServerEventPublisher';
 import type { LobbyRecord, ServerEventGateway } from './lobbyTypes';
 
-const MAX_PLAYERS_PER_LOBBY = 8;
+const MAX_PLAYERS_PER_LOBBY = 4;
 const MIN_PLAYERS_TO_START = 2;
 
 /**

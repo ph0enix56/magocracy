@@ -24,7 +24,7 @@ export const phaseTimerState = derived(gameSessionState, ($state): PhaseTimerVie
 	}
 
 	if (phase === 'combat') {
-		const totalSeconds = $state.fight.currentRoundIndex >= $state.fight.encountersPerPhase
+		const totalSeconds = $state.fight.currentRoundIndex >= $state.fight.totalRounds
 			? configuration.fightPhase.finalResultsSeconds
 			: Math.max(1, Math.floor($state.fight.secondsPerRound || configuration.fightPhase.secondsPerRound));
 		return {

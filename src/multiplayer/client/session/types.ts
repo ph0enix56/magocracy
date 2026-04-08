@@ -125,7 +125,7 @@ export const EMPTY_KINGDOM: KingdomSnapshot = {
 /** Empty fallback fight snapshot used before first game snapshot arrives. */
 export const EMPTY_FIGHT: FightSnapshot = {
 	isActive: false,
-	encountersPerPhase: 1,
+	totalRounds: 1,
 	secondsPerRound: 60,
 	currentRoundIndex: 0,
 	secondsToNextRound: 0,

@@ -12,7 +12,7 @@ import {
 	resolveFightRound as resolveFightRoundState
 } from '../fight/fightPhase';
 import { buildFightSnapshotForPlayer } from '../fight/fightSnapshots';
-import { buildRoundRobinCycle } from '../fight/roundRobin';
+import { buildRoundRobinPhase } from '../fight/roundRobin';
 import { CombatReplaySession } from '../fight/CombatReplaySession';
 
 export type FightRuntimeActionResult = { ok: true } | { ok: false; reason: string };
@@ -24,10 +24,6 @@ export class FightPhaseRuntime implements RuntimePhase {
 	private state: FightPhaseStateData;
 	private matchSeq = 1;
 	private finalResultsSeconds = Math.max(0, Math.floor(configuration.fightPhase.finalResultsSeconds));
-	private roundRobinCycleIndex = 0;
-	private roundRobinRoundCursor = 0;
-	private roundRobinRounds: Array<Array<[string, string?]>> = [];
-	private firstCycleOpeningSignature: string | null = null;
 	private readonly combatReplayByPlayerId = new Map<string, CombatReplaySession>();
 
 	constructor() {
@@ -46,16 +42,18 @@ export class FightPhaseRuntime implements RuntimePhase {
 	}
 
 	start(): void {
-		const encountersPerPhase = clampIntInRange(configuration.fightPhase.encountersPerPhase, 1, 3);
+		const phaseRounds = buildRoundRobinPhase(this.playerIds);
+		const totalRounds = phaseRounds.length;
 		const secondsPerRound = Math.max(1, Math.floor(configuration.fightPhase.secondsPerRound));
 		this.finalResultsSeconds = Math.max(0, Math.floor(configuration.fightPhase.finalResultsSeconds));
 
 		this.combatReplayByPlayerId.clear();
+		let roundCursor = 0;
 		this.state = createFightPhaseState({
 			playerIds: this.playerIds,
-			encountersPerPhase,
+			totalRounds,
 			secondsPerRound,
-			nextRoundPairs: () => this.nextRoundRobinPairs(),
+			nextRoundPairs: () => phaseRounds[roundCursor++] ?? [],
 			nextMatchId: () => `fight-${this.matchSeq++}`
 		});
 	}
@@ -67,7 +65,7 @@ export class FightPhaseRuntime implements RuntimePhase {
 			this.state.secondsToNextRound -= 1;
 		}
 		if (this.state.secondsToNextRound > 0) return { kind: 'continue' };
-		if (this.state.currentRoundIndex >= this.state.encountersPerPhase) {
+		if (this.state.currentRoundIndex >= this.state.totalRounds) {
 			this.state.isActive = false;
 			this.state.secondsToNextRound = 0;
 			return { kind: 'transition', transition: { nextPhase: 'advance' } };
@@ -75,7 +73,7 @@ export class FightPhaseRuntime implements RuntimePhase {
 
 		this.resolveFightRound(ctx, this.state.currentRoundIndex);
 		this.state.currentRoundIndex += 1;
-		if (this.state.currentRoundIndex >= this.state.encountersPerPhase) {
+		if (this.state.currentRoundIndex >= this.state.totalRounds) {
 			if (this.finalResultsSeconds <= 0) {
 				this.state.isActive = false;
 				this.state.secondsToNextRound = 0;
@@ -153,27 +151,6 @@ export class FightPhaseRuntime implements RuntimePhase {
 		});
 	}
 
-	private nextRoundRobinPairs(): Array<[string, string?]> {
-		if (this.roundRobinRounds.length === 0 || this.roundRobinRoundCursor >= this.roundRobinRounds.length) {
-			this.roundRobinRounds = this.buildRoundRobinRoundsForCycle(this.roundRobinCycleIndex);
-			this.roundRobinRoundCursor = 0;
-			this.roundRobinCycleIndex += 1;
-		}
-		const round = this.roundRobinRounds[this.roundRobinRoundCursor] ?? [];
-		this.roundRobinRoundCursor += 1;
-		return round;
-	}
-
-	private buildRoundRobinRoundsForCycle(cycleIndex: number): Array<Array<[string, string?]>> {
-		const cycle = buildRoundRobinCycle({
-			playerIds: this.playerIds,
-			cycleIndex,
-			firstCycleOpeningSignature: this.firstCycleOpeningSignature
-		});
-		this.firstCycleOpeningSignature = cycle.firstCycleOpeningSignature;
-		return cycle.rounds;
-	}
-
 	private createEmptyState(): FightPhaseStateData {
 		const playerRoundsByPlayerId = new Map<string, FightPlayerRoundSnapshot[]>();
 		for (const playerId of this.playerIds) {
@@ -181,7 +158,7 @@ export class FightPhaseRuntime implements RuntimePhase {
 		}
 		return {
 			isActive: false,
-			encountersPerPhase: clampIntInRange(configuration.fightPhase.encountersPerPhase, 1, 3),
+			totalRounds: 0,
 			secondsPerRound: Math.max(1, Math.floor(configuration.fightPhase.secondsPerRound)),
 			currentRoundIndex: 0,
 			secondsToNextRound: 0,
@@ -205,9 +182,4 @@ export class FightPhaseRuntime implements RuntimePhase {
 		const current = runtime.run.world.resources.get('renown') ?? 0;
 		runtime.run.world.resources.set('renown', current + Math.max(0, Math.floor(configuration.fightPhase.renownPerWin)));
 	}
-}
-
-function clampIntInRange(value: number, min: number, max: number): number {
-	const int = Number.isFinite(value) ? Math.floor(value) : min;
-	return Math.max(min, Math.min(max, int));
 }

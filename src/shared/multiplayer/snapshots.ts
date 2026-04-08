@@ -56,7 +56,7 @@ export type FightPlayerRoundSnapshot = {
 
 export type FightSnapshot = {
 	isActive: boolean;
-	encountersPerPhase: number;
+	totalRounds: number;
 	secondsPerRound: number;
 	currentRoundIndex: number;
 	secondsToNextRound: number;

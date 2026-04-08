@@ -68,7 +68,7 @@
 					{#if $fightPanelState.inFinalResultsReveal}
 						Final results
 					{:else}
-						Round {$fightPanelState.fight.currentRoundIndex + 1} / {$fightPanelState.fight.encountersPerPhase}
+						Round {$fightPanelState.fight.currentRoundIndex + 1} / {$fightPanelState.fight.totalRounds}
 					{/if}
 				</div>
 			</div>
