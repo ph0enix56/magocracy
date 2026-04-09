@@ -1,5 +1,5 @@
 import type { BuildingCatalogEntry, LobbyPlayerSnapshot, LobbySnapshot } from '../../../../shared/multiplayer/snapshots';
-import { getAllBuildingDefs } from '../../config/buildings';
+import { getAllBuildingDefs, getUnitDef } from '../../config/buildings';
 import type { LobbyRecord } from '../../app/lobbyTypes';
 
 export function toLobbySnapshot(lobby: LobbyRecord): LobbySnapshot {
@@ -32,6 +32,25 @@ export function buildBuildingCatalog(): BuildingCatalogEntry[] {
 		description: def.description,
 		assetPath: def.assetPath,
 		cost: def.cost,
-		buildTime: def.buildTime
+		buildTime: def.buildTime,
+		productions: def.productions,
+		housedUnit: def.housedUnitDefId
+			? (() => {
+				const unitDef = getUnitDef(def.housedUnitDefId);
+				if (!unitDef) return undefined;
+				return {
+					id: unitDef.id,
+					name: unitDef.name,
+					role: unitDef.role,
+					assetPath: unitDef.assetPath,
+					health: unitDef.health,
+					drFlat: unitDef.drFlat,
+					drPercent: unitDef.drPercent,
+					initiative: unitDef.initiative,
+					actionPoints: unitDef.actionPoints,
+					actions: unitDef.actions.map((action) => ({ ...action }))
+				};
+			})()
+			: undefined
 	}));
 }

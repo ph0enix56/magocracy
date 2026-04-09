@@ -3,12 +3,12 @@
 
 	export let blueprintCount = 0;
 	export let armyCount = 0;
-	export let canTownInteract = false;
-	export let canArmyReorder = false;
+	export let middleLabel = 'Shop';
+	export let middleIconPath: string | null = '/assets/game_icons/cash.svg';
 
 	const dispatch = createEventDispatcher<{
 		openBlueprints: void;
-		openShop: void;
+		openMiddle: void;
 		openArmy: void;
 	}>();
 
@@ -16,8 +16,8 @@
 		dispatch('openBlueprints');
 	}
 
-	function handleOpenShop() {
-		dispatch('openShop');
+	function handleOpenMiddle() {
+		dispatch('openMiddle');
 	}
 
 	function handleOpenArmy() {
@@ -29,7 +29,6 @@
 	<button
 		type="button"
 		class="top-action-card top-action-card--wide"
-		disabled={!canTownInteract}
 		on:click={handleOpenBlueprints}
 	>
 		<img class="top-action-icon" src="/assets/game_icons/tied-scroll.svg" alt="" aria-hidden="true" />
@@ -38,17 +37,19 @@
 	</button>
 	<button
 		type="button"
-		class="top-action-card top-action-card--shop"
-		disabled={!canTownInteract}
-		on:click={handleOpenShop}
+		class="top-action-card top-action-card--middle"
+		on:click={handleOpenMiddle}
 	>
-		<img class="top-action-icon top-action-icon--shop" src="/assets/game_icons/cash.svg" alt="" aria-hidden="true" />
-		<div class="top-action-label">Shop</div>
+		{#if middleIconPath}
+			<img class="top-action-icon top-action-icon--middle" src={middleIconPath} alt="" aria-hidden="true" />
+		{:else}
+			<div class="top-action-placeholder" aria-hidden="true">◉</div>
+		{/if}
+		<div class="top-action-label">{middleLabel}</div>
 	</button>
 	<button
 		type="button"
 		class="top-action-card top-action-card--wide"
-		disabled={!canArmyReorder}
 		on:click={handleOpenArmy}
 	>
 		<img class="top-action-icon" src="/assets/game_icons/swords-emblem.svg" alt="" aria-hidden="true" />
@@ -73,7 +74,6 @@
 		border-radius: 4px;
 		color: #ffffff;
 		background: rgba(0, 0, 0, 0.7);
-		font-family: Inter, system-ui, sans-serif;
 		cursor: pointer;
 		padding: 0;
 		overflow: hidden;
@@ -81,13 +81,13 @@
 	}
 
 	.top-action-card--wide {
-		width: 200px;
-		height: 120px;
+		width: 164px;
+		height: 96px;
 	}
 
-	.top-action-card--shop {
-		width: 140px;
-		height: 140px;
+	.top-action-card--middle {
+		width: 110px;
+		height: 110px;
 	}
 
 	.top-action-card:hover:not(:disabled) {
@@ -95,34 +95,39 @@
 		transform: translateY(-1px);
 	}
 
-	.top-action-card:disabled {
-		opacity: 0.58;
-		cursor: not-allowed;
-	}
-
 	.top-action-icon {
 		position: absolute;
-		width: 55px;
-		height: 58px;
-		left: 40px;
-		top: 15px;
+		width: 44px;
+		height: 46px;
+		left: 30px;
+		top: 11px;
 		object-fit: contain;
 		pointer-events: none;
 	}
 
-	.top-action-icon--shop {
+	.top-action-icon--middle {
 		left: 50%;
-		top: 12px;
+		top: 9px;
 		transform: translateX(-50%);
-		width: 80px;
-		height: 80px;
+		width: 60px;
+		height: 60px;
+	}
+
+	.top-action-placeholder {
+		position: absolute;
+		left: 50%;
+		top: 18px;
+		transform: translateX(-50%);
+		font-size: 30px;
+		font-weight: 700;
+		line-height: 1;
 	}
 
 	.top-action-count {
 		position: absolute;
-		top: 15px;
-		right: 36px;
-		font-size: 36px;
+		top: 11px;
+		right: 26px;
+		font-size: 28px;
 		font-weight: 700;
 		line-height: 1;
 		text-align: center;
@@ -131,10 +136,10 @@
 
 	.top-action-label {
 		position: absolute;
-		bottom: 8px;
+		bottom: 7px;
 		left: 0;
 		width: 100%;
-		font-size: 28px;
+		font-size: var(--ui-font-size-xl);
 		font-weight: 400;
 		line-height: 1;
 		text-align: center;
@@ -143,37 +148,37 @@
 
 	@media (max-width: 1200px) {
 		.top-action-card--wide {
-			width: 158px;
-			height: 95px;
+			width: 146px;
+			height: 86px;
 		}
 
-		.top-action-card--shop {
-			width: 112px;
-			height: 112px;
+		.top-action-card--middle {
+			width: 98px;
+			height: 98px;
 		}
 
 		.top-action-icon {
-			width: 44px;
-			height: 46px;
-			left: 31px;
-			top: 12px;
-		}
-
-		.top-action-icon--shop {
-			width: 64px;
-			height: 64px;
-			left: 50%;
+			width: 39px;
+			height: 41px;
+			left: 27px;
 			top: 9px;
 		}
 
+		.top-action-icon--middle {
+			width: 54px;
+			height: 54px;
+			left: 50%;
+			top: 8px;
+		}
+
 		.top-action-count {
-			font-size: 30px;
-			top: 13px;
-			right: 27px;
+			font-size: 24px;
+			top: 10px;
+			right: 22px;
 		}
 
 		.top-action-label {
-			font-size: 24px;
+			font-size: var(--ui-font-size-lg);
 			bottom: 6px;
 		}
 	}

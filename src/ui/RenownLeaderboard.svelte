@@ -47,22 +47,24 @@
 <style>
 	.renown-leaderboard {
 		position: absolute;
-		top: 218px;
-		right: 15px;
-		width: 160px;
-		min-height: 644px;
-		padding: 12px 9px;
+		top: 176px;
+		right: var(--ui-edge-right, 16px);
+		width: 142px;
+		max-height: calc(100vh - 176px - 116px);
+		overflow-y: auto;
+		padding: 10px 8px;
 		display: flex;
 		flex-direction: column;
-		gap: 20px;
+		align-items: center;
+		gap: 12px;
 		background: rgba(0, 0, 0, 0.5);
 		border-radius: 4px;
 		pointer-events: auto;
 	}
 
 	.leaderboard-card {
-		width: 141px;
-		height: 60px;
+		width: 100%;
+		height: 54px;
 		padding: 0;
 		border: 0;
 		border-radius: 4px;
@@ -92,12 +94,11 @@
 	}
 
 	.leaderboard-name {
-		height: 30px;
+		height: 27px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-family: Inter, system-ui, sans-serif;
-		font-size: 16px;
+		font-size: var(--ui-font-size-sm);
 		font-weight: 400;
 		line-height: 1;
 		white-space: nowrap;
@@ -111,25 +112,24 @@
 	}
 
 	.leaderboard-score {
-		height: 30px;
+		height: 27px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-family: Inter, system-ui, sans-serif;
-		font-size: 24px;
+		font-size: var(--ui-font-size-lg);
 		font-weight: 400;
 		line-height: 1;
 	}
 
 	.leaderboard-card--hover .leaderboard-score {
-		font-size: 20px;
+		font-size: var(--ui-font-size-md);
 		font-style: italic;
 	}
 
 	@media (max-width: 1200px) {
 		.renown-leaderboard {
-			top: 180px;
-			right: 10px;
+			top: 168px;
+			right: var(--ui-edge-right, 16px);
 			transform: scale(0.9);
 			transform-origin: top right;
 		}

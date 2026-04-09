@@ -1,5 +1,5 @@
 import { derived } from 'svelte/store';
-import type { FightSnapshot } from '../../shared/multiplayer/snapshots';
+import type { BuildingCatalogEntry, FightSnapshot } from '../../shared/multiplayer/snapshots';
 import { gameSessionState } from '../../multiplayer/client/gameSessionStore';
 
 export type FightPanelViewState = {
@@ -7,6 +7,7 @@ export type FightPanelViewState = {
 	selfPlayerId: string | null;
 	playerNameById: Record<string, string>;
 	fight: FightSnapshot;
+	catalog: BuildingCatalogEntry[];
 	inFinalResultsReveal: boolean;
 };
 
@@ -23,6 +24,7 @@ export const fightPanelState = derived(gameSessionState, ($state): FightPanelVie
 		selfPlayerId: $state.playerId,
 		playerNameById,
 		fight,
+		catalog: $state.catalog,
 		inFinalResultsReveal: fight.currentRoundIndex >= fight.totalRounds
 	};
 });

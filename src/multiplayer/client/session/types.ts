@@ -9,7 +9,8 @@ import type {
 	KingdomSnapshot,
 	LobbyPlayerSnapshot,
 	PlayerGameView,
-	ShopSnapshot
+	ShopSnapshot,
+	UnitCatalogEntry
 } from '../../../shared/multiplayer/snapshots';
 import type { MultiplayerClientState } from '../MultiplayerClient';
 
@@ -41,6 +42,9 @@ export type SelectedTileView = {
 	buildingKind?: BuildingCatalogEntry['kind'];
 	buildingSchool?: string;
 	buildingTier?: number;
+	buildingDescription?: string;
+	buildingProductions?: ResourceMap;
+	housedUnit?: UnitCatalogEntry;
 	buildingAssetPath?: string;
 	buildingStatus?: BuildingStatus;
 	constructionProgress?: number;

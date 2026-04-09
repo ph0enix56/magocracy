@@ -164,6 +164,9 @@ function buildSelectedTileView(
 	let buildingKind: BuildingCatalogEntry['kind'] | undefined;
 	let buildingSchool: string | undefined;
 	let buildingTier: number | undefined;
+	let buildingDescription: string | undefined;
+	let buildingProductions: ResourceMap | undefined;
+	let housedUnit: BuildingCatalogEntry['housedUnit'] | undefined;
 	let buildingAssetPath: string | undefined;
 	let buildingStatus: BuildingStatus | undefined;
 	let constructionProgress: number | undefined;
@@ -184,6 +187,9 @@ function buildSelectedTileView(
 			buildingKind = def.kind;
 			buildingSchool = def.school;
 			buildingTier = def.tier;
+			buildingDescription = def.description;
+			buildingProductions = def.productions;
+			housedUnit = def.housedUnit;
 			buildingAssetPath = def.assetPath;
 		}
 
@@ -218,6 +224,9 @@ function buildSelectedTileView(
 		buildingKind,
 		buildingSchool,
 		buildingTier,
+		buildingDescription,
+		buildingProductions,
+		housedUnit,
 		buildingAssetPath,
 		buildingStatus,
 		constructionProgress,

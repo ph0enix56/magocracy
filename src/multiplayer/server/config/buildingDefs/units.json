@@ -7,8 +7,8 @@
     "drPercent": 6,
     "actions": [
       {
+        "name": "Slash",
         "damage": 24,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
@@ -16,7 +16,8 @@
     ],
     "actionPoints": 1,
     "initiative": 2,
-    "assetPath": "game_icons/sword-brandish.svg"
+    "assetPath": "game_icons/sword-brandish.svg",
+    "role": "Fighter"
   },
   {
     "id": "archer",
@@ -26,8 +27,8 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Arrow Shot",
         "damage": 20,
-        "canUpgrade": true,
         "range": 4,
         "targeting": "first",
         "actionPointCost": 1
@@ -35,7 +36,8 @@
     ],
     "actionPoints": 1,
     "initiative": 3,
-    "assetPath": "game_icons/high-shot.svg"
+    "assetPath": "game_icons/high-shot.svg",
+    "role": "Shredder"
   },
   {
     "id": "defender",
@@ -45,8 +47,8 @@
     "drPercent": 12,
     "actions": [
       {
+        "name": "Shield Bash",
         "damage": 10,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
@@ -54,7 +56,8 @@
     ],
     "actionPoints": 1,
     "initiative": 1,
-    "assetPath": "game_icons/checked-shield.svg"
+    "assetPath": "game_icons/checked-shield.svg",
+    "role": "Tank"
   },
   {
     "id": "goblin",
@@ -64,8 +67,8 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Backline Stab",
         "damage": 18,
-        "canUpgrade": true,
         "range": 3,
         "targeting": "last",
         "actionPointCost": 1
@@ -73,7 +76,8 @@
     ],
     "actionPoints": 1,
     "initiative": 4,
-    "assetPath": "game_icons/goblin.svg"
+    "assetPath": "game_icons/goblin.svg",
+    "role": "Assassin"
   },
   {
     "id": "ghost",
@@ -83,8 +87,8 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Haunting Wail",
         "damage": 8,
-        "canUpgrade": true,
         "range": 3,
         "targeting": "all",
         "actionPointCost": 1
@@ -92,7 +96,8 @@
     ],
     "actionPoints": 1,
     "initiative": 2,
-    "assetPath": "game_icons/ghost.svg"
+    "assetPath": "game_icons/ghost.svg",
+    "role": "Area Caster"
   },
   {
     "id": "prototype_soldier",
@@ -102,8 +107,8 @@
     "drPercent": 3,
     "actions": [
       {
+        "name": "Prototype Slash",
         "damage": 16,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
@@ -111,7 +116,8 @@
     ],
     "actionPoints": 1,
     "initiative": 2,
-    "assetPath": "game_icons/sword-tie.svg"
+    "assetPath": "game_icons/sword-tie.svg",
+    "role": "Fighter"
   },
   {
     "id": "super_soldier",
@@ -121,15 +127,15 @@
     "drPercent": 12,
     "actions": [
       {
+        "name": "Power Strike",
         "damage": 36,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Long Lunge",
         "damage": 24,
-        "canUpgrade": true,
         "range": 2,
         "targeting": "first",
         "actionPointCost": 1
@@ -137,7 +143,8 @@
     ],
     "actionPoints": 2,
     "initiative": 3,
-    "assetPath": "game_icons/sword-tie.svg"
+    "assetPath": "game_icons/sword-tie.svg",
+    "role": "Fighter"
   },
   {
     "id": "prototype_marksman",
@@ -147,8 +154,8 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Calibration Shot",
         "damage": 14,
-        "canUpgrade": true,
         "range": 6,
         "targeting": "first",
         "actionPointCost": 1
@@ -156,7 +163,8 @@
     ],
     "actionPoints": 1,
     "initiative": 3,
-    "assetPath": "game_icons/archer.svg"
+    "assetPath": "game_icons/archer.svg",
+    "role": "Shredder"
   },
   {
     "id": "super_marksman",
@@ -166,15 +174,15 @@
     "drPercent": 4,
     "actions": [
       {
+        "name": "Piercing Bolt",
         "damage": 26,
-        "canUpgrade": true,
         "range": 6,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Flanking Bolt",
         "damage": 22,
-        "canUpgrade": true,
         "range": 6,
         "targeting": "last",
         "actionPointCost": 1
@@ -182,7 +190,8 @@
     ],
     "actionPoints": 2,
     "initiative": 4,
-    "assetPath": "game_icons/archer.svg"
+    "assetPath": "game_icons/archer.svg",
+    "role": "Shredder"
   },
   {
     "id": "peasant",
@@ -192,8 +201,8 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Pitchfork Jab",
         "damage": 12,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
@@ -201,7 +210,8 @@
     ],
     "actionPoints": 1,
     "initiative": 1,
-    "assetPath": "game_icons/sword-brandish.svg"
+    "assetPath": "game_icons/sword-brandish.svg",
+    "role": "Fighter"
   },
   {
     "id": "ranger",
@@ -211,15 +221,15 @@
     "drPercent": 4,
     "actions": [
       {
+        "name": "Twin Shot",
         "damage": 18,
-        "canUpgrade": true,
         "range": 6,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Rear Shot",
         "damage": 18,
-        "canUpgrade": true,
         "range": 6,
         "targeting": "last",
         "actionPointCost": 1
@@ -227,7 +237,8 @@
     ],
     "actionPoints": 2,
     "initiative": 3,
-    "assetPath": "game_icons/double-shot.svg"
+    "assetPath": "game_icons/double-shot.svg",
+    "role": "Shredder"
   },
   {
     "id": "halberdier",
@@ -237,8 +248,8 @@
     "drPercent": 14,
     "actions": [
       {
+        "name": "Halberd Sweep",
         "damage": 20,
-        "canUpgrade": true,
         "range": 2,
         "targeting": "first",
         "actionPointCost": 1
@@ -246,7 +257,8 @@
     ],
     "actionPoints": 1,
     "initiative": 2,
-    "assetPath": "game_icons/sharp-halberd.svg"
+    "assetPath": "game_icons/sharp-halberd.svg",
+    "role": "Tank"
   },
   {
     "id": "berserker",
@@ -256,15 +268,15 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Savage Chop",
         "damage": 28,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Whirling Axe",
         "damage": 24,
-        "canUpgrade": true,
         "range": 2,
         "targeting": "first",
         "actionPointCost": 1
@@ -272,7 +284,8 @@
     ],
     "actionPoints": 1,
     "initiative": 3,
-    "assetPath": "game_icons/sharp-axe.svg"
+    "assetPath": "game_icons/sharp-axe.svg",
+    "role": "Shredder"
   },
   {
     "id": "rogue",
@@ -282,8 +295,8 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Assassinate",
         "damage": 24,
-        "canUpgrade": true,
         "range": 3,
         "targeting": "weak",
         "actionPointCost": 1
@@ -291,7 +304,8 @@
     ],
     "actionPoints": 1,
     "initiative": 4,
-    "assetPath": "game_icons/cloak-dagger.svg"
+    "assetPath": "game_icons/cloak-dagger.svg",
+    "role": "Assassin"
   },
   {
     "id": "shambling_mound",
@@ -301,8 +315,8 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Vine Slam",
         "damage": 24,
-        "canUpgrade": true,
         "range": 2,
         "targeting": "all",
         "actionPointCost": 1
@@ -310,7 +324,8 @@
     ],
     "actionPoints": 1,
     "initiative": 1,
-    "assetPath": "game_icons/shambling-mound.svg"
+    "assetPath": "game_icons/shambling-mound.svg",
+    "role": "Tank"
   },
   {
     "id": "rock_golem",
@@ -320,8 +335,8 @@
     "drPercent": 24,
     "actions": [
       {
+        "name": "Granite Crush",
         "damage": 34,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
@@ -329,7 +344,8 @@
     ],
     "actionPoints": 1,
     "initiative": 1,
-    "assetPath": "game_icons/rock-golem.svg"
+    "assetPath": "game_icons/rock-golem.svg",
+    "role": "Tank"
   },
   {
     "id": "fire_elemental",
@@ -339,15 +355,15 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Flame Lash",
         "damage": 32,
-        "canUpgrade": true,
         "range": 3,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Blaze Wave",
         "damage": 28,
-        "canUpgrade": true,
         "range": 3,
         "targeting": "all",
         "actionPointCost": 1
@@ -355,7 +371,8 @@
     ],
     "actionPoints": 1,
     "initiative": 3,
-    "assetPath": "game_icons/ifrit.svg"
+    "assetPath": "game_icons/ifrit.svg",
+    "role": "Fighter"
   },
   {
     "id": "slasher",
@@ -365,43 +382,43 @@
     "drPercent": 4,
     "actions": [
       {
+        "name": "Rake",
         "damage": 18,
-        "canUpgrade": true,
         "range": 3,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Rend",
         "damage": 18,
-        "canUpgrade": true,
         "range": 3,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Flay",
         "damage": 20,
-        "canUpgrade": true,
         "range": 4,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Frenzy Cut",
         "damage": 20,
-        "canUpgrade": true,
         "range": 4,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Deep Slice",
         "damage": 22,
-        "canUpgrade": true,
         "range": 5,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Execution Cut",
         "damage": 26,
-        "canUpgrade": true,
         "range": 5,
         "targeting": "weak",
         "actionPointCost": 1
@@ -409,7 +426,8 @@
     ],
     "actionPoints": 1,
     "initiative": 4,
-    "assetPath": "game_icons/barbed-nails.svg"
+    "assetPath": "game_icons/barbed-nails.svg",
+    "role": "Shredder"
   },
   {
     "id": "knight",
@@ -419,8 +437,8 @@
     "drPercent": 10,
     "actions": [
       {
+        "name": "Knightly Strike",
         "damage": 36,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
@@ -428,7 +446,8 @@
     ],
     "actionPoints": 1,
     "initiative": 3,
-    "assetPath": "game_icons/visored-helm.svg"
+    "assetPath": "game_icons/visored-helm.svg",
+    "role": "Fighter"
   },
   {
     "id": "crossbowman",
@@ -438,8 +457,8 @@
     "drPercent": 2,
     "actions": [
       {
+        "name": "Heavy Bolt",
         "damage": 34,
-        "canUpgrade": true,
         "range": 7,
         "targeting": "first",
         "actionPointCost": 1
@@ -447,7 +466,8 @@
     ],
     "actionPoints": 1,
     "initiative": 4,
-    "assetPath": "game_icons/crossbow.svg"
+    "assetPath": "game_icons/crossbow.svg",
+    "role": "Shredder"
   },
   {
     "id": "royal_defender",
@@ -457,8 +477,8 @@
     "drPercent": 24,
     "actions": [
       {
+        "name": "Royal Bash",
         "damage": 18,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
@@ -466,7 +486,8 @@
     ],
     "actionPoints": 1,
     "initiative": 2,
-    "assetPath": "game_icons/crenulated-shield.svg"
+    "assetPath": "game_icons/crenulated-shield.svg",
+    "role": "Tank"
   },
   {
     "id": "elite_goblin",
@@ -476,8 +497,8 @@
     "drPercent": 4,
     "actions": [
       {
+        "name": "Ambush Shot",
         "damage": 30,
-        "canUpgrade": true,
         "range": 4,
         "targeting": "last",
         "actionPointCost": 1
@@ -485,7 +506,8 @@
     ],
     "actionPoints": 1,
     "initiative": 5,
-    "assetPath": "game_icons/goblin-head.svg"
+    "assetPath": "game_icons/goblin-head.svg",
+    "role": "Assassin"
   },
   {
     "id": "spectre",
@@ -495,8 +517,8 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Soul Chill",
         "damage": 14,
-        "canUpgrade": true,
         "range": 4,
         "targeting": "all",
         "actionPointCost": 1
@@ -504,7 +526,8 @@
     ],
     "actionPoints": 1,
     "initiative": 3,
-    "assetPath": "game_icons/spectre.svg"
+    "assetPath": "game_icons/spectre.svg",
+    "role": "Area Caster"
   },
   {
     "id": "forest_mage",
@@ -514,15 +537,15 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Thorn Pierce",
         "damage": 48,
-        "canUpgrade": true,
         "range": 50,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Bramble Pierce",
         "damage": 48,
-        "canUpgrade": true,
         "range": 50,
         "targeting": "last",
         "actionPointCost": 1
@@ -530,7 +553,8 @@
     ],
     "actionPoints": 1,
     "initiative": 3,
-    "assetPath": "game_icons/heavy-thorny-triskelion.svg"
+    "assetPath": "game_icons/heavy-thorny-triskelion.svg",
+    "role": "Shredder"
   },
   {
     "id": "earth_mage",
@@ -540,15 +564,15 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Stone Charge",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Fault Burst",
         "damage": 60,
-        "canUpgrade": true,
         "range": 50,
         "targeting": "all",
         "actionPointCost": 1
@@ -556,7 +580,8 @@
     ],
     "actionPoints": 1,
     "initiative": 2,
-    "assetPath": "game_icons/earth-crack.svg"
+    "assetPath": "game_icons/earth-crack.svg",
+    "role": "Area Caster"
   },
   {
     "id": "fire_mage",
@@ -566,29 +591,29 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Cinder Lance",
         "damage": 52,
-        "canUpgrade": true,
         "range": 50,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Inferno Lance",
         "damage": 44,
-        "canUpgrade": true,
         "range": 50,
         "targeting": "last",
         "actionPointCost": 1
       },
       {
+        "name": "Chaos Ember",
         "damage": 38,
-        "canUpgrade": true,
         "range": 50,
         "targeting": "weak",
         "actionPointCost": 1
       },
       {
+        "name": "Wildfire Nova",
         "damage": 50,
-        "canUpgrade": true,
         "range": 50,
         "targeting": "all",
         "actionPointCost": 1
@@ -596,7 +621,8 @@
     ],
     "actionPoints": 1,
     "initiative": 4,
-    "assetPath": "game_icons/wildfires.svg"
+    "assetPath": "game_icons/wildfires.svg",
+    "role": "Area Caster"
   },
   {
     "id": "death_mage",
@@ -606,43 +632,43 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Channel Death I",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Channel Death II",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Channel Death III",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Channel Death IV",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Channel Death V",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Final Reap",
         "damage": 9999,
-        "canUpgrade": false,
         "range": 50,
         "targeting": "first",
         "actionPointCost": 1
@@ -650,7 +676,8 @@
     ],
     "actionPoints": 1,
     "initiative": 1,
-    "assetPath": "game_icons/disintegrate.svg"
+    "assetPath": "game_icons/disintegrate.svg",
+    "role": "Assassin"
   },
   {
     "id": "the_yggdrasil",
@@ -660,8 +687,8 @@
     "drPercent": 10,
     "actions": [
       {
+        "name": "Root Constriction",
         "damage": 50,
-        "canUpgrade": true,
         "range": 50,
         "targeting": "weak",
         "actionPointCost": 1
@@ -669,7 +696,8 @@
     ],
     "actionPoints": 1,
     "initiative": 2,
-    "assetPath": "game_icons/tree-face.svg"
+    "assetPath": "game_icons/tree-face.svg",
+    "role": "Assassin"
   },
   {
     "id": "the_behemoth",
@@ -679,22 +707,22 @@
     "drPercent": 50,
     "actions": [
       {
+        "name": "Gather Momentum I",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Gather Momentum II",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Titan Maul",
         "damage": 120,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
@@ -702,7 +730,8 @@
     ],
     "actionPoints": 1,
     "initiative": 1,
-    "assetPath": "game_icons/dragon-head.svg"
+    "assetPath": "game_icons/dragon-head.svg",
+    "role": "Tank"
   },
   {
     "id": "the_phoenix",
@@ -712,50 +741,50 @@
     "drPercent": 0,
     "actions": [
       {
+        "name": "Ashen Charge I",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Ashen Charge II",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Ashen Charge III",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Ashen Charge IV",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Ashen Charge V",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Ashen Charge VI",
         "damage": 0,
-        "canUpgrade": false,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Solar Dive",
         "damage": 240,
-        "canUpgrade": true,
         "range": 50,
         "targeting": "last",
         "actionPointCost": 1
@@ -763,7 +792,8 @@
     ],
     "actionPoints": 1,
     "initiative": 5,
-    "assetPath": "game_icons/condor-emblem.svg"
+    "assetPath": "game_icons/condor-emblem.svg",
+    "role": "Assassin"
   },
   {
     "id": "the_grim_reaper",
@@ -773,22 +803,22 @@
     "drPercent": 16,
     "actions": [
       {
+        "name": "Reaping Wave",
         "damage": 40,
-        "canUpgrade": true,
         "range": 3,
         "targeting": "all",
         "actionPointCost": 1
       },
       {
+        "name": "Harvest Wave",
         "damage": 46,
-        "canUpgrade": true,
         "range": 4,
         "targeting": "all",
         "actionPointCost": 1
       },
       {
+        "name": "Final Harvest",
         "damage": 52,
-        "canUpgrade": true,
         "range": 5,
         "targeting": "all",
         "actionPointCost": 1
@@ -796,7 +826,8 @@
     ],
     "actionPoints": 1,
     "initiative": 3,
-    "assetPath": "game_icons/grim-reaper.svg"
+    "assetPath": "game_icons/grim-reaper.svg",
+    "role": "Area Caster"
   },
   {
     "id": "apex_construct",
@@ -806,22 +837,22 @@
     "drPercent": 18,
     "actions": [
       {
+        "name": "Impact Fist",
         "damage": 42,
-        "canUpgrade": true,
         "range": 1,
         "targeting": "first",
         "actionPointCost": 1
       },
       {
+        "name": "Rail Shot",
         "damage": 38,
-        "canUpgrade": true,
         "range": 5,
         "targeting": "last",
         "actionPointCost": 1
       },
       {
+        "name": "Target Collapse",
         "damage": 34,
-        "canUpgrade": true,
         "range": 3,
         "targeting": "weak",
         "actionPointCost": 1
@@ -829,6 +860,7 @@
     ],
     "actionPoints": 3,
     "initiative": 4,
-    "assetPath": "game_icons/megabot.svg"
+    "assetPath": "game_icons/megabot.svg",
+    "role": "Fighter"
   }
 ]

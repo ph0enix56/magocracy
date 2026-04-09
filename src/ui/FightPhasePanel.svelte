@@ -1,8 +1,19 @@
 <script lang="ts">
 	import { fightPanelState } from './projections/fightViewState';
 	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
+	import UnitCard from './UnitCard.svelte';
+	import type { BuildingCatalogEntry, UnitCatalogEntry } from '../shared/multiplayer/snapshots';
 
 	let isOpeningReplay = false;
+	let hoveredUnitDefId: string | null = null;
+
+	type UnitPreviewEntry = {
+		unit: UnitCatalogEntry;
+		tier: number;
+	};
+
+	$: unitPreviewByDefId = buildUnitPreviewByDefId($fightPanelState.catalog);
+	$: hoveredUnitPreview = hoveredUnitDefId ? unitPreviewByDefId.get(hoveredUnitDefId) ?? null : null;
 
 	function formatCountdown(seconds: number): string {
 		const total = Math.max(0, Math.floor(seconds));
@@ -18,9 +29,20 @@
 		return $fightPanelState.playerNameById[playerId] ?? playerId;
 	}
 
-	function formatArmyUnits(units: Array<{ name: string }>): string {
-		if (units.length === 0) return 'No units';
-		return units.map((unit) => unit.name).join(', ');
+	function buildUnitPreviewByDefId(catalog: BuildingCatalogEntry[]): Map<string, UnitPreviewEntry> {
+		const out = new Map<string, UnitPreviewEntry>();
+		for (const entry of catalog) {
+			if (!entry.housedUnit) continue;
+			const existing = out.get(entry.housedUnit.id);
+			if (!existing || entry.tier < existing.tier) {
+				out.set(entry.housedUnit.id, { unit: entry.housedUnit, tier: entry.tier });
+			}
+		}
+		return out;
+	}
+
+	function onUnitHover(unitDefId: string): void {
+		hoveredUnitDefId = unitDefId;
 	}
 
 	function statusLabel(status: string): string {
@@ -75,36 +97,62 @@
 			<div class="fight-timer">{formatCountdown($fightPanelState.fight.secondsToNextRound)}</div>
 		</div>
 
-		<div class="fight-body">
-			{#if $fightPanelState.fight.playerRounds.length === 0}
-				<div class="fight-empty">No pairings available.</div>
-			{:else}
-				{#each $fightPanelState.fight.playerRounds as round (round.matchId)}
-					<div class="fight-row">
-						<div class="fight-row-main">
-							<div class="fight-row-top">
-								<div class="fight-round">R{round.roundIndex + 1}</div>
-								<div class="fight-opponent">{playerName($fightPanelState.selfPlayerId)} vs {playerName(round.opponentPlayerId)}</div>
-								<div class={`fight-status fight-status--${round.status}`}>{statusLabel(round.status)}</div>
-								<div class="fight-result">{resultWinnerLabel(round.matchId)}</div>
-							</div>
-							<div class="fight-armies">
-								<div class="fight-army-line">
-									<span class="fight-army-name">{playerName($fightPanelState.selfPlayerId)}:</span>
-									<span>{formatArmyUnits(round.selfArmy)}</span>
+		<div class="fight-layout" role="group" on:mouseleave={() => (hoveredUnitDefId = null)}>
+			<div class="fight-body">
+				{#if $fightPanelState.fight.playerRounds.length === 0}
+					<div class="fight-empty">No pairings available.</div>
+				{:else}
+					{#each $fightPanelState.fight.playerRounds as round (round.matchId)}
+						<div class="fight-row">
+							<div class="fight-row-main">
+								<div class="fight-row-top">
+									<div class="fight-round">R{round.roundIndex + 1}</div>
+									<div class="fight-opponent">{playerName($fightPanelState.selfPlayerId)} vs {playerName(round.opponentPlayerId)}</div>
+									<div class={`fight-status fight-status--${round.status}`}>{statusLabel(round.status)}</div>
+									<div class="fight-result">{resultWinnerLabel(round.matchId)}</div>
 								</div>
-								<div class="fight-army-line">
-									<span class="fight-army-name">{playerName(round.opponentPlayerId)}:</span>
-									<span>{formatArmyUnits(round.opponentArmy)}</span>
+								<div class="fight-armies">
+									<div class="fight-army-line">
+										<span class="fight-army-name">{playerName($fightPanelState.selfPlayerId)}:</span>
+										{#if round.selfArmy.length === 0}
+											<span>No units</span>
+										{:else}
+											<span class="fight-unit-list">
+												{#each round.selfArmy as unit, unitIndex (`self-${round.matchId}-${unit.unitDefId}-${unitIndex}`)}
+													<button type="button" class="fight-unit-link" on:mouseenter={() => onUnitHover(unit.unitDefId)} on:focus={() => onUnitHover(unit.unitDefId)}>{unit.name}</button>{#if unitIndex < round.selfArmy.length - 1}, {/if}
+												{/each}
+											</span>
+										{/if}
+									</div>
+									<div class="fight-army-line">
+										<span class="fight-army-name">{playerName(round.opponentPlayerId)}:</span>
+										{#if round.opponentArmy.length === 0}
+											<span>No units</span>
+										{:else}
+											<span class="fight-unit-list">
+												{#each round.opponentArmy as unit, unitIndex (`opp-${round.matchId}-${unit.unitDefId}-${unitIndex}`)}
+													<button type="button" class="fight-unit-link" on:mouseenter={() => onUnitHover(unit.unitDefId)} on:focus={() => onUnitHover(unit.unitDefId)}>{unit.name}</button>{#if unitIndex < round.opponentArmy.length - 1}, {/if}
+												{/each}
+											</span>
+										{/if}
+									</div>
 								</div>
 							</div>
+							<button class="ui-button ui-button--ghost replay-btn" disabled={!round.replayAvailable || isOpeningReplay} on:click={() => openReplay(round.matchId)}>
+								Replay
+							</button>
 						</div>
-						<button class="ui-button ui-button--ghost replay-btn" disabled={!round.replayAvailable || isOpeningReplay} on:click={() => openReplay(round.matchId)}>
-							Replay
-						</button>
-					</div>
-				{/each}
-			{/if}
+					{/each}
+				{/if}
+			</div>
+
+			<div class="fight-preview-pane">
+				{#if hoveredUnitPreview}
+					<UnitCard unit={hoveredUnitPreview.unit} tier={hoveredUnitPreview.tier} showNotch={false} />
+				{:else}
+					<div class="fight-preview-empty ui-muted">Hover a unit name to preview details.</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 {/if}
@@ -144,6 +192,13 @@
 		font-size: 1.4rem;
 		font-weight: 900;
 		letter-spacing: 0.03em;
+	}
+
+	.fight-layout {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+		gap: 12px;
+		align-items: start;
 	}
 
 	.fight-body {
@@ -201,6 +256,25 @@
 		flex-wrap: wrap;
 	}
 
+	.fight-unit-list {
+		display: inline;
+	}
+
+	.fight-unit-link {
+		padding: 0;
+		border: none;
+		background: transparent;
+		color: #dce8ff;
+		font: inherit;
+		cursor: pointer;
+		text-decoration: underline;
+	}
+
+	.fight-unit-link:hover,
+	.fight-unit-link:focus-visible {
+		color: #ffffff;
+	}
+
 	.fight-army-name {
 		font-weight: 700;
 	}
@@ -241,8 +315,33 @@
 		min-width: 86px;
 	}
 
+	.fight-preview-pane {
+		position: sticky;
+		top: 0;
+		max-height: calc(100vh - 130px);
+		overflow: auto;
+		padding-right: 4px;
+	}
+
+	.fight-preview-empty {
+		padding: 12px;
+		border: 1px dashed rgba(255, 255, 255, 0.25);
+		border-radius: 6px;
+	}
+
 	.fight-empty {
 		padding: 10px;
 		opacity: 0.75;
+	}
+
+	@media (max-width: 1050px) {
+		.fight-layout {
+			grid-template-columns: 1fr;
+		}
+
+		.fight-preview-pane {
+			position: static;
+			max-height: 42vh;
+		}
 	}
 </style>

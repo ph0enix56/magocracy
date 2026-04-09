@@ -1,4 +1,4 @@
-import type { BuildingStatus, ResourceMap } from '../domain/types';
+import type { AttackAction, BuildingStatus, ResourceMap, UnitRole } from '../domain/types';
 import type { CharterOption } from '../domain/charter';
 import type { ArmyUnit, FightArmyUnitSummary } from '../domain/gameViews';
 import type { CombatSnapshot } from '../domain/combatTypes';
@@ -93,6 +93,21 @@ export type BuildingCatalogEntry = {
 	assetPath: string;
 	cost: ResourceMap;
 	buildTime: number;
+	productions?: ResourceMap;
+	housedUnit?: UnitCatalogEntry;
+};
+
+export type UnitCatalogEntry = {
+	id: string;
+	name: string;
+	role: UnitRole;
+	assetPath: string;
+	health: number;
+	drFlat: number;
+	drPercent: number;
+	initiative: number;
+	actionPoints: number;
+	actions: AttackAction[];
 };
 
 export type BuildingCatalogSnapshot = {

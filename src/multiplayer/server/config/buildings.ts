@@ -1,7 +1,7 @@
 import { type BuildingDef, type UnitDef } from './buildingTypes';
 import BUILDING_DEFS_JSON from './buildingDefs/buildings.json';
 import UNIT_DEFS_JSON from './buildingDefs/units.json';
-import { AttackTargeting, BuildingSchool, type ResourceMap } from '../../../shared/domain/types';
+import { AttackTargeting, BuildingSchool, UnitRole, type ResourceMap } from '../../../shared/domain/types';
 
 // Re-export all types so callers only need to import from this file.
 export type {
@@ -30,13 +30,6 @@ function asString(value: unknown, path: string): string {
 function asNumber(value: unknown, path: string): number {
 	if (typeof value !== 'number' || Number.isNaN(value) || !Number.isFinite(value)) {
 		throw new Error(`${path} must be a finite number`);
-	}
-	return value;
-}
-
-function asBoolean(value: unknown, path: string): boolean {
-	if (typeof value !== 'boolean') {
-		throw new Error(`${path} must be a boolean`);
 	}
 	return value;
 }
@@ -80,8 +73,8 @@ function parseUnitDef(raw: unknown, index: number): UnitDef {
 		const targeting = targetingRaw;
 
 		return {
+			name: asString(action['name'], `${actionPath}.name`),
 			damage: asNumber(action['damage'], `${actionPath}.damage`),
-			canUpgrade: asBoolean(action['canUpgrade'], `${actionPath}.canUpgrade`),
 			range: asNumber(action['range'], `${actionPath}.range`),
 			targeting,
 			actionPointCost: asNumber(action['actionPointCost'], `${actionPath}.actionPointCost`)
@@ -91,6 +84,13 @@ function parseUnitDef(raw: unknown, index: number): UnitDef {
 	return {
 		id: asString(raw['id'], `${path}.id`),
 		name: asString(raw['name'], `${path}.name`),
+		role: (() => {
+			const roleRaw = asString(raw['role'], `${path}.role`);
+			if (!hasEnumValue(UnitRole, roleRaw)) {
+				throw new Error(`${path}.role must be a valid unit role`);
+			}
+			return roleRaw;
+		})(),
 		health: asNumber(raw['health'], `${path}.health`),
 		drFlat: asNumber(raw['drFlat'], `${path}.drFlat`),
 		drPercent: asNumber(raw['drPercent'], `${path}.drPercent`),

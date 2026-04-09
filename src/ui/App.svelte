@@ -25,23 +25,23 @@
 	let overlayBackground: OverlayBackground = {};
 
 	function openBlueprints() {
-		if (!$appViewState.canTownInteract) return;
 		blueprintModalState.set({ isOpen: true, mode: 'view', q: 0, r: 0 });
 	}
 
 	function openShop() {
-		if (!$appViewState.canTownInteract) return;
 		shopModalState.set({ isOpen: true });
 	}
 
 	function openArmy() {
-		if (!$appViewState.canArmyReorder) return;
 		armyModalState.set({ isOpen: true });
 	}
 
-	$: if (!$appViewState.canTownInteract) {
-		shopModalState.set({ isOpen: false });
-		blueprintModalState.set({ isOpen: false, mode: 'view', q: 0, r: 0 });
+	function handleMiddleAction() {
+		if ($appViewState.activeOverlay) {
+			toggleOverlayScreenView();
+			return;
+		}
+		openShop();
 	}
 
 	$: if (!$appViewState.activeOverlay) {
@@ -62,6 +62,13 @@
 		overlayScreenView = overlayScreenView === 'overview' ? 'town' : 'overview';
 	}
 
+	$: middleActionLabel = $appViewState.activeOverlay
+		? overlayScreenView === 'overview'
+			? 'Town'
+			: 'Back'
+		: 'Shop';
+	$: middleActionIconPath = $appViewState.activeOverlay ? null : '/assets/game_icons/cash.svg';
+
 	$: {
 		if (typeof window !== 'undefined') {
 			window.dispatchEvent(new CustomEvent<OverlayTownVisibility>(OVERLAY_TOWN_VISIBILITY_EVENT, {
@@ -76,8 +83,8 @@
 
 <div class="ui-root">
 	<div class="top-bar">
-		<ResourceCounter keyName="stone" icon="🪨" />
 		<ResourceCounter keyName="wood" icon="🪵" />
+		<ResourceCounter keyName="stone" icon="🪨" />
 		<ResourceCounter keyName="food" icon="🍞" />
 		<ResourceCounter keyName="mana" icon="💧" />
 		{#if $appViewState.isScouting && $appViewState.viewedPlayerName}
@@ -91,10 +98,10 @@
 		<TopActionButtons
 			blueprintCount={$appViewState.blueprintCount}
 			armyCount={$appViewState.armyCount}
-			canTownInteract={$appViewState.canTownInteract}
-			canArmyReorder={$appViewState.canArmyReorder}
+			middleLabel={middleActionLabel}
+			middleIconPath={middleActionIconPath}
 			on:openBlueprints={openBlueprints}
-			on:openShop={openShop}
+			on:openMiddle={handleMiddleAction}
 			on:openArmy={openArmy}
 		/>
 	</div>
@@ -107,14 +114,6 @@
 	{/if}
 	{#if $appViewState.activeOverlay?.advancePanel && overlayScreenView === 'overview'}
 		<AdvancePhasePanel />
-	{/if}
-
-	{#if $appViewState.activeOverlay}
-		<div class="fight-toggle-wrap">
-			<button class="ui-button fight-toggle" on:click={toggleOverlayScreenView}>
-				{overlayScreenView === 'overview' ? $appViewState.activeOverlay.showTownToggleLabel : $appViewState.activeOverlay.showOverviewToggleLabel}
-			</button>
-		</div>
 	{/if}
 
 	{#if !$appViewState.activeOverlay}
@@ -131,6 +130,8 @@
 		position: fixed;
 		inset: 0;
 		pointer-events: none;
+		--ui-edge-right: 16px;
+		--ui-edge-bottom: 12px;
 	}
 	.top-bar {
 		position: absolute;
@@ -147,7 +148,7 @@
 	.bottom-actions-wrap {
 		position: absolute;
 		left: 50%;
-		bottom: 6px;
+		bottom: var(--ui-edge-bottom);
 		transform: translateX(-50%);
 		pointer-events: auto;
 	}
@@ -160,18 +161,6 @@
 	.scout-chip {
 		font-weight: 700;
 		background: rgba(168, 84, 28, 0.85);
-	}
-
-	.fight-toggle-wrap {
-		position: absolute;
-		left: 50%;
-		bottom: 12px;
-		transform: translateX(-50%);
-		pointer-events: auto;
-	}
-
-	.fight-toggle {
-		min-width: 200px;
 	}
 
 </style>

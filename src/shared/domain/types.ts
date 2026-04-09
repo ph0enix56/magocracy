@@ -20,13 +20,22 @@ export const AttackTargeting = {
 } as const;
 export type AttackTargeting = (typeof AttackTargeting)[keyof typeof AttackTargeting];
 
+export const UnitRole = {
+	tank: 'Tank',
+	fighter: 'Fighter',
+	shredder: 'Shredder',
+	assassin: 'Assassin',
+	areaCaster: 'Area Caster'
+} as const;
+export type UnitRole = (typeof UnitRole)[keyof typeof UnitRole];
+
 export type ResourceMap = Record<string, number>;
 
 export type { ResourceKey, KnownResourceMap };
 
 export type AttackAction = {
+	name: string;
 	damage: number;
-	canUpgrade: boolean;
 	range: number;
 	targeting: AttackTargeting;
 	actionPointCost: number;

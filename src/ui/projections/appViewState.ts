@@ -7,8 +7,6 @@ export type OverlayScreenView = 'overview' | 'town';
 export type OverlayPhaseConfig = {
 	fightPanel: boolean;
 	advancePanel: boolean;
-	showTownToggleLabel: string;
-	showOverviewToggleLabel: string;
 	overviewBackgroundColor: number;
 };
 
@@ -16,15 +14,11 @@ const OVERLAY_PHASES: Partial<Record<GamePhase, OverlayPhaseConfig>> = {
 	combat: {
 		fightPanel: true,
 		advancePanel: false,
-		showTownToggleLabel: 'Show Town',
-		showOverviewToggleLabel: 'Show Fight Overview',
 		overviewBackgroundColor: 0xf4c7c7
 	},
 	advance: {
 		fightPanel: false,
 		advancePanel: true,
-		showTownToggleLabel: 'Show Town',
-		showOverviewToggleLabel: 'Show Charter Draft',
 		overviewBackgroundColor: 0xe2d5b8
 	}
 };

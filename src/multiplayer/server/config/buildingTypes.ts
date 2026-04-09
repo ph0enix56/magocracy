@@ -1,4 +1,4 @@
-import type { AttackAction, BuildingSchool, ResourceMap } from '../../../shared/domain/types';
+import type { AttackAction, BuildingSchool, ResourceMap, UnitRole } from '../../../shared/domain/types';
 
 export type EffectTarget = 'self-if' | 'self-foreach' | 'neighbor';
 export type EffectApply = 'add' | 'mult';
@@ -51,6 +51,8 @@ export interface UnitDef {
 	id: string;
 	/** In-game display name. */
 	name: string;
+	/** Unit combat role label shown in unit cards. */
+	role: UnitRole;
 	/** Health points (damage capacity) before being defeated. */
 	health: number;
 	/** Flat damage reduction applied to each incoming attack. */

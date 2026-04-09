@@ -5,6 +5,8 @@
 	import type { ResourceMap } from '../shared/domain/types';
 	import { gameSessionClient, type SelectedTileView } from '../multiplayer/client/gameSessionStore';
 	import { getHexTileColorForSchool, toCssHexColor } from '../shared/ui/buildingSchoolColors';
+	import { orderedResourceEntries, resourceEmoji } from './cardFormatters';
+	import UnitCard from './UnitCard.svelte';
 
 	let visible = false;
 	let selected: SelectedTileView | null = null;
@@ -13,6 +15,7 @@
 	let cardTop = 16;
 	let notchSide: 'left' | 'right' = 'right';
 	let lastAnchor: { x: number; y: number } | null = null;
+	let showHousedUnitCard = false;
 
 	const CARD_GAP = 24;
 	const CARD_MARGIN = 12;
@@ -23,10 +26,12 @@
 			selected = null;
 			visible = false;
 			lastAnchor = null;
+			showHousedUnitCard = false;
 			return;
 		}
 		selected = nextSelected;
 		visible = true;
+		showHousedUnitCard = false;
 		if (nextSelected.anchor) {
 			void positionCardFromAnchor(nextSelected.anchor.screenX, nextSelected.anchor.screenY);
 		}
@@ -68,6 +73,15 @@
 		return toCssHexColor(getHexTileColorForSchool(selectedTile.buildingSchool));
 	}
 
+	function openHousedUnitCard(): void {
+		if (!selected?.housedUnit) return;
+		showHousedUnitCard = true;
+	}
+
+	function closeHousedUnitCard(): void {
+		showHousedUnitCard = false;
+	}
+
 	async function positionCardFromAnchor(screenX: number, screenY: number): Promise<void> {
 		lastAnchor = { x: screenX, y: screenY };
 		await tick();
@@ -103,6 +117,7 @@
 		blueprintModalState.set({ isOpen: true, mode: 'build', q: selected.q, r: selected.r });
 		visible = false;
 		selected = null;
+		showHousedUnitCard = false;
 	}
 
 	async function onExpand() {
@@ -117,6 +132,7 @@
 		}
 		visible = false;
 		selected = null;
+		showHousedUnitCard = false;
 	}
 
 	async function onDestroyClick() {
@@ -128,6 +144,7 @@
 			return;
 		}
 		visible = false;
+		showHousedUnitCard = false;
 	}
 
 	function formatCost(cost: ResourceMap | undefined): string {
@@ -151,12 +168,13 @@
 			return;
 		}
 		visible = false;
+		showHousedUnitCard = false;
 	}
 </script>
 
 {#if visible && selected}
 	<div
-		class="tile-card {notchSide === 'left' ? 'tile-card--notch-left' : 'tile-card--notch-right'}"
+		class="tile-card ui-notched-card {notchSide === 'left' ? 'ui-notched-card--notch-left' : 'ui-notched-card--notch-right'}"
 		bind:this={cardEl}
 		style="left: {cardLeft}px; top: {cardTop}px;"
 		on:pointerdown|stopPropagation
@@ -178,6 +196,39 @@
 				{/if}
 			</div>
 		</div>
+
+		{#if selected.built}
+			<div class="tile-card__description">
+				{#each orderedResourceEntries(selected.buildingProductions) as [resource, amount] (`${resource}-${amount}`)}
+					<p>Produces {amount} {resourceEmoji(resource)} / ⌛</p>
+				{/each}
+
+				{#if selected.housedUnit}
+					<p>
+						Houses
+						<span class="tile-card__unit-hover" role="group" on:mouseenter={openHousedUnitCard} on:mouseleave={closeHousedUnitCard}>
+							<button
+								type="button"
+								class="tile-card__unit-link"
+								on:focus={openHousedUnitCard}
+								on:blur={closeHousedUnitCard}
+							>
+								{selected.housedUnit.name}
+							</button>
+							{#if showHousedUnitCard}
+								<span class="tile-card__unit-popover">
+									<UnitCard unit={selected.housedUnit} tier={selected.buildingTier ?? null} showNotch={false} />
+								</span>
+							{/if}
+						</span>.
+					</p>
+				{/if}
+
+				{#if selected.buildingDescription}
+					<p>{selected.buildingDescription}</p>
+				{/if}
+			</div>
+		{/if}
 
 		{#if selected.constructionProgress !== undefined}
 			<p class="tile-card__status">Construction: {Math.round(selected.constructionProgress)}%</p>
@@ -204,41 +255,18 @@
 				{/if}
 			</div>
 		{/if}
+
 	</div>
 {/if}
 
 <style>
 	.tile-card {
 		position: fixed;
-		background: #333;
-		border-radius: 4px;
 		padding: 14px;
 		max-width: min(430px, calc(100vw - 24px));
 		min-width: min(330px, calc(100vw - 24px));
-		box-sizing: border-box;
-		font-family: system-ui, sans-serif;
-		color: #fff;
 		z-index: 40;
 		pointer-events: auto;
-	}
-
-	.tile-card::after {
-		content: '';
-		position: absolute;
-		top: 50%;
-		transform: translateY(-50%);
-		border-top: 18px solid transparent;
-		border-bottom: 18px solid transparent;
-	}
-
-	.tile-card--notch-left::after {
-		right: -28px;
-		border-left: 28px solid #333;
-	}
-
-	.tile-card--notch-right::after {
-		left: -28px;
-		border-right: 28px solid #333;
 	}
 
 	.tile-card__header {
@@ -285,6 +313,51 @@
 		line-height: 1.2;
 	}
 
+	.tile-card__description {
+		margin-top: 10px;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.tile-card__description p {
+		margin: 0;
+		font-size: 16px;
+		line-height: 1.2;
+	}
+
+	.tile-card__unit-link {
+		margin-left: 4px;
+		padding: 0;
+		border: none;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+		background: transparent;
+		color: inherit;
+		font: inherit;
+		line-height: inherit;
+		cursor: pointer;
+	}
+
+	.tile-card__unit-hover {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.tile-card__unit-popover {
+		position: absolute;
+		top: -14px;
+		z-index: 3;
+	}
+
+	.tile-card.ui-notched-card--notch-left .tile-card__unit-hover .tile-card__unit-popover {
+		right: calc(100% + 16px);
+	}
+
+	.tile-card.ui-notched-card--notch-right .tile-card__unit-hover .tile-card__unit-popover {
+		left: calc(100% + 16px);
+	}
+
 	.tile-card__actions {
 		display: flex;
 		flex-wrap: wrap;
@@ -316,7 +389,8 @@
 		}
 
 		.tile-card__titles p,
-		.tile-card__status {
+		.tile-card__status,
+		.tile-card__description p {
 			font-size: 14px;
 		}
 

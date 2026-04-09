@@ -51,12 +51,14 @@ export function serializeArmy(units: ArmyUnitState[]): ArmyUnit[] {
 			entityId: unit.armyUnitId,
 			unitDefId: unit.unitDefId,
 			name: unitDef?.name ?? unit.unitDefId,
+			role: unitDef?.role ?? 'Fighter',
 			assetPath: unitDef?.assetPath ?? '',
 			initiative: unit.initiative,
 			health: unit.health,
 			drFlat: unit.drFlat,
 			drPercent: unit.drPercent,
-			actionPoints: unit.actionPoints
+			actionPoints: unit.actionPoints,
+			actions: unitDef?.actions.map((action) => ({ ...action })) ?? []
 		};
 	});
 }

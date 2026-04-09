@@ -40,13 +40,13 @@ export const configuration = {
 	},
 
 	fightPhase: {
-		secondsPerRound: 60,
+		secondsPerRound: 5,
 		finalResultsSeconds: 10,
 		renownPerWin: 1
 	},
 
 	buildPhase: {
-		durationSeconds: 120,
+		durationSeconds: 1000,
 		secondsPerTick: 1
 	},
 

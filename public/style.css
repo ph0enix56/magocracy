@@ -1,8 +1,20 @@
+:root {
+    --ui-font-family: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+    --ui-font-size-xs: 0.78rem;
+    --ui-font-size-sm: 0.9rem;
+    --ui-font-size-md: 1rem;
+    --ui-font-size-lg: 1.2rem;
+    --ui-font-size-xl: 1.45rem;
+    --ui-font-size-display: 2rem;
+}
+
 body {
     margin: 0;
     padding: 0;
     color: rgba(255, 255, 255, 0.87);
     background-color: #0f0f0f;
+    font-family: var(--ui-font-family);
+    font-size: var(--ui-font-size-md);
 }
 
 html,
@@ -57,6 +69,16 @@ body {
     border: 1px solid #444;
 }
 
+.ui-modal,
+.ui-panel,
+.ui-button,
+.ui-chip,
+.ui-close-btn,
+.ui-modal-title,
+.ui-panel-title {
+    font-family: var(--ui-font-family);
+}
+
 .ui-modal-header {
     padding: 16px;
     border-bottom: 1px solid #444;
@@ -67,7 +89,7 @@ body {
 
 .ui-modal-title {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: var(--ui-font-size-lg);
 }
 
 .ui-close-btn {
@@ -75,7 +97,7 @@ body {
     border: none;
     color: #aaa;
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: var(--ui-font-size-lg);
 }
 
 .ui-button {
@@ -85,7 +107,7 @@ body {
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.15);
     cursor: pointer;
-    font-family: system-ui, sans-serif;
+    font-size: var(--ui-font-size-sm);
 }
 
 .ui-button:hover {
@@ -107,21 +129,20 @@ body {
 
 .ui-button--tiny {
     padding: 4px 8px;
-    font-size: 0.85rem;
+    font-size: var(--ui-font-size-xs);
     line-height: 1;
 }
 
 .ui-panel {
     background: rgba(0, 0, 0, 0.7);
     color: #fff;
-    font-family: system-ui, sans-serif;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
 }
 
 .ui-panel-title {
     margin: 0 0 8px 0;
-    font-size: 1.1rem;
+    font-size: var(--ui-font-size-lg);
     font-weight: 700;
 }
 
@@ -133,7 +154,7 @@ body {
     border-radius: 4px;
     background: rgba(0, 0, 0, 0.6);
     color: #fff;
-    font-family: system-ui, sans-serif;
+    font-size: var(--ui-font-size-sm);
 }
 
 .ui-progress {
@@ -156,6 +177,33 @@ body {
     color: #e0e1dd;
     border-radius: 10px;
     padding: 8px 12px;
+}
+
+.ui-notched-card {
+    position: relative;
+    background: #333;
+    color: #fff;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.ui-notched-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 18px solid transparent;
+    border-bottom: 18px solid transparent;
+}
+
+.ui-notched-card--notch-left::after {
+    right: -28px;
+    border-left: 28px solid #333;
+}
+
+.ui-notched-card--notch-right::after {
+    left: -28px;
+    border-right: 28px solid #333;
 }
 
 .ui-muted {
