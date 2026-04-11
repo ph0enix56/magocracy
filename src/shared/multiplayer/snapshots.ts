@@ -131,6 +131,7 @@ export type KingdomBuildingSnapshot = {
 	status: BuildingStatus;
 	progress: number;
 	upgradeNextId?: string;
+	housedUnitId?: string;
 	productionMultiplier?: number;
 };
 

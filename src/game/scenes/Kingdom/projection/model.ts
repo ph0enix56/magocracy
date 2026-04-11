@@ -48,6 +48,10 @@ export class ProjectionWorld {
 		return this.tiles.get(`${q},${r}`);
 	}
 
+	removeTile(id: string): void {
+		this.tiles.delete(id);
+	}
+
 	getTiles(): ProjectionTile[] {
 		return [...this.tiles.values()];
 	}

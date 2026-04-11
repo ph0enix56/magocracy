@@ -15,7 +15,6 @@
 	let cardTop = 16;
 	let notchSide: 'left' | 'right' = 'right';
 	let lastAnchor: { x: number; y: number } | null = null;
-	let showHousedUnitCard = false;
 
 	const CARD_GAP = 24;
 	const CARD_MARGIN = 12;
@@ -26,12 +25,10 @@
 			selected = null;
 			visible = false;
 			lastAnchor = null;
-			showHousedUnitCard = false;
 			return;
 		}
 		selected = nextSelected;
 		visible = true;
-		showHousedUnitCard = false;
 		if (nextSelected.anchor) {
 			void positionCardFromAnchor(nextSelected.anchor.screenX, nextSelected.anchor.screenY);
 		}
@@ -56,6 +53,7 @@
 	});
 
 	$: canInteract = $sidebarViewState.canTownInteract && !$sidebarViewState.isScouting;
+	$: selectedHousedUnit = selected?.housedArmyUnit ?? selected?.housedUnit ?? null;
 
 	function schoolDistrictLabel(school: string | undefined): string {
 		if (!school) return 'Unknown district';
@@ -73,20 +71,11 @@
 		return toCssHexColor(getHexTileColorForSchool(selectedTile.buildingSchool));
 	}
 
-	function openHousedUnitCard(): void {
-		if (!selected?.housedUnit) return;
-		showHousedUnitCard = true;
-	}
-
-	function closeHousedUnitCard(): void {
-		showHousedUnitCard = false;
-	}
-
 	async function positionCardFromAnchor(screenX: number, screenY: number): Promise<void> {
 		lastAnchor = { x: screenX, y: screenY };
 		await tick();
 
-		const cardWidth = cardEl?.offsetWidth ?? 420;
+		const cardWidth = cardEl?.offsetWidth ?? (selectedHousedUnit ? 860 : 420);
 		const cardHeight = cardEl?.offsetHeight ?? 220;
 		const viewportWidth = window.innerWidth;
 		const viewportHeight = window.innerHeight;
@@ -117,7 +106,6 @@
 		blueprintModalState.set({ isOpen: true, mode: 'build', q: selected.q, r: selected.r });
 		visible = false;
 		selected = null;
-		showHousedUnitCard = false;
 	}
 
 	async function onExpand() {
@@ -132,7 +120,6 @@
 		}
 		visible = false;
 		selected = null;
-		showHousedUnitCard = false;
 	}
 
 	async function onDestroyClick() {
@@ -144,7 +131,6 @@
 			return;
 		}
 		visible = false;
-		showHousedUnitCard = false;
 	}
 
 	function formatCost(cost: ResourceMap | undefined): string {
@@ -168,94 +154,85 @@
 			return;
 		}
 		visible = false;
-		showHousedUnitCard = false;
 	}
 </script>
 
 {#if visible && selected}
 	<div
-		class="tile-card ui-notched-card {notchSide === 'left' ? 'ui-notched-card--notch-left' : 'ui-notched-card--notch-right'}"
+		class="tile-card ui-notched-card {notchSide === 'left' ? 'ui-notched-card--notch-left' : 'ui-notched-card--notch-right'} {selectedHousedUnit ? 'tile-card--with-unit' : ''}"
 		bind:this={cardEl}
 		style="left: {cardLeft}px; top: {cardTop}px;"
 		on:pointerdown|stopPropagation
 		on:pointerup|stopPropagation
 	>
-		<div class="tile-card__header">
-			<div class="tile-card__icon" style="background: {iconBackground(selected)};">
-				{#if selected.built && selected.buildingAssetPath}
-					<img src={`assets/${selected.buildingAssetPath}`} alt={selected.buildingName ?? selected.buildingId ?? 'Building'} />
-				{/if}
-			</div>
-			<div class="tile-card__titles">
-				<h2>{selected.isExpansionSite ? 'Expansion site' : selected.built ? (selected.buildingName ?? selected.buildingId ?? 'Building') : 'Empty space'}</h2>
+		<div class="tile-card__layout">
+			<div class="tile-card__primary">
+				<div class="tile-card__header">
+					<div class="tile-card__icon" style="background: {iconBackground(selected)};">
+						{#if selected.built && selected.buildingAssetPath}
+							<img src={`assets/${selected.buildingAssetPath}`} alt={selected.buildingName ?? selected.buildingId ?? 'Building'} />
+						{/if}
+					</div>
+					<div class="tile-card__titles">
+						<h2>{selected.isExpansionSite ? 'Expansion site' : selected.built ? (selected.buildingName ?? selected.buildingId ?? 'Building') : 'Empty space'}</h2>
+						{#if selected.built}
+							<p>Tier {selected.buildingTier ?? '?'} {schoolDistrictLabel(selected.buildingSchool)}</p>
+							<p>{kindLabel(selected.buildingKind)}</p>
+						{:else if selected.isExpansionSite}
+							<p>Spend 1 expansion token to unlock this tile.</p>
+						{/if}
+					</div>
+				</div>
+
 				{#if selected.built}
-					<p>Tier {selected.buildingTier ?? '?'} {schoolDistrictLabel(selected.buildingSchool)}</p>
-					<p>{kindLabel(selected.buildingKind)}</p>
-				{:else if selected.isExpansionSite}
-					<p>Spend 1 expansion token to unlock this tile.</p>
+					<div class="tile-card__description">
+						{#each orderedResourceEntries(selected.buildingProductions) as [resource, amount] (`${resource}-${amount}`)}
+							<p>Produces {amount} {resourceEmoji(resource)} / ⌛.</p>
+						{/each}
+
+						{#if selectedHousedUnit}
+							<p>Houses {selectedHousedUnit.name}.</p>
+						{/if}
+
+						{#if selected.buildingDescription}
+							<p>{selected.buildingDescription}</p>
+						{/if}
+					</div>
 				{/if}
-			</div>
-		</div>
 
-		{#if selected.built}
-			<div class="tile-card__description">
-				{#each orderedResourceEntries(selected.buildingProductions) as [resource, amount] (`${resource}-${amount}`)}
-					<p>Produces {amount} {resourceEmoji(resource)} / ⌛</p>
-				{/each}
+				{#if selected.constructionProgress !== undefined}
+					<p class="tile-card__status">Construction: {Math.round(selected.constructionProgress)}%</p>
+				{/if}
+				{#if selected.upgradeProgress !== undefined}
+					<p class="tile-card__status">Upgrade: {Math.round(selected.upgradeProgress)}%</p>
+				{/if}
 
-				{#if selected.housedUnit}
-					<p>
-						Houses
-						<span class="tile-card__unit-hover" role="group" on:mouseenter={openHousedUnitCard} on:mouseleave={closeHousedUnitCard}>
-							<button
-								type="button"
-								class="tile-card__unit-link"
-								on:focus={openHousedUnitCard}
-								on:blur={closeHousedUnitCard}
-							>
-								{selected.housedUnit.name}
-							</button>
-							{#if showHousedUnitCard}
-								<span class="tile-card__unit-popover">
-									<UnitCard unit={selected.housedUnit} tier={selected.buildingTier ?? null} showNotch={false} />
-								</span>
+				{#if !canInteract && $sidebarViewState.isScouting && $sidebarViewState.viewedPlayerName}
+					<p class="tile-card__status">Scouting {$sidebarViewState.viewedPlayerName}. Interactions are disabled.</p>
+				{/if}
+
+				{#if canInteract}
+					<div class="tile-card__actions">
+						{#if selected.isExpansionSite}
+							<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onExpand}>Expand</button>
+						{:else if selected.built}
+							{#if selected.nextUpgradeId}
+								<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onUpgradeClick}>Upgrade</button>
 							{/if}
-						</span>.
-					</p>
-				{/if}
-
-				{#if selected.buildingDescription}
-					<p>{selected.buildingDescription}</p>
-				{/if}
-			</div>
-		{/if}
-
-		{#if selected.constructionProgress !== undefined}
-			<p class="tile-card__status">Construction: {Math.round(selected.constructionProgress)}%</p>
-		{/if}
-		{#if selected.upgradeProgress !== undefined}
-			<p class="tile-card__status">Upgrade: {Math.round(selected.upgradeProgress)}%</p>
-		{/if}
-
-		{#if !canInteract && $sidebarViewState.isScouting && $sidebarViewState.viewedPlayerName}
-			<p class="tile-card__status">Scouting {$sidebarViewState.viewedPlayerName}. Interactions are disabled.</p>
-		{/if}
-
-		{#if canInteract}
-			<div class="tile-card__actions">
-				{#if selected.isExpansionSite}
-					<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onExpand}>Expand</button>
-				{:else if selected.built}
-					{#if selected.nextUpgradeId}
-						<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onUpgradeClick}>Upgrade</button>
-					{/if}
-					<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onDestroyClick}>Destroy</button>
-				{:else}
-					<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onBuild}>Build</button>
+							<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onDestroyClick}>Destroy</button>
+						{:else}
+							<button class="ui-button tile-card__action" on:pointerdown|stopPropagation on:click|stopPropagation={onBuild}>Build</button>
+						{/if}
+					</div>
 				{/if}
 			</div>
-		{/if}
 
+			{#if selectedHousedUnit}
+				<div class="tile-card__unit-panel">
+					<UnitCard unit={selectedHousedUnit} tier={selected.buildingTier ?? null} showNotch={false} />
+				</div>
+			{/if}
+		</div>
 	</div>
 {/if}
 
@@ -267,6 +244,26 @@
 		min-width: min(330px, calc(100vw - 24px));
 		z-index: 40;
 		pointer-events: auto;
+	}
+
+	.tile-card--with-unit {
+		max-width: min(880px, calc(100vw - 24px));
+	}
+
+	.tile-card__layout {
+		display: grid;
+		grid-template-columns: minmax(300px, 430px);
+		gap: 12px;
+		align-items: start;
+	}
+
+	.tile-card--with-unit .tile-card__layout {
+		grid-template-columns: minmax(300px, 430px) minmax(300px, 420px);
+	}
+
+	.tile-card__primary,
+	.tile-card__unit-panel {
+		min-width: 0;
 	}
 
 	.tile-card__header {
@@ -326,38 +323,6 @@
 		line-height: 1.2;
 	}
 
-	.tile-card__unit-link {
-		margin-left: 4px;
-		padding: 0;
-		border: none;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.9);
-		background: transparent;
-		color: inherit;
-		font: inherit;
-		line-height: inherit;
-		cursor: pointer;
-	}
-
-	.tile-card__unit-hover {
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-	}
-
-	.tile-card__unit-popover {
-		position: absolute;
-		top: -14px;
-		z-index: 3;
-	}
-
-	.tile-card.ui-notched-card--notch-left .tile-card__unit-hover .tile-card__unit-popover {
-		right: calc(100% + 16px);
-	}
-
-	.tile-card.ui-notched-card--notch-right .tile-card__unit-hover .tile-card__unit-popover {
-		left: calc(100% + 16px);
-	}
-
 	.tile-card__actions {
 		display: flex;
 		flex-wrap: wrap;
@@ -382,6 +347,10 @@
 	@media (max-width: 860px) {
 		.tile-card {
 			min-width: min(280px, calc(100vw - 24px));
+		}
+
+		.tile-card--with-unit .tile-card__layout {
+			grid-template-columns: 1fr;
 		}
 
 		.tile-card__titles h2 {

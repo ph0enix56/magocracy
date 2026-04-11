@@ -36,6 +36,7 @@ export function serializeKingdom(tiles: KingdomTileState[], productionService: P
 							status: tile.building.status,
 							progress: tile.building.progress,
 							upgradeNextId: tile.building.upgradeNextId,
+							...(tile.building.housedUnitId ? { housedUnitId: tile.building.housedUnitId } : {}),
 							productionMultiplier: tile.building.status === 'active' ? productionService.calculateMultiplier(tile.tileId) : undefined
 						};
 					})()

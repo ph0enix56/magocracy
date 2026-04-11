@@ -31,7 +31,7 @@
 
 	<div class="district-card__description">
 		{#each orderedResourceEntries(def.productions) as [resource, amount] (`${resource}-${amount}`)}
-			<p>Produces {amount} {resourceEmoji(resource)} / ⌛</p>
+			<p>Produces {amount} {resourceEmoji(resource)} / ⌛.</p>
 		{/each}
 		{#if def.housedUnit}
 			<p>Houses {def.housedUnit.name}.</p>

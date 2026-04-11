@@ -97,3 +97,24 @@ test('startUpgrade and advanceTick complete upgrade target', () => {
 	assert.equal(tile.building?.upgradeNextId, undefined);
 	assert.equal(tile.building?.progress, 8);
 });
+
+test('destroyBuilding removes housed unit from army', () => {
+	const world = new WorldStore();
+	const service = new BuildService(world);
+	const tile = createTile({ q: 0, r: 0 });
+	world.upsertKingdomTile(tile);
+	world.blueprintInventory.set('sword_barracks', 1);
+
+	service.startBuild(tile.tileId, 'sword_barracks');
+	service.advanceTick();
+	service.advanceTick();
+
+	assert.equal(tile.building?.status, 'active');
+	assert.ok(tile.building?.housedUnitId);
+	assert.equal(world.getArmyUnits().length, 1);
+
+	service.destroyBuilding(tile.tileId);
+
+	assert.equal(tile.building, undefined);
+	assert.equal(world.getArmyUnits().length, 0);
+});

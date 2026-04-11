@@ -12,7 +12,7 @@ import { ConstructionBadge } from './projection/ConstructionBadge';
 import { ProjectionRenderSystem } from './projection/ProjectionRenderSystem';
 import { ProjectionHexGrid } from './projection/ProjectionHexGrid';
 import { kingdomCatalogProjectionState, kingdomExpansionTilesVisibleState, kingdomTileProjectionState } from './projection/kingdomSceneProjectionState';
-import { ProjectionWorld, type ProjectionRenderState } from './projection/model';
+import { ProjectionWorld, type ProjectionRenderState, type ProjectionTile } from './projection/model';
 
 export class KingdomScene extends Scene {
 	private world!: ProjectionWorld;
@@ -223,9 +223,18 @@ export class KingdomScene extends Scene {
 		for (const tile of this.world.getTiles()) {
 			const key = `${tile.position.q},${tile.position.r}`;
 			if (snapshotIds.has(key)) continue;
-			this.destroyTileRenderState(tile.render);
-			delete tile.building;
+			this.destroyTileEntity(tile);
 		}
+	}
+
+	private destroyTileEntity(tile: ProjectionTile): void {
+		this.destroyTileRenderState(tile.render);
+		tile.render.expansion?.destroy();
+		tile.render.expansion = undefined;
+		tile.render.hex.disableInteractive();
+		tile.render.hex.destroy();
+		tile.render.hexOutline.destroy();
+		this.world.removeTile(tile.id);
 	}
 
 	private destroyTileRenderState(render: ProjectionRenderState): void {

@@ -108,7 +108,9 @@ export class BuildService {
 		if (!tile.building) throw new Error('Tile has no building to destroy');
 		const def = getBuildingDef(tile.building.buildingId);
 		if (!def) throw new Error(`Invalid buildingId: ${tile.building.buildingId}`);
-		delete tile.building.housedUnitId;
+		if (tile.building.housedUnitId) {
+			this.world.removeArmyUnit(tile.building.housedUnitId);
+		}
 		delete tile.building;
 	}
 

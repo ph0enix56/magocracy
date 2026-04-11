@@ -45,6 +45,8 @@ export type SelectedTileView = {
 	buildingDescription?: string;
 	buildingProductions?: ResourceMap;
 	housedUnit?: UnitCatalogEntry;
+	housedUnitEntityId?: string;
+	housedArmyUnit?: ArmyUnit;
 	buildingAssetPath?: string;
 	buildingStatus?: BuildingStatus;
 	constructionProgress?: number;

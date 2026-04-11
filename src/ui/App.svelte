@@ -67,7 +67,11 @@
 			? 'Town'
 			: 'Back'
 		: 'Shop';
-	$: middleActionIconPath = $appViewState.activeOverlay ? null : '/assets/game_icons/cash.svg';
+	$: middleActionIconPath = $appViewState.activeOverlay
+		? overlayScreenView === 'overview'
+			? '/assets/game_icons/exit-door.svg'
+			: '/assets/game_icons/entry-door.svg'
+		: '/assets/game_icons/cash.svg';
 
 	$: {
 		if (typeof window !== 'undefined') {
@@ -87,6 +91,7 @@
 		<ResourceCounter keyName="stone" icon="🪨" />
 		<ResourceCounter keyName="food" icon="🍞" />
 		<ResourceCounter keyName="mana" icon="💧" />
+		<ResourceCounter keyName="expansion" icon="➕" />
 		{#if $appViewState.isScouting && $appViewState.viewedPlayerName}
 			<div class="ui-chip scout-chip">Scouting {$appViewState.viewedPlayerName}</div>
 		{/if}

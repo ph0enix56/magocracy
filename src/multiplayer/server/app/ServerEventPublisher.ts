@@ -25,6 +25,11 @@ export class ServerEventPublisher {
 		this.gateway.broadcastToLobby(lobby.lobbyId, { type: 'lobby/state', lobby: toLobbySnapshot(lobby) });
 	}
 
+	/** Sends lobby state snapshot directly to one client. */
+	emitLobbyState(socketId: string, lobby: LobbyRecord | null): void {
+		this.gateway.emitToClient(socketId, { type: 'lobby/state', lobby: lobby ? toLobbySnapshot(lobby) : null });
+	}
+
 	/** Broadcasts authoritative gameplay snapshot to all lobby participants. */
 	broadcastGameSnapshot(lobbyId: string, game: GameSnapshot): void {
 		this.gateway.broadcastToLobby(lobbyId, { type: 'game/snapshot', game });

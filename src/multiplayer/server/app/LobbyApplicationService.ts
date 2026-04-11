@@ -60,8 +60,8 @@ export class LobbyApplicationService {
 			onCreate: (playerName) => this.handleCreateLobby(playerId, socketId, playerName),
 			onJoin: (lobbyId, playerName) => this.handleJoinLobby(playerId, socketId, lobbyId, playerName),
 			onLeave: () => this.handleLeaveLobby(playerId, socketId),
-			onSetReady: (ready) => this.handleSetReady(playerId, ready),
-			onStartLobby: () => this.handleStartLobby(playerId),
+			onSetReady: (ready) => this.handleSetReady(playerId, socketId, ready),
+			onStartLobby: () => this.handleStartLobby(playerId, socketId),
 			onSolo: (playerName) => this.handleSoloLobby(playerId, socketId, playerName),
 			onGameAction: (gameActionCommand) => this.handleGameAction(playerId, socketId, gameActionCommand)
 		});
@@ -99,6 +99,9 @@ export class LobbyApplicationService {
 			this.eventPublisher.reject(socketId, 'lobby/leave', left.reason);
 			return;
 		}
+
+		this.eventPublisher.emitLobbyState(socketId, null);
+
 		for (const retiredLobbyId of left.retiredLobbyIds) {
 			this.runtimeOrchestrator.stopLobbyRuntime(retiredLobbyId);
 		}
@@ -107,9 +110,12 @@ export class LobbyApplicationService {
 		}
 	}
 
-	private handleSetReady(playerId: string, ready: boolean): void {
+	private handleSetReady(playerId: string, socketId: string, ready: boolean): void {
 		const lobby = this.lifecycle.setReady(playerId, ready);
-		if (!lobby) return;
+		if (!lobby) {
+			this.eventPublisher.reject(socketId, 'lobby/set-ready', 'You are not in a lobby.');
+			return;
+		}
 		this.eventPublisher.broadcastLobbyState(lobby);
 	}
 
@@ -125,9 +131,12 @@ export class LobbyApplicationService {
 		this.startRuntimeForLobby(solo.lobby, [playerId]);
 	}
 
-	private handleStartLobby(playerId: string): void {
+	private handleStartLobby(playerId: string, socketId: string): void {
 		const lobby = this.lifecycle.getLobbyForPlayer(playerId);
-		if (!lobby) return;
+		if (!lobby) {
+			this.eventPublisher.reject(socketId, 'lobby/start', 'You are not in a lobby.');
+			return;
+		}
 		if (lobby.hostPlayerId !== playerId) {
 			const socketId = this.lifecycle.getSocketIdForPlayer(lobby, playerId);
 			if (socketId) this.eventPublisher.reject(socketId, 'lobby/start', 'Only the host can start the lobby.');

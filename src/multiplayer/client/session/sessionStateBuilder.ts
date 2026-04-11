@@ -6,6 +6,7 @@ import type {
 	LobbyPlayerSnapshot,
 	PlayerGameView
 } from '../../../shared/multiplayer/snapshots';
+import type { ArmyUnit } from '../../../shared/domain/gameViews';
 import type { BuildingStatus, ResourceMap } from '../../../shared/domain/types';
 import {
 	EMPTY_ADVANCE,
@@ -82,6 +83,7 @@ export function buildGameSessionState(input: BuildGameSessionStateInput): BuildG
 			nextContext.selectedTileCoords.q,
 			nextContext.selectedTileCoords.r,
 			viewedGameView.kingdom,
+			viewedGameView.army,
 			catalog,
 			nextContext.selectedTileAnchor,
 			expansionTokens
@@ -152,6 +154,7 @@ function buildSelectedTileView(
 	q: number,
 	r: number,
 	kingdom: KingdomSnapshot,
+	army: ArmyUnit[],
 	catalog: BuildingCatalogEntry[],
 	anchor: TileScreenAnchor | null,
 	expansionTokens: number
@@ -167,6 +170,8 @@ function buildSelectedTileView(
 	let buildingDescription: string | undefined;
 	let buildingProductions: ResourceMap | undefined;
 	let housedUnit: BuildingCatalogEntry['housedUnit'] | undefined;
+	let housedUnitEntityId: string | undefined;
+	let housedArmyUnit: ArmyUnit | undefined;
 	let buildingAssetPath: string | undefined;
 	let buildingStatus: BuildingStatus | undefined;
 	let constructionProgress: number | undefined;
@@ -180,6 +185,10 @@ function buildSelectedTileView(
 	if (tile?.building) {
 		buildingId = tile.building.buildingId;
 		buildingStatus = tile.building.status;
+		housedUnitEntityId = tile.building.housedUnitId;
+		if (housedUnitEntityId) {
+			housedArmyUnit = army.find((unit) => unit.entityId === housedUnitEntityId);
+		}
 		const def = catalog.find((entry) => entry.id === buildingId);
 
 		if (def) {
@@ -227,6 +236,8 @@ function buildSelectedTileView(
 		buildingDescription,
 		buildingProductions,
 		housedUnit,
+		housedUnitEntityId,
+		housedArmyUnit,
 		buildingAssetPath,
 		buildingStatus,
 		constructionProgress,
