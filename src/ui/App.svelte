@@ -11,6 +11,7 @@
 	import TopActionButtons from './TopActionButtons.svelte';
 	import RenownLeaderboard from './RenownLeaderboard.svelte';
 	import PhaseTimer from './PhaseTimer.svelte';
+	import { gameSessionClient } from '../multiplayer/client/gameSessionStore';
 	import { armyModalState, blueprintModalState, shopModalState } from './uiState';
 	import { appViewState, type OverlayScreenView } from './projections/appViewState';
 	import {
@@ -23,6 +24,7 @@
 	let overlayScreenView: OverlayScreenView = 'overview';
 	let overlayTownVisibility: OverlayTownVisibility = { hideTownRender: false };
 	let overlayBackground: OverlayBackground = {};
+	let showScoutBackAction = false;
 
 	function openBlueprints() {
 		blueprintModalState.set({ isOpen: true, mode: 'view', q: 0, r: 0 });
@@ -37,12 +39,18 @@
 	}
 
 	function handleMiddleAction() {
+		if (showScoutBackAction) {
+			gameSessionClient.viewOwnTown();
+			return;
+		}
 		if ($appViewState.activeOverlay) {
 			toggleOverlayScreenView();
 			return;
 		}
 		openShop();
 	}
+
+	$: showScoutBackAction = !$appViewState.activeOverlay && $appViewState.isScouting;
 
 	$: if (!$appViewState.activeOverlay) {
 		overlayScreenView = 'overview';
@@ -62,12 +70,16 @@
 		overlayScreenView = overlayScreenView === 'overview' ? 'town' : 'overview';
 	}
 
-	$: middleActionLabel = $appViewState.activeOverlay
+	$: middleActionLabel = showScoutBackAction
+		? 'Back'
+		: $appViewState.activeOverlay
 		? overlayScreenView === 'overview'
 			? 'Town'
 			: 'Back'
 		: 'Shop';
-	$: middleActionIconPath = $appViewState.activeOverlay
+	$: middleActionIconPath = showScoutBackAction
+		? '/assets/game_icons/entry-door.svg'
+		: $appViewState.activeOverlay
 		? overlayScreenView === 'overview'
 			? '/assets/game_icons/exit-door.svg'
 			: '/assets/game_icons/entry-door.svg'

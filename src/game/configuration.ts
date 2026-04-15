@@ -6,7 +6,13 @@ export const configuration = {
 	shop: {
 		size: 6,
 		buyCostByTier: [10, 20, 40, 100],
-		rerollCost: 10
+		rerollCost: 10,
+		offerTierWeightsByPhaseLoop: [
+			[70, 20, 8, 2],
+			[50, 28, 16, 6],
+			[28, 32, 24, 16],
+			[0, 18, 34, 48]
+		]
 	},
 
 	economy: {

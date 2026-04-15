@@ -28,6 +28,11 @@ export class BuildPhaseRuntime implements RuntimePhase {
 	onEnter(ctx: RuntimePhaseContext): void {
 		this.durationSecondsRemaining = ctx.resolveBuildPhaseDurationSeconds();
 		this.tickSecondsRemaining = ctx.resolveBuildTickIntervalSeconds();
+		for (const playerId of ctx.playerIds) {
+			const runtime = ctx.getPlayerRuntime(playerId);
+			if (!runtime) continue;
+			runtime.shopService.setPhaseLoopIndex(ctx.phaseLoopIndex);
+		}
 	}
 
 	onExit(_ctx: RuntimePhaseContext): void {}

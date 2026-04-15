@@ -58,3 +58,41 @@ test('buyWithThrow rejects invalid and empty slots and insufficient mana', () =>
 	world.resources.set('mana', 0);
 	assert.throws(() => service.buyWithThrow(0), /Not enough mana/);
 });
+
+test('rerollFree uses last configured distribution when phase loop index exceeds range', () => {
+	const world = new WorldStore();
+	const service = new ShopService(world);
+	const purchasableByTier = new Map<number, string[]>(
+		getPurchasableBuildings().reduce<Array<[number, string[]]>>((acc, building) => {
+			const existing = acc.find(([tier]) => tier === building.tier);
+			if (existing) {
+				existing[1].push(building.id);
+				return acc;
+			}
+			acc.push([building.tier, [building.id]]);
+			return acc;
+		}, [])
+	);
+
+	const lastDistribution = configuration.shop.offerTierWeightsByPhaseLoop[
+		configuration.shop.offerTierWeightsByPhaseLoop.length - 1
+	] ?? [];
+	const expectedTier = lastDistribution.findIndex((weight, index) => weight > 0 && (purchasableByTier.get(index + 1)?.length ?? 0) > 0) + 1;
+	assert.ok(expectedTier > 0, 'Expected at least one configured tier with purchasable buildings.');
+
+	service.setPhaseLoopIndex(9999);
+	const originalRandom = Math.random;
+	Math.random = () => 0;
+	try {
+		service.rerollFree();
+	} finally {
+		Math.random = originalRandom;
+	}
+
+	for (const offer of world.shopOffers) {
+		if (!offer) {
+			throw new Error('Expected a filled offer after reroll.');
+		}
+		assert.equal(offer[1], expectedTier);
+	}
+});

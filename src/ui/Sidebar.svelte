@@ -2,8 +2,13 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { blueprintModalState } from './uiState';
 	import { sidebarViewState } from './projections/sidebarViewState';
-	import type { ResourceMap } from '../shared/domain/types';
-	import { gameSessionClient, type SelectedTileView } from '../multiplayer/client/gameSessionStore';
+	import BuildingCard from './BuildingCard.svelte';
+	import {
+		gameSessionClient,
+		gameSessionState,
+		type CommandResult,
+		type SelectedTileView
+	} from '../multiplayer/client/gameSessionStore';
 	import { getHexTileColorForSchool, toCssHexColor } from '../shared/ui/buildingSchoolColors';
 	import { orderedResourceEntries, resourceEmoji } from './cardFormatters';
 	import UnitCard from './UnitCard.svelte';
@@ -15,6 +20,15 @@
 	let cardTop = 16;
 	let notchSide: 'left' | 'right' = 'right';
 	let lastAnchor: { x: number; y: number } | null = null;
+	let actionDialogEl: HTMLDialogElement | null = null;
+
+	type PendingTileAction =
+		| { kind: 'expand'; q: number; r: number }
+		| { kind: 'destroy'; q: number; r: number }
+		| { kind: 'upgrade'; q: number; r: number; upgradeBuildingId: string };
+
+	let pendingTileAction: PendingTileAction | null = null;
+	let pendingUpgradeBuildingId: string | null = null;
 
 	const CARD_GAP = 24;
 	const CARD_MARGIN = 12;
@@ -54,6 +68,15 @@
 
 	$: canInteract = $sidebarViewState.canTownInteract && !$sidebarViewState.isScouting;
 	$: selectedHousedUnit = selected?.housedArmyUnit ?? selected?.housedUnit ?? null;
+	$: pendingUpgradeBuildingId = getPendingUpgradeBuildingId(pendingTileAction);
+	$: pendingUpgradeDef = pendingUpgradeBuildingId
+		? ($gameSessionState.catalog.find((entry) => entry.id === pendingUpgradeBuildingId) ?? null)
+		: null;
+
+	function getPendingUpgradeBuildingId(action: PendingTileAction | null): string | null {
+		if (!action || action.kind !== 'upgrade') return null;
+		return action.upgradeBuildingId;
+	}
 
 	function schoolDistrictLabel(school: string | undefined): string {
 		if (!school) return 'Unknown district';
@@ -111,49 +134,66 @@
 	async function onExpand() {
 		if (!selected) return;
 		if (!canInteract) return;
-		const ok = confirm('Expand this tile by spending 1 expansion token?');
-		if (!ok) return;
-		const result = await gameSessionClient.requestExpandTile(selected.q, selected.r);
+		openTileActionDialog({ kind: 'expand', q: selected.q, r: selected.r });
+	}
+
+	async function onDestroyClick() {
+		if (!selected) return;
+		if (!canInteract) return;
+		openTileActionDialog({ kind: 'destroy', q: selected.q, r: selected.r });
+	}
+
+	async function onUpgradeClick() {
+		if (!selected?.nextUpgradeId) return;
+		if (!canInteract) return;
+		openTileActionDialog({
+			kind: 'upgrade',
+			q: selected.q,
+			r: selected.r,
+			upgradeBuildingId: selected.nextUpgradeId
+		});
+	}
+
+	function openTileActionDialog(action: PendingTileAction): void {
+		pendingTileAction = action;
+		if (!actionDialogEl) return;
+		if (actionDialogEl.open) {
+			actionDialogEl.close();
+		}
+		actionDialogEl.showModal();
+	}
+
+	function closeTileActionDialog(): void {
+		if (actionDialogEl?.open) {
+			actionDialogEl.close();
+		}
+		pendingTileAction = null;
+	}
+
+	function onTileActionDialogClosed(): void {
+		pendingTileAction = null;
+	}
+
+	async function confirmTileAction(): Promise<void> {
+		if (!pendingTileAction) return;
+		const action = pendingTileAction;
+		let result: CommandResult;
+
+		if (action.kind === 'expand') {
+			result = await gameSessionClient.requestExpandTile(action.q, action.r);
+		} else if (action.kind === 'destroy') {
+			result = await gameSessionClient.requestDestroy(action.q, action.r);
+		} else {
+			result = await gameSessionClient.requestUpgrade(action.q, action.r, action.upgradeBuildingId);
+		}
+
+		closeTileActionDialog();
 		if (!result.ok) {
 			alert(result.reason);
 			return;
 		}
 		visible = false;
 		selected = null;
-	}
-
-	async function onDestroyClick() {
-		if (!selected) return;
-		if (!canInteract) return;
-		const result = await gameSessionClient.requestDestroy(selected.q, selected.r);
-		if (!result.ok) {
-			alert(result.reason);
-			return;
-		}
-		visible = false;
-	}
-
-	function formatCost(cost: ResourceMap | undefined): string {
-		if (!cost) return '';
-		return Object.entries(cost)
-			.map(([res, amount]) => `${amount} ${res}`)
-			.join(', ');
-	}
-
-	async function onUpgradeClick() {
-		if (!selected?.nextUpgradeId) return;
-		if (!canInteract) return;
-		const costStr = formatCost(selected.nextUpgradeCost);
-		const timeStr = selected.nextUpgradeTime !== undefined ? `${selected.nextUpgradeTime}s` : '';
-		const ok = confirm(`Upgrade to ${selected.nextUpgradeId}?\nCost: ${costStr}\nTime: ${timeStr}`);
-		if (!ok) return;
-
-		const result = await gameSessionClient.requestUpgrade(selected.q, selected.r, selected.nextUpgradeId);
-		if (!result.ok) {
-			alert(result.reason);
-			return;
-		}
-		visible = false;
 	}
 </script>
 
@@ -235,6 +275,35 @@
 		</div>
 	</div>
 {/if}
+
+<dialog class="tile-action-dialog" bind:this={actionDialogEl} on:close={onTileActionDialogClosed}>
+	{#if pendingTileAction}
+		<div class="tile-action-dialog__content">
+			{#if pendingTileAction.kind === 'expand'}
+				<h3>Expand Tile</h3>
+				<p>Spend 1 expansion token to unlock this tile?</p>
+			{:else if pendingTileAction.kind === 'destroy'}
+				<h3>Destroy District</h3>
+				<p>Destroy the district on this tile?</p>
+			{:else}
+				<h3>Upgrade District</h3>
+				<p>Upgrade into the following district:</p>
+				{#if pendingUpgradeDef}
+					<div class="tile-action-dialog__upgrade-card">
+						<BuildingCard def={pendingUpgradeDef} count={null} actionLabel={null} actionDisabled={false} />
+					</div>
+				{:else}
+					<p class="ui-muted">Upgrade target details unavailable.</p>
+				{/if}
+			{/if}
+
+			<div class="tile-action-dialog__actions">
+				<button class="ui-button ui-button--ghost" on:click={closeTileActionDialog}>Cancel</button>
+				<button class="ui-button" on:click={confirmTileAction}>Confirm</button>
+			</div>
+		</div>
+	{/if}
+</dialog>
 
 <style>
 	.tile-card {
@@ -342,6 +411,46 @@
 
 	.tile-card__action:hover {
 		background: #3a86ff;
+	}
+
+	.tile-action-dialog {
+		padding: 0;
+		border: 1px solid rgba(255, 255, 255, 0.24);
+		border-radius: 8px;
+		background: #2a2a2a;
+		color: #ffffff;
+		width: min(640px, calc(100vw - 24px));
+		pointer-events: auto;
+	}
+
+	.tile-action-dialog::backdrop {
+		background: rgba(0, 0, 0, 0.55);
+	}
+
+	.tile-action-dialog__content {
+		padding: 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.tile-action-dialog__content h3 {
+		margin: 0;
+		font-size: 1.2rem;
+	}
+
+	.tile-action-dialog__content p {
+		margin: 0;
+	}
+
+	.tile-action-dialog__upgrade-card {
+		padding: 2px;
+	}
+
+	.tile-action-dialog__actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 10px;
 	}
 
 	@media (max-width: 860px) {

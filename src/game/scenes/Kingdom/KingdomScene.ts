@@ -8,6 +8,7 @@ import {
 	type OverlayBackground,
 	type OverlayTownVisibility
 } from '../../../shared/ui/overlayRender';
+import { shouldBlockGameInput } from '../../../shared/ui/uiInputGuard';
 import { ConstructionBadge } from './projection/ConstructionBadge';
 import { ProjectionRenderSystem } from './projection/ProjectionRenderSystem';
 import { ProjectionHexGrid } from './projection/ProjectionHexGrid';
@@ -47,7 +48,7 @@ export class KingdomScene extends Scene {
 		this.applyOverlayRenderMode();
 	};
 	private readonly handlePointerDown = (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
-		if (this.isPointerFromUi(_pointer)) return;
+		if (this.shouldIgnorePointerInput(_pointer)) return;
 
 		if (currentlyOver.length === 0) {
 			gameSessionClient.clearSelectedTile();
@@ -61,6 +62,10 @@ export class KingdomScene extends Scene {
 		}
 	};
 	private readonly handlePointerMove = (pointer: Phaser.Input.Pointer) => {
+		if (this.shouldIgnorePointerInput(pointer)) {
+			this.stopPanning();
+			return;
+		}
 		if (!this.isPanning || !pointer.isDown) return;
 
 		const camera = this.cameras.main;
@@ -79,6 +84,7 @@ export class KingdomScene extends Scene {
 		_deltaX: number,
 		deltaY: number
 	) => {
+		if (this.shouldIgnorePointerInput(pointer)) return;
 		if (deltaY === 0) return;
 
 		const camera = this.cameras.main;
@@ -93,9 +99,8 @@ export class KingdomScene extends Scene {
 		camera.scrollY += worldPointBefore.y - worldPointAfter.y;
 	};
 
-	private isPointerFromUi(pointer: Phaser.Input.Pointer): boolean {
-		const target = pointer.event?.target;
-		return target instanceof HTMLElement && !!target.closest('#ui-root');
+	private shouldIgnorePointerInput(pointer: Phaser.Input.Pointer): boolean {
+		return shouldBlockGameInput(pointer.event?.target);
 	}
 
 	constructor() {

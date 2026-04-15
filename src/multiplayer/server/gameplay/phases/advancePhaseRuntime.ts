@@ -21,7 +21,6 @@ export type AdvanceRuntimeActionResult = { ok: true } | { ok: false; reason: str
 export class AdvancePhaseRuntime implements RuntimePhase {
 	readonly key = 'advance' as const;
 	private state: AdvancePhaseStateData;
-	private advancePhaseIndex = 0;
 
 	constructor() {
 		this.state = this.createEmptyState();
@@ -38,7 +37,7 @@ export class AdvancePhaseRuntime implements RuntimePhase {
 	onExit(_ctx: RuntimePhaseContext): void {}
 
 	startPhase(ctx: RuntimePhaseContext): void {
-		const level = resolveAdvanceLevel(this.advancePhaseIndex, configuration.advancePhase.levelByAdvanceIndex);
+		const level = resolveAdvanceLevel(ctx.phaseLoopIndex, configuration.advancePhase.levelByAdvanceIndex);
 		const desiredCount = Math.min(9, Math.max(1, ctx.playerIds.length + configuration.advancePhase.charterCountBonus));
 		const charterTemplates = pickCharterTemplatesForDraft(CHARTER_TEMPLATES, level, desiredCount);
 		const allBuildings = getAllBuildingDefs();
@@ -57,7 +56,6 @@ export class AdvancePhaseRuntime implements RuntimePhase {
 			secondsPerPick: configuration.advancePhase.secondsPerPick,
 			revealDelaySeconds: configuration.advancePhase.revealSecondsAfterDraft
 		});
-		this.advancePhaseIndex += 1;
 	}
 
 	tick(ctx: RuntimePhaseContext): PhaseTickResult {

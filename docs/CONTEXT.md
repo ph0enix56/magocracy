@@ -30,7 +30,7 @@ The codebase is organized into several directories, each serving a specific purp
 			- `config/`: Definitions of the game objects and their stat values - buildings, units, charters, as well as parsers for loading them from JSON files and related type definitions.
 			- `gameplay/`: Modules responsible for the core game logic and storing the game state. The main logic modules are the phase runtimes for each of the 3 game phases. These are built using the State pattern - each phase runtime has methods for processing its relevant commands, ticking the game loop and starting/ending the phase. Specific game logic is implemented in the services, used by the phase runtimes.
 			- `index.ts`: Entry point for the server.
-			- `RoomGameRuntime.ts`: Main module for managing the game runtime for a specific game room, driving the phase runtimes and their transitions and emitting the game state to clients.
+			- `RoomGameRuntime.ts`: Main module for managing the game runtime for a specific game room, driving the phase runtimes and their transitions and emitting the game state to clients. It also owns the canonical phase loop index and propagates it via runtime phase context to runtimes/services that need level progression.
 	- `shared/`: Shared code between the client and server.
 		- `domain/`: Type definitions for the game domain.
 		- `kingdom/`: Utility functions for working with the kingdom hex grid.

@@ -4,6 +4,7 @@ import {
 	EMPTY_HEX_TILE_COLOR,
 	getHoveredHexTileColor
 } from '../../../../shared/ui/buildingSchoolColors';
+import { shouldBlockGameInput } from '../../../../shared/ui/uiInputGuard';
 import type { TileScreenAnchor } from '../../../../multiplayer/client/session/types';
 import type { ProjectionTile } from './model';
 import type { ProjectionWorld } from './model';
@@ -118,7 +119,7 @@ export class ProjectionHexGrid {
 			this.applyHexTint(tile);
 		});
 		hex.on('pointerdown', (pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
-			if (this.isPointerFromUi(pointer)) return;
+			if (shouldBlockGameInput(pointer.event?.target)) return;
 			event.stopPropagation();
 			this.options.onTileSelected(q, r, { screenX: pointer.x, screenY: pointer.y });
 		});
@@ -182,8 +183,4 @@ export class ProjectionHexGrid {
 		}
 	}
 
-	private isPointerFromUi(pointer: Phaser.Input.Pointer): boolean {
-		const target = pointer.event?.target;
-		return target instanceof HTMLElement && !!target.closest('#ui-root');
-	}
 }

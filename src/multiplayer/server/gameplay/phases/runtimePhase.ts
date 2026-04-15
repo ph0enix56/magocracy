@@ -30,6 +30,7 @@ export type RuntimePlayerState = {
 
 export type RuntimePhaseContext = {
 	playerIds: string[];
+	phaseLoopIndex: number;
 	getPlayerRuntime: (playerId: string) => RuntimePlayerState | undefined;
 	resolveBuildPhaseDurationSeconds: () => number;
 	resolveBuildTickIntervalSeconds: () => number;

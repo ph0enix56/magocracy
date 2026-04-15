@@ -36,6 +36,7 @@ export class RoomGameRuntime {
 	private readonly advancePhaseRuntime: AdvancePhaseRuntime;
 	private readonly phaseByKey: Record<RuntimePhaseKey, RuntimePhase>;
 	private activePhase: RuntimePhase | null = null;
+	private phaseLoopIndex = 0;
 
 	constructor(playerIds: string[], onSnapshot: (snapshot: GameSnapshot) => void) {
 		this.playerIds = [...playerIds];
@@ -170,19 +171,26 @@ export class RoomGameRuntime {
 	}
 
 	private transitionTo(nextPhase: RuntimePhaseKey): void {
-		const context = this.buildPhaseContext();
+		const exitContext = this.buildPhaseContext();
 		if (this.activePhase) {
-			this.activePhase.onExit(context);
+			this.activePhase.onExit(exitContext);
 		}
+
+		if (nextPhase === 'advance' && this.activePhase) {
+			this.phaseLoopIndex += 1;
+		}
+
+		const enterContext = this.buildPhaseContext();
 		const next = this.phaseByKey[nextPhase];
 		this.activePhase = next;
 		this.phase = nextPhase;
-		next.onEnter(context);
+		next.onEnter(enterContext);
 	}
 
 	private buildPhaseContext(): RuntimePhaseContext {
 		return {
 			playerIds: this.playerIds,
+			phaseLoopIndex: this.phaseLoopIndex,
 			getPlayerRuntime: (playerId) => this.players.get(playerId),
 			resolveBuildPhaseDurationSeconds: () => this.resolveBuildPhaseDurationSeconds(),
 			resolveBuildTickIntervalSeconds: () => this.resolveBuildTickIntervalSeconds()

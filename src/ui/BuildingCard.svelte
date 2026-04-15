@@ -25,9 +25,22 @@
 	function onPreviewEnd() {
 		dispatch('previewend', def);
 	}
+
+	function tierOutlineColor(tier: number): string {
+		if (tier <= 1) return 'rgba(82, 180, 98, 0.82)';
+		if (tier === 2) return 'rgba(74, 145, 248, 0.82)';
+		if (tier === 3) return 'rgba(164, 97, 233, 0.82)';
+		return 'rgba(232, 176, 64, 0.86)';
+	}
 </script>
 
-<div class="building-card" role="group" on:mouseenter={onPreviewStart} on:mouseleave={onPreviewEnd}>
+<div
+	class="building-card"
+	role="group"
+	style={`--building-card-tier-outline: ${tierOutlineColor(def.tier)};`}
+	on:mouseenter={onPreviewStart}
+	on:mouseleave={onPreviewEnd}
+>
 	<div class="building-card__main">
 		<div class="icon-container">
 			<img src={`assets/${def.assetPath}`} alt={def.name} />
@@ -63,10 +76,11 @@
 		background: #333;
 		border-radius: 4px;
 		padding: 12px;
-		gap: 16px;
+		gap: 14px;
 		align-items: center;
 		justify-content: space-between;
 		cursor: default;
+		box-shadow: inset 0 0 0 1px var(--building-card-tier-outline, rgba(255, 255, 255, 0.2));
 	}
 
 	.building-card__main {
@@ -102,6 +116,9 @@
 		font-weight: bold;
 		font-size: 1.1rem;
 		margin-bottom: 6px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.count {
@@ -115,15 +132,18 @@
 		font-size: 0.85rem;
 		color: #aaa;
 		display: flex;
-		gap: 18px;
+		gap: 14px;
 		align-items: center;
-		flex-wrap: wrap;
+		flex-wrap: nowrap;
+		white-space: nowrap;
+		overflow: hidden;
 	}
 
 	.cost,
 	.time {
 		display: flex;
 		align-items: center;
+		white-space: nowrap;
 	}
 
 	.cost-item {
@@ -135,9 +155,14 @@
 		flex-shrink: 0;
 	}
 
+	.actions:empty {
+		display: none;
+	}
+
 	.actions .ui-button {
 		background: #4a9eff;
 		font-weight: bold;
+		white-space: nowrap;
 	}
 
 	.actions .ui-button:hover {

@@ -122,7 +122,7 @@
 <style>
 	.modal {
 		width: fit-content;
-		max-width: min(980px, calc(100vw - 24px));
+		max-width: min(1100px, calc(100vw - 24px));
 		max-height: 80vh;
 	}
 
@@ -141,7 +141,7 @@
 	.content {
 		padding: 16px 18px;
 		display: grid;
-		grid-template-columns: minmax(360px, 420px) minmax(360px, 420px);
+		grid-template-columns: minmax(500px, 560px) minmax(360px, 420px);
 		gap: 16px;
 		align-items: start;
 	}

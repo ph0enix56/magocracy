@@ -3,6 +3,8 @@ import { getPurchasableBuildings, type BuildingDef } from '../../config/building
 import type { WorldStore } from '../WorldStore';
 
 export class ShopService {
+	private phaseLoopIndex = 0;
+
 	constructor(private readonly world: WorldStore) {}
 
 	update(_delta: number, _time: number): void {}
@@ -30,6 +32,10 @@ export class ShopService {
 	rerollWithThrow(): void {
 		this.spendManaWithThrow(configuration.shop.rerollCost);
 		this.rerollInternal();
+	}
+
+	setPhaseLoopIndex(phaseLoopIndex: number): void {
+		this.phaseLoopIndex = Math.max(0, Math.floor(phaseLoopIndex));
 	}
 
 	buyWithThrow(slotIndex: number): string {
@@ -71,12 +77,33 @@ export class ShopService {
 	private randomOffer(): [string, number] | null {
 		const pool = this.purchasablePool();
 		if (pool.length === 0) return null;
-		const choice = pool[Math.floor(Math.random() * pool.length)]!;
+
+		const weightedTier = this.randomTierFromPhaseLoopDistribution();
+		const tierPool = pool.filter((building) => building.tier === weightedTier);
+		const offerPool = tierPool.length > 0 ? tierPool : pool;
+		const choice = offerPool[Math.floor(Math.random() * offerPool.length)]!;
 		return [choice.id, choice.tier];
 	}
 
 	private purchasablePool(): BuildingDef[] {
 		return getPurchasableBuildings();
+	}
+
+	private randomTierFromPhaseLoopDistribution(): number {
+		const configuredDistributions = configuration.shop.offerTierWeightsByPhaseLoop;
+		const distributionIndex = Math.min(this.phaseLoopIndex, configuredDistributions.length - 1);
+		const weights: readonly number[] = configuredDistributions[distributionIndex]!;
+		const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+
+		let roll = Math.random() * totalWeight;
+		for (let i = 0; i < weights.length; i += 1) {
+			roll -= weights[i]!;
+			if (roll < 0) {
+				return i + 1;
+			}
+		}
+
+		return weights.length;
 	}
 
 	private rerollInternal(): void {

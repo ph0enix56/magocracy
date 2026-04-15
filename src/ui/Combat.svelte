@@ -26,6 +26,12 @@
 		combatModalState.set({ isOpen: true });
 	});
 
+	const unsubPhaseExitClose = combatPanelState.subscribe((view) => {
+		if (!modal.isOpen) return;
+		if (view.isFightPhase) return;
+		combatModalState.set({ isOpen: false });
+	});
+
 	function close() {
 		combatModalState.set({ isOpen: false });
 	}
@@ -50,6 +56,7 @@
 		unsubModal();
 		unsubCombat();
 		unsubCombatOpen();
+		unsubPhaseExitClose();
 	});
 </script>
 
