@@ -50,7 +50,6 @@ export type SelectedTileView = {
 	buildingAssetPath?: string;
 	buildingStatus?: BuildingStatus;
 	constructionProgress?: number;
-	productionMultiplier?: number;
 	nextUpgradeId?: string;
 	nextUpgradeCost?: ResourceMap;
 	nextUpgradeTime?: number;

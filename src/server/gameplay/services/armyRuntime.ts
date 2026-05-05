@@ -26,12 +26,22 @@ export function recomputeHousedArmyUnit(world: WorldStore, housingEntityId: stri
 	const baseActionPoints = applyIntStatEffects(world, housingTile, buildingDef, 'unit:ap', unitDef.actionPoints);
 	const baseInitiative = applyIntStatEffects(world, housingTile, buildingDef, 'unit:initiative', unitDef.initiative);
 
+	const damageEffects = accumulateEffectsForTargetStat({
+		targetTile: housingTile,
+		targetBuildingDef: buildingDef,
+		targetStat: 'unit:damage',
+		resolveBuildingDef: getBuildingDef,
+		getNeighbors: (q, r) => getNeighborsFromWorld(world, q, r)
+	});
+
 	housedUnit.unitDefId = unitDef.id;
 	housedUnit.initiative = baseInitiative;
 	housedUnit.health = Math.max(0, baseHp);
 	housedUnit.drFlat = Math.max(0, baseDrFlat);
 	housedUnit.drPercent = Math.max(0, baseDrPercent);
 	housedUnit.actionPoints = Math.max(0, baseActionPoints);
+	housedUnit.bonusDamage = damageEffects.add;
+	housedUnit.damageMultiplier = damageEffects.mult;
 }
 
 export function getHousingBuildingForUnit(world: WorldStore, unitEntityId: string): KingdomTileState | undefined {

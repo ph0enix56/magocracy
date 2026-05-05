@@ -22,33 +22,36 @@ test('advanceTick applies base production for active production buildings', () =
 	const world = new WorldStore();
 	const service = new ProductionService(world);
 	world.resources.set('stone', 0);
-	world.upsertKingdomTile(createTile({ q: 0, r: 0, buildingId: 'stone_mine' }));
+	world.upsertKingdomTile(createTile({ q: 0, r: 0, buildingId: 'mining_camp' }));
 
 	service.advanceTick();
 
 	assert.equal(world.resources.get('stone'), 5);
 });
 
-test('calculateMultiplier includes self and neighbor production effects', () => {
+test('calculateResourceAmount combines self and neighbor production effects directly', () => {
 	const world = new WorldStore();
 	const service = new ProductionService(world);
-	world.upsertKingdomTile(createTile({ q: 0, r: 0, buildingId: 'lumber_camp' }));
+	const targetTile = createTile({ q: 0, r: 0, buildingId: 'logging_camp' });
+	world.upsertKingdomTile(targetTile);
 	world.upsertKingdomTile(createTile({ q: 1, r: 1, buildingId: 'farm' }));
-	world.upsertKingdomTile(createTile({ q: 2, r: 0, buildingId: 'house' }));
+	world.upsertKingdomTile(createTile({ q: 2, r: 0, buildingId: 'mining_camp' }));
 
-	const multiplier = service.calculateMultiplier(kingdomCoordKey(0, 0));
-	assert.equal(multiplier, 1.2);
+	// The logging_camp base is 5 wood
+	// It has self-foreach neighbor +1 wood. With 2 neighbors, it gets +2. Total 7.
+	const amount = service.calculateResourceAmount(targetTile, 'wood', 5);
+	assert.equal(amount, 7);
 });
 
-test('advanceTick applies current multiplier stacking semantics for lumber camp synergies', () => {
+test('advanceTick applies current multiplier stacking semantics for logging camp synergies', () => {
 	const world = new WorldStore();
 	const service = new ProductionService(world);
 	world.resources.set('wood', 0);
-	world.upsertKingdomTile(createTile({ q: 0, r: 0, buildingId: 'lumber_camp' }));
+	world.upsertKingdomTile(createTile({ q: 0, r: 0, buildingId: 'logging_camp' }));
 	world.upsertKingdomTile(createTile({ q: 1, r: 1, buildingId: 'farm' }));
-	world.upsertKingdomTile(createTile({ q: 2, r: 0, buildingId: 'house' }));
+	world.upsertKingdomTile(createTile({ q: 2, r: 0, buildingId: 'mining_camp' }));
 
 	service.advanceTick();
 
-	assert.equal(world.resources.get('wood'), 14);
+	assert.equal(world.resources.get('wood'), 7);
 });

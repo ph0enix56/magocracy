@@ -30,6 +30,14 @@ export function serializeKingdom(tiles: KingdomTileState[], productionService: P
 				building: tile.building
 					? (() => {
 						const def = getBuildingDef(tile.building.buildingId);
+						const modifiedProductions: ResourceMap | undefined = (() => {
+							if (tile.building.status !== 'active' || !def?.productions) return undefined;
+							const result: ResourceMap = {};
+							for (const [res, baseAmount] of Object.entries(def.productions)) {
+								result[res] = productionService.calculateResourceAmount(tile, res, baseAmount);
+							}
+							return result;
+						})();
 						return {
 							buildingId: tile.building.buildingId,
 							school: def?.school,
@@ -37,7 +45,7 @@ export function serializeKingdom(tiles: KingdomTileState[], productionService: P
 							progress: tile.building.progress,
 							upgradeNextId: tile.building.upgradeNextId,
 							...(tile.building.housedUnitId ? { housedUnitId: tile.building.housedUnitId } : {}),
-							productionMultiplier: tile.building.status === 'active' ? productionService.calculateMultiplier(tile.tileId) : undefined
+							modifiedProductions
 						};
 					})()
 					: undefined
@@ -59,7 +67,10 @@ export function serializeArmy(units: ArmyUnitState[]): ArmyUnit[] {
 			drFlat: unit.drFlat,
 			drPercent: unit.drPercent,
 			actionPoints: unit.actionPoints,
-			actions: unitDef?.actions.map((action) => ({ ...action })) ?? []
+			actions: unitDef?.actions.map((action) => ({
+				...action,
+				damage: Math.max(0, Math.floor((action.damage + (unit.bonusDamage ?? 0)) * (1 + (unit.damageMultiplier ?? 0))))
+			})) ?? []
 		};
 	});
 }

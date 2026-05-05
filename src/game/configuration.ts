@@ -32,6 +32,7 @@ export const configuration = {
 			prototype_marksman_camp: 1,
 			dolmen: 1,
 			granary: 1,
+			quarry: 1,
 			academy: 1,
 			deep_mine: 1,
 			berserker_camp: 1,

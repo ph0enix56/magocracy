@@ -10,7 +10,6 @@ export interface ProjectionBuilding {
 	status: BuildingStatus;
 	progress: number;
 	upgradeNextId?: string;
-	productionMultiplier?: number;
 }
 
 export interface ProjectionRenderState {

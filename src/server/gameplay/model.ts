@@ -17,6 +17,8 @@ export interface ArmyUnitState {
 	drFlat: number;
 	drPercent: number;
 	actionPoints: number;
+	bonusDamage?: number;
+	damageMultiplier?: number;
 }
 
 export interface KingdomTileState {

@@ -3,6 +3,7 @@
 	import { blueprintModalState } from './store/uiState';
 	import { sidebarViewState } from './store/sidebarViewState';
 	import BuildingCard from './BuildingCard.svelte';
+	import DistrictDetailCard from './DistrictDetailCard.svelte';
 	import {
 		gameSessionClient,
 		gameSessionState,
@@ -292,6 +293,14 @@
 					<div class="tile-action-dialog__upgrade-card">
 						<BuildingCard def={pendingUpgradeDef} count={null} actionLabel={null} actionDisabled={false} />
 					</div>
+					<div class="tile-action-dialog__upgrade-detail">
+						<DistrictDetailCard def={pendingUpgradeDef} showNotch={false} />
+						{#if pendingUpgradeDef.housedUnit}
+							<div style="margin-top: var(--space-sm)">
+								<UnitCard unit={pendingUpgradeDef.housedUnit} tier={pendingUpgradeDef.tier} showNotch={false} />
+							</div>
+						{/if}
+					</div>
 				{:else}
 					<p class="ui-muted">Upgrade target details unavailable.</p>
 				{/if}
@@ -445,6 +454,13 @@
 
 	.tile-action-dialog__upgrade-card {
 		padding: 2px;
+	}
+
+	.tile-action-dialog__upgrade-detail {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin-top: 8px;
 	}
 
 	.tile-action-dialog__actions {

@@ -132,7 +132,7 @@ export type KingdomBuildingSnapshot = {
 	progress: number;
 	upgradeNextId?: string;
 	housedUnitId?: string;
-	productionMultiplier?: number;
+	modifiedProductions?: ResourceMap;
 };
 
 export type KingdomTileSnapshot = KingdomCoord & {

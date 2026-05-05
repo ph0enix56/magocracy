@@ -175,7 +175,6 @@ function buildSelectedTileView(
 	let buildingAssetPath: string | undefined;
 	let buildingStatus: BuildingStatus | undefined;
 	let constructionProgress: number | undefined;
-	let productionMultiplier: number | undefined;
 	let nextUpgradeId: string | undefined;
 	let nextUpgradeCost: ResourceMap | undefined;
 	let nextUpgradeTime: number | undefined;
@@ -197,7 +196,7 @@ function buildSelectedTileView(
 			buildingSchool = def.school;
 			buildingTier = def.tier;
 			buildingDescription = def.description;
-			buildingProductions = def.productions;
+			buildingProductions = tile.building.modifiedProductions ?? def.productions;
 			housedUnit = def.housedUnit;
 			buildingAssetPath = def.assetPath;
 		}
@@ -211,7 +210,6 @@ function buildSelectedTileView(
 				upgradeProgress = toProgressPercent(tile.building.progress, targetDef.buildTime);
 			}
 		} else if (tile.building.status === 'active') {
-			productionMultiplier = tile.building.productionMultiplier;
 			const nextUpgrade = catalog.find((entry) => entry.parentId === buildingId);
 			if (nextUpgrade) {
 				nextUpgradeId = nextUpgrade.id;
@@ -241,7 +239,6 @@ function buildSelectedTileView(
 		buildingAssetPath,
 		buildingStatus,
 		constructionProgress,
-		productionMultiplier,
 		nextUpgradeId,
 		nextUpgradeCost,
 		nextUpgradeTime,

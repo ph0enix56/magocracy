@@ -216,8 +216,7 @@ export class KingdomScene extends Scene {
 					school: tile.building.school,
 					status: tile.building.status,
 					progress: tile.building.progress,
-					upgradeNextId: tile.building.upgradeNextId,
-					productionMultiplier: tile.building.productionMultiplier
+					upgradeNextId: tile.building.upgradeNextId
 				};
 			} else {
 				delete entity.building;
