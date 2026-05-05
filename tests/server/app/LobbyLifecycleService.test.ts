@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { LobbyLifecycleService } from '../../../src/multiplayer/server/app/LobbyLifecycleService';
-import type { ServerEventGateway } from '../../../src/multiplayer/server/app/lobbyTypes';
+import { LobbyLifecycleService } from '../../../src/server/app/LobbyLifecycleService';
+import type { ServerEventGateway } from '../../../src/server/app/lobbyTypes';
 
 function createGatewayMock() {
 	const joinCalls: Array<{ socketId: string; lobbyId: string }> = [];

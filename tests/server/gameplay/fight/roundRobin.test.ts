@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildRoundRobinPhase, type Pairing } from '../../../../src/multiplayer/server/gameplay/fight/roundRobin';
+import { buildRoundRobinPhase, type Pairing } from '../../../../src/server/gameplay/fight/roundRobin';
 
 type ScheduleStats = {
 	fightsByPlayerId: Map<string, number>;

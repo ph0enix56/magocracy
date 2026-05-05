@@ -1,25 +1,12 @@
-import { KingdomScene } from './scenes/Kingdom/KingdomScene';
-import { AUTO, Game, Scale, type Types } from 'phaser';
+import { mount } from 'svelte';
+import StartGame from './render/phaserEntry';
+import App from './ui/App.svelte';
 
-const config: Types.Core.GameConfig = {
-	type: AUTO,
-	width: '100%',
-	height: '100%',
-	parent: 'game-container',
-	backgroundColor: '#000000',
-	antialias: true,
-	antialiasGL: true,
-	roundPixels: false,
-	mipmapFilter: 'LINEAR',
-	scale: {
-		mode: Scale.RESIZE,
-		autoCenter: Scale.CENTER_BOTH
-	},
-	scene: [KingdomScene]
-};
+document.addEventListener('DOMContentLoaded', () => {
+	StartGame('game-container');
+});
 
-const StartGame = (parent: string) => {
-	return new Game({ ...config, parent });
+const target = document.getElementById('ui-root');
+if (target) {
+	mount(App, { target, props: {} });
 }
-
-export default StartGame;

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { kingdomCoordKey } from '../../../../src/shared/kingdom/kingdomGrid';
-import type { KingdomTileState } from '../../../../src/multiplayer/server/gameplay/model';
-import { WorldStore } from '../../../../src/multiplayer/server/gameplay/WorldStore';
-import { BuildService } from '../../../../src/multiplayer/server/gameplay/services/BuildService';
+import type { KingdomTileState } from '../../../../src/server/gameplay/model';
+import { WorldStore } from '../../../../src/server/gameplay/WorldStore';
+import { BuildService } from '../../../../src/server/gameplay/services/BuildService';
 
 function createTile(params: {
 	q: number;

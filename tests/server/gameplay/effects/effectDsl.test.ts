@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import type { BuildingDef } from '../../../../src/multiplayer/server/config/buildingTypes';
-import type { KingdomTileState } from '../../../../src/multiplayer/server/gameplay/model';
-import { accumulateEffectsForTargetStat, parseBuildingEffect } from '../../../../src/multiplayer/server/gameplay/effects/effectDsl';
+import type { BuildingDef } from '../../../../src/server/config/buildingTypes';
+import type { KingdomTileState } from '../../../../src/server/gameplay/model';
+import { accumulateEffectsForTargetStat, parseBuildingEffect } from '../../../../src/server/gameplay/effects/effectDsl';
 
 function makeDef(params: { id: string; school: BuildingDef['school']; tier: number; productions?: Record<string, number>; effects?: string[] }): BuildingDef {
 	return {

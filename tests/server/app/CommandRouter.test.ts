@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { ClientCommand } from '../../../src/shared/multiplayer/commands';
-import { routeClientCommand } from '../../../src/multiplayer/server/app/CommandRouter';
+import { routeClientCommand } from '../../../src/server/app/CommandRouter';
 
 type Invocation =
 	| { name: 'create'; playerName: string }

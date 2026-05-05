@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { CharterOption } from '../../../../src/shared/domain/charter';
-import { WorldStore } from '../../../../src/multiplayer/server/gameplay/WorldStore';
-import { PlayerProgressionService } from '../../../../src/multiplayer/server/gameplay/services/PlayerProgressionService';
+import { WorldStore } from '../../../../src/server/gameplay/WorldStore';
+import { PlayerProgressionService } from '../../../../src/server/gameplay/services/PlayerProgressionService';
 
 function createProgression(playerIds: string[]) {
 	const worlds = new Map<string, WorldStore>();

@@ -16,30 +16,37 @@ The codebase is organized into several directories, each serving a specific purp
 - `docs/`: Contains documentation for the project, including this context document and any other relevant documentation for developers.
 - `public/`: Contains static assets for the game, publicly served by the server - CSS, images, fonts
 - `src/`: Contains the source code for the game, including both client and server code.
-	- `game/`: Phaser related code - Phaser acts as a renderer and user input handler, getting its data from the shared client state. Logic is kept to a minimum.
-		- `main.ts`: Phaser game configuration and initialization.
+	- `game/`: Entire client-side game application, combining rendering, UI, and client communication logic.
 		- `configuration.ts`: All game configuration values and constants, split into objects based on concerns (economy, render, game phases, etc.).
-		- `scenes/Kingdom/`: The only game scene, containing the kingdom grid.
-			- `projection/`: modules related to projecting the game state onto the screen, including rendering the grid and handling user input. 
-			- `KingdomScene.ts`: The main scene file, responsible for setting up the scene, managing its lifecycle and handling user input.
-	- `multiplayer/`: Code related to multiplayer functionality, including the server and client communication logic.
-		- `client/`: Client-side code for managing communaication with the server, routing client commands and handling incoming messages via WebSockets to the server; updates the session store based on the server's messages, allowing the game UI to react to changes in the game state.
+		- `client/`: Client-side code for managing communication with the server, routing client commands and handling incoming messages via WebSockets; updates the session store based on the server's messages, allowing the game UI to react to changes in the game state.
+			- `MultiplayerClient.ts`: Handles WebSocket communication with the server.
+			- `gameSessionStore.ts`: Central store for game session state and API for sending commands.
 			- `session/`: Helper code related to managing the session store and validating user commands before sending them to the server.
-		- `server/`: Server-side code for processing communication with clients and managing the authoritative game state. The server includes all services responsible for the game logic and central state management.
-			- `app/`: Modules responsible for handling the client-server communaication and lobby lifecycle management, spinning up game runtimes when a game starts and routing messages between them and clients.
-			- `config/`: Definitions of the game objects and their stat values - buildings, units, charters, as well as parsers for loading them from JSON files and related type definitions.
-			- `gameplay/`: Modules responsible for the core game logic and storing the game state. The main logic modules are the phase runtimes for each of the 3 game phases. These are built using the State pattern - each phase runtime has methods for processing its relevant commands, ticking the game loop and starting/ending the phase. Specific game logic is implemented in the services, used by the phase runtimes.
-			- `index.ts`: Entry point for the server.
-			- `RoomGameRuntime.ts`: Main module for managing the game runtime for a specific game room, driving the phase runtimes and their transitions and emitting the game state to clients. It also owns the canonical phase loop index and propagates it via runtime phase context to runtimes/services that need level progression.
+		- `render/`: Phaser rendering engine code - Phaser acts as a renderer and user input handler, getting its data from the shared client state. Logic is kept to a minimum.
+			- `main.ts`: Phaser game configuration and initialization.
+			- `KingdomScene.ts`: The only game scene, responsible for setting up the scene, managing its lifecycle and handling user input.
+			- `projection/`: Modules related to projecting the game state onto the screen, including rendering the grid and handling user input.
+		- `ui/`: Svelte components for the user interface, including the main game UI overlaid on top of the Phaser canvas, as well as the lobby screen.
+			- `store/`: Projections of the session store subscribed by Svelte components, allowing updates only when relevant changes occur.
+			- `main-ui.ts`: Mount point for the Svelte app.
+	- `server/`: Server-side code for processing communication with clients and managing the authoritative game state. The server includes all services responsible for the game logic and central state management.
+		- `app/`: Modules responsible for handling client-server communication and lobby lifecycle management, spinning up game runtimes when a game starts and routing messages between them and clients.
+			- `LobbyApplicationService.ts`: Manages lobby-level application logic.
+			- `LobbyLifecycleService.ts`: Manages the lifecycle of lobbies (creation, joining, ready states, etc.).
+			- `LobbyRuntimeOrchestrator.ts`: Orchestrates game runtimes for active games.
+			- `CommandRouter.ts`: Routes client commands to the appropriate handlers.
+			- `SocketGateway.ts`: Handles WebSocket connections and communication.
+			- `ServerEventPublisher.ts`: Publishes server events to clients.
+		- `config/`: Definitions of the game objects and their stat values - buildings, units, charters, as well as parsers for loading them from JSON files and related type definitions.
+		- `gameplay/`: Modules responsible for the core game logic and storing the game state. The main logic modules are the phase runtimes for each of the 3 game phases. These are built using the State pattern - each phase runtime has methods for processing its relevant commands, ticking the game loop and starting/ending the phase. Specific game logic is implemented in the services, used by the phase runtimes.
+		- `index.ts`: Entry point for the server.
+		- `RoomGameRuntime.ts`: Main module for managing the game runtime for a specific game room, driving the phase runtimes and their transitions and emitting the game state to clients. It also owns the canonical phase loop index and propagates it via runtime phase context to runtimes/services that need level progression.
 	- `shared/`: Shared code between the client and server.
 		- `domain/`: Type definitions for the game domain.
 		- `kingdom/`: Utility functions for working with the kingdom hex grid.
 		- `multiplayer/`: Type definitions for the command and message shapes used in client-server communication, as well as DTOs for the game state snapshots sent to clients.
-		- `ui`/: Objects and utility functions shared between the Phaser renderer and Svelte UI, mostly tile and background themes.
-	- `ui/`: Svelte components for the user interface, including the main game UI overlaid on top of the Phaser canvas, as well as the lobby screen.
-		- `projections/`: Derivations of the full session store, subscribed by Svelte components so that each component can update only when relevant changes occur in the session store.
-		- `main-ui.ts`: Mount point for the Svelte app.
-	- `main.ts`: Entry point for the Phaser game.
+		- `ui/`: Objects and utility functions shared between the Phaser renderer and Svelte UI, mostly tile and background themes.
+	- `main.ts`: Entry point for the client application.
 - `tests/`: Contains unit tests, with the structure mirroring that of the `src/` directory.
 - `vite/`: Contains configuration for Vite, the build tool used for the project.
 - `index.html`: The main HTML file for the game, which loads the entry point script modules for Phaser and Svelte.

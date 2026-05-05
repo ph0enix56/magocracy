@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { configuration } from '../../../../src/game/configuration';
-import { getPurchasableBuildings } from '../../../../src/multiplayer/server/config/buildings';
-import { WorldStore } from '../../../../src/multiplayer/server/gameplay/WorldStore';
-import { ShopService } from '../../../../src/multiplayer/server/gameplay/services/ShopService';
+import { getPurchasableBuildings } from '../../../../src/server/config/buildings';
+import { WorldStore } from '../../../../src/server/gameplay/WorldStore';
+import { ShopService } from '../../../../src/server/gameplay/services/ShopService';
 
 test('rerollWithThrow spends mana and fills offers from purchasable pool', () => {
 	const world = new WorldStore();

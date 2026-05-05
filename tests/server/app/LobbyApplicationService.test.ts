@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { ServerEvent } from '../../../src/shared/multiplayer/events';
-import { LobbyApplicationService } from '../../../src/multiplayer/server/app/LobbyApplicationService';
-import type { ServerEventGateway } from '../../../src/multiplayer/server/app/lobbyTypes';
+import { LobbyApplicationService } from '../../../src/server/app/LobbyApplicationService';
+import type { ServerEventGateway } from '../../../src/server/app/lobbyTypes';
 
 type EmitCall = { socketId: string; event: ServerEvent };
 type BroadcastCall = { lobbyId: string; event: ServerEvent };

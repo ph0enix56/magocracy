@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { GameActionCommand } from '../../../../src/shared/multiplayer/commands';
-import { routeGameAction } from '../../../../src/multiplayer/server/gameplay/actions/gameActionRouter';
+import { routeGameAction } from '../../../../src/server/gameplay/actions/gameActionRouter';
 
 type Invocation = { handler: string; actionType: GameActionCommand['type'] };
 
