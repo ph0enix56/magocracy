@@ -72,13 +72,13 @@
 	.district-card__titles h3 {
 		margin: 0;
 		line-height: 1;
-		font-weight: 800;
+		font-weight: var(--font-weight-extrabold);
 		font-size: 28px;
 	}
 
 	.district-card__titles p {
-		margin: 4px 0 0;
-		font-size: 16px;
+		margin: var(--space-xs) 0 0;
+		font-size: var(--space-lg);
 		line-height: 1.1;
 	}
 
@@ -86,18 +86,18 @@
 		margin-top: 10px;
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: var(--space-xs);
 	}
 
 	.district-card__description p {
 		margin: 0;
-		font-size: 16px;
+		font-size: var(--space-lg);
 		line-height: 1.2;
 	}
 
 	@media (max-width: 860px) {
 		.district-card {
-			padding: 10px 12px;
+			padding: 10px var(--space-md);
 		}
 
 		.district-card__titles h3 {

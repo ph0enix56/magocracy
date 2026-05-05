@@ -309,20 +309,20 @@
 	.tile-card {
 		position: fixed;
 		padding: 14px;
-		max-width: min(430px, calc(100vw - 24px));
-		min-width: min(330px, calc(100vw - 24px));
+		max-width: min(430px, calc(100vw - var(--space-xl)));
+		min-width: min(330px, calc(100vw - var(--space-xl)));
 		z-index: 40;
 		pointer-events: auto;
 	}
 
 	.tile-card--with-unit {
-		max-width: min(880px, calc(100vw - 24px));
+		max-width: min(880px, calc(100vw - var(--space-xl)));
 	}
 
 	.tile-card__layout {
 		display: grid;
 		grid-template-columns: minmax(300px, 430px);
-		gap: 12px;
+		gap: var(--space-md);
 		align-items: start;
 	}
 
@@ -363,19 +363,19 @@
 	.tile-card__titles h2 {
 		margin: 0;
 		line-height: 1;
-		font-weight: 800;
+		font-weight: var(--font-weight-extrabold);
 		font-size: 28px;
 	}
 
 	.tile-card__titles p {
-		margin: 4px 0 0;
-		font-size: 16px;
+		margin: var(--space-xs) 0 0;
+		font-size: var(--space-lg);
 		line-height: 1.1;
 	}
 
 	.tile-card__status {
 		margin: 10px 0 0;
-		font-size: 16px;
+		font-size: var(--space-lg);
 		line-height: 1.2;
 	}
 
@@ -383,12 +383,12 @@
 		margin-top: 10px;
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: var(--space-xs);
 	}
 
 	.tile-card__description p {
 		margin: 0;
-		font-size: 16px;
+		font-size: var(--space-lg);
 		line-height: 1.2;
 	}
 
@@ -402,11 +402,11 @@
 
 	.tile-card__action {
 		background: #2270ff;
-		border-color: rgba(255, 255, 255, 0.08);
-		font-weight: 700;
+		border-color: var(--color-border-subtle);
+		font-weight: var(--font-weight-bold);
 		line-height: 1;
-		font-size: 24px;
-		padding: 8px 14px;
+		font-size: var(--space-xl);
+		padding: var(--space-sm) 14px;
 	}
 
 	.tile-card__action:hover {
@@ -416,22 +416,22 @@
 	.tile-action-dialog {
 		padding: 0;
 		border: 1px solid rgba(255, 255, 255, 0.24);
-		border-radius: 8px;
-		background: #2a2a2a;
-		color: #ffffff;
-		width: min(640px, calc(100vw - 24px));
+		border-radius: var(--radius-lg);
+		background: var(--color-surface-2);
+		color: var(--color-text-light);
+		width: min(640px, calc(100vw - var(--space-xl)));
 		pointer-events: auto;
 	}
 
 	.tile-action-dialog::backdrop {
-		background: rgba(0, 0, 0, 0.55);
+		background: var(--color-surface-trans-55);
 	}
 
 	.tile-action-dialog__content {
-		padding: 16px;
+		padding: var(--space-lg);
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: var(--space-md);
 	}
 
 	.tile-action-dialog__content h3 {
@@ -455,7 +455,7 @@
 
 	@media (max-width: 860px) {
 		.tile-card {
-			min-width: min(280px, calc(100vw - 24px));
+			min-width: min(280px, calc(100vw - var(--space-xl)));
 		}
 
 		.tile-card--with-unit .tile-card__layout {

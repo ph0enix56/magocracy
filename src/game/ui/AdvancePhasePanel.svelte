@@ -1,8 +1,14 @@
 <script lang="ts">
 	import { advancePanelState } from './store/advanceViewState';
-	import { gameSessionClient } from '../client/gameSessionStore';
+	import { gameSessionClient, gameSessionState } from '../client/gameSessionStore';
+	import DistrictDetailCard from './DistrictDetailCard.svelte';
+	import UnitCard from './UnitCard.svelte';
+	import type { BuildingCatalogEntry } from '../../shared/multiplayer/snapshots';
 
 	let isSubmittingPick = false;
+	let previewBuilding: BuildingCatalogEntry | null = null;
+	let popoutLeft = 0;
+	let popoutTop = 0;
 
 	function playerName(playerId: string | null | undefined): string {
 		if (!playerId) return 'Unknown';
@@ -23,6 +29,11 @@
 		return `${key.slice(0, 1).toUpperCase()}${key.slice(1)}`;
 	}
 
+	function buildingName(buildingId: string): string {
+		const entry = $gameSessionState.catalog.find(c => c.id === buildingId);
+		return entry?.name ?? buildingId;
+	}
+
 	async function pickCharter(charterId: string) {
 		if (isSubmittingPick) return;
 		isSubmittingPick = true;
@@ -37,7 +48,37 @@
 	$: currentPickerPlayerId = $advancePanelState.advance.currentPickerPlayerId;
 	$: isMyTurn = $advancePanelState.isMyTurn;
 	$: inReveal = $advancePanelState.inReveal;
+
+	function openBlueprintPopout(event: PointerEvent, buildingId: string) {
+		const entry = $gameSessionState.catalog.find(c => c.id === buildingId);
+		if (!entry) return;
+		previewBuilding = entry;
+
+		const target = event.currentTarget as HTMLElement;
+		const rect = target.getBoundingClientRect();
+		const cardWidth = 430;
+		const cardHeight = 320;
+
+		let nextLeft = rect.right + 12;
+		if (nextLeft + cardWidth > window.innerWidth) {
+			nextLeft = Math.max(8, rect.left - cardWidth - 12);
+		}
+
+		let nextTop = rect.top;
+		if (nextTop + cardHeight > window.innerHeight) {
+			nextTop = Math.max(8, window.innerHeight - cardHeight - 8);
+		}
+
+		popoutLeft = nextLeft;
+		popoutTop = nextTop;
+	}
+
+	function closePopout() {
+		previewBuilding = null;
+	}
 </script>
+
+<svelte:window on:pointerdown={closePopout} />
 
 {#if $advancePanelState.isAdvancePhase}
 	<div class="advance-panel ui-panel">
@@ -96,7 +137,12 @@
 						{:else}
 							<div class="charter-tags">
 								{#each charter.blueprints as blueprint (`${charter.charterId}-${blueprint.buildingId}-${blueprint.tier}`)}
-									<span class="charter-tag">+{blueprint.count} {blueprint.buildingId} (T{blueprint.tier})</span>
+									<button
+										class="charter-tag charter-tag--interactive"
+										on:pointerdown|stopPropagation={(e) => openBlueprintPopout(e, blueprint.buildingId)}
+									>
+										+{blueprint.count} {buildingName(blueprint.buildingId)} (T{blueprint.tier})
+									</button>
 								{/each}
 							</div>
 						{/if}
@@ -106,7 +152,7 @@
 						<div class="charter-picked">Taken by {takenByName}</div>
 					{:else}
 						<button
-							class="ui-button charter-pick"
+							class="ui-button ui-button--action charter-pick"
 							disabled={!isMyTurn || isSubmittingPick}
 							on:click={() => pickCharter(charter.charterId)}
 						>
@@ -117,6 +163,21 @@
 			{/each}
 		</div>
 	</div>
+
+	{#if previewBuilding}
+		<div
+			class="blueprint-popout"
+			style="left: {popoutLeft}px; top: {popoutTop}px;"
+			on:pointerdown|stopPropagation
+		>
+			<DistrictDetailCard def={previewBuilding} showNotch={false} />
+			{#if previewBuilding.housedUnit}
+				<div class="blueprint-popout-unit">
+					<UnitCard unit={previewBuilding.housedUnit} tier={previewBuilding.tier} showNotch={false} />
+				</div>
+			{/if}
+		</div>
+	{/if}
 {/if}
 
 <style>
@@ -125,10 +186,10 @@
 		left: 50%;
 		top: 50%;
 		transform: translate(-50%, -50%);
-		width: min(1120px, calc(100vw - 24px));
-		max-height: calc(100vh - 24px);
+		width: min(1120px, calc(100vw - var(--space-xl)));
+		max-height: calc(100vh - var(--space-xl));
 		overflow: auto;
-		padding: 12px;
+		padding: var(--space-md);
 		pointer-events: auto;
 	}
 
@@ -136,13 +197,13 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: 12px;
+		gap: var(--space-md);
 		margin-bottom: 10px;
 	}
 
 	.advance-title {
 		font-size: 1.15rem;
-		font-weight: 800;
+		font-weight: var(--font-weight-extrabold);
 	}
 
 	.advance-subtitle {
@@ -154,11 +215,11 @@
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		gap: 4px;
+		gap: var(--space-xs);
 	}
 
 	.advance-turn-label {
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 	}
 
 	.advance-turn-label--mine {
@@ -167,14 +228,14 @@
 
 	.advance-timer {
 		font-size: 1.2rem;
-		font-weight: 900;
+		font-weight: var(--font-weight-black);
 	}
 
 	.advance-order {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 6px;
-		margin-bottom: 12px;
+		margin-bottom: var(--space-md);
 	}
 
 	.advance-order-chip {
@@ -182,7 +243,7 @@
 		align-items: center;
 		gap: 5px;
 		font-size: 0.85rem;
-		padding: 4px 8px;
+		padding: var(--space-xs) var(--space-sm);
 		border-radius: 999px;
 		background: rgba(255, 255, 255, 0.08);
 		border: 1px solid rgba(255, 255, 255, 0.14);
@@ -194,7 +255,7 @@
 	}
 
 	.advance-order-chip--me {
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 	}
 
 	.advance-order-index {
@@ -212,7 +273,7 @@
 		flex-direction: column;
 		gap: 10px;
 		padding: 10px;
-		border-radius: 8px;
+		border-radius: var(--space-sm);
 		background: rgba(0, 0, 0, 0.22);
 		border: 1px solid rgba(255, 255, 255, 0.14);
 	}
@@ -226,11 +287,11 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: 8px;
+		gap: var(--space-sm);
 	}
 
 	.charter-title {
-		font-weight: 800;
+		font-weight: var(--font-weight-extrabold);
 	}
 
 	.charter-level {
@@ -265,6 +326,17 @@
 		border-radius: 999px;
 		background: rgba(255, 255, 255, 0.11);
 		border: 1px solid rgba(255, 255, 255, 0.14);
+		color: inherit;
+		font-family: inherit;
+	}
+
+	.charter-tag--interactive {
+		cursor: pointer;
+	}
+
+	.charter-tag--interactive:hover {
+		background: rgba(255, 255, 255, 0.22);
+		border-color: rgba(255, 255, 255, 0.3);
 	}
 
 	.charter-empty {
@@ -274,7 +346,7 @@
 
 	.charter-picked {
 		font-size: 0.88rem;
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 		opacity: 0.9;
 	}
 
@@ -292,5 +364,20 @@
 		.advance-grid {
 			grid-template-columns: 1fr;
 		}
+	}
+
+	.blueprint-popout {
+		position: fixed;
+		z-index: 120;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+		width: 430px;
+		max-width: calc(100vw - 32px);
+		filter: drop-shadow(var(--shadow-elevation-1));
+	}
+
+	.blueprint-popout-unit {
+		width: 100%;
 	}
 </style>

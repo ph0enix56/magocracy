@@ -63,7 +63,7 @@ export const configuration = {
 	advancePhase: {
 		secondsPerPick: 20,
 		revealSecondsAfterDraft: 8,
-		charterCountBonus: 1,
+		charterCountBonus: 2,
 		levelByAdvanceIndex: [1, 1, 2, 2, 3, 3, 4]
 	},
 

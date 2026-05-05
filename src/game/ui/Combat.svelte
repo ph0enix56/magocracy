@@ -150,47 +150,47 @@
 
 	.header-actions {
 		display: flex;
-		gap: 8px;
+		gap: var(--space-sm);
 		align-items: center;
 	}
 
 
 
 	.meta {
-		padding: 10px 16px;
+		padding: 10px var(--space-lg);
 		display: flex;
-		gap: 16px;
+		gap: var(--space-lg);
 		flex-wrap: wrap;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-		color: #ddd;
+		border-bottom: 1px solid var(--color-border-subtle);
+		color: var(--color-text-dim);
 		font-size: 0.95rem;
 	}
 
 	.readonly-banner {
-		padding: 10px 16px 0;
-		color: #ffd28a;
+		padding: 10px var(--space-lg) 0;
+		color: var(--color-accent-orange);
 		font-size: 0.9rem;
 	}
 
 	.content {
-		padding: 16px;
+		padding: var(--space-lg);
 		overflow: auto;
 		display: grid;
 		grid-template-columns: 1fr;
-		gap: 16px;
+		gap: var(--space-lg);
 	}
 
 	.armies {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 16px;
+		gap: var(--space-lg);
 	}
 
 	.army {
-		background: #333;
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: 6px;
-		padding: 12px;
+		background: var(--color-surface-3);
+		border: 1px solid var(--color-border-subtle);
+		border-radius: var(--radius-md);
+		padding: var(--space-md);
 		min-height: 160px;
 	}
 
@@ -204,16 +204,16 @@
 		grid-template-columns: 92px 1fr;
 		gap: 10px;
 		align-items: center;
-		padding: 8px;
-		border-radius: 6px;
-		background: rgba(0, 0, 0, 0.18);
+		padding: var(--space-sm);
+		border-radius: var(--radius-md);
+		background: var(--color-surface-trans-18);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		margin-bottom: 8px;
+		margin-bottom: var(--space-sm);
 	}
 
 	.unit-left {
 		display: flex;
-		gap: 8px;
+		gap: var(--space-sm);
 		align-items: center;
 	}
 
@@ -223,20 +223,20 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: #222;
+		background: var(--color-surface-1);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: 4px;
-		font-weight: 800;
+		border-radius: var(--radius-sm);
+		font-weight: var(--font-weight-extrabold);
 	}
 
 	.icon {
 		width: 44px;
 		height: 44px;
-		background: #222;
-		border-radius: 4px;
-		border: 1px solid rgba(255, 255, 255, 0.08);
+		background: var(--color-surface-1);
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--color-border-subtle);
 		object-fit: contain;
-		padding: 4px;
+		padding: var(--space-xs);
 	}
 
 	.icon--ally {
@@ -248,11 +248,11 @@
 	}
 
 	.name {
-		font-weight: 800;
+		font-weight: var(--font-weight-extrabold);
 	}
 
 	.hp-text {
-		color: #ddd;
+		color: var(--color-text-dim);
 		font-size: 0.9rem;
 		margin-top: 2px;
 	}
@@ -260,16 +260,16 @@
 	.hp-bar {
 		width: 100%;
 		height: 10px;
-		background: #222;
-		border-radius: 999px;
+		background: var(--color-surface-1);
+		border-radius: var(--radius-pill);
 		overflow: hidden;
-		border: 1px solid rgba(255, 255, 255, 0.08);
+		border: 1px solid var(--color-border-subtle);
 		margin-top: 6px;
 	}
 
 	.hp-fill {
 		height: 100%;
-		background: #00c26e;
+		background: var(--color-accent-green);
 		transition: width 0.15s linear;
 	}
 
@@ -279,10 +279,10 @@
 	}
 
 	.log {
-		background: #333;
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: 6px;
-		padding: 12px;
+		background: var(--color-surface-3);
+		border: 1px solid var(--color-border-subtle);
+		border-radius: var(--radius-md);
+		padding: var(--space-md);
 	}
 
 	.log h3 {
@@ -291,13 +291,13 @@
 	}
 
 	.log-box {
-		background: #222;
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: 6px;
+		background: var(--color-surface-1);
+		border: 1px solid var(--color-border-subtle);
+		border-radius: var(--radius-md);
 		padding: 10px;
 		max-height: 260px;
 		overflow: auto;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+		font-family: var(--font-mono);
 		font-size: 0.85rem;
 		color: #e8e8e8;
 	}

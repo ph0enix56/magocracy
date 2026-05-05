@@ -163,10 +163,10 @@
 		left: 50%;
 		top: 50%;
 		transform: translate(-50%, -50%);
-		width: min(980px, calc(100vw - 24px));
-		max-height: calc(100vh - 24px);
+		width: min(980px, calc(100vw - var(--space-xl)));
+		max-height: calc(100vh - var(--space-xl));
 		overflow: auto;
-		padding: 12px;
+		padding: var(--space-md);
 		pointer-events: auto;
 	}
 
@@ -174,13 +174,13 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: 12px;
+		gap: var(--space-md);
 		margin-bottom: 10px;
 	}
 
 	.fight-title {
 		font-size: 1.1rem;
-		font-weight: 800;
+		font-weight: var(--font-weight-extrabold);
 	}
 
 	.fight-subtitle {
@@ -190,21 +190,21 @@
 
 	.fight-timer {
 		font-size: 1.4rem;
-		font-weight: 900;
+		font-weight: var(--font-weight-black);
 		letter-spacing: 0.03em;
 	}
 
 	.fight-layout {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
-		gap: 12px;
+		gap: var(--space-md);
 		align-items: start;
 	}
 
 	.fight-body {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: var(--space-sm);
 	}
 
 	.fight-row {
@@ -212,8 +212,8 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: 10px;
-		padding: 8px;
-		border-radius: 6px;
+		padding: var(--space-sm);
+		border-radius: var(--radius-md);
 		background: rgba(0, 0, 0, 0.2);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
@@ -222,7 +222,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
-		gap: 8px;
+		gap: var(--space-sm);
 		flex: 1;
 	}
 
@@ -234,18 +234,18 @@
 	}
 
 	.fight-round {
-		font-weight: 800;
+		font-weight: var(--font-weight-extrabold);
 		min-width: 34px;
 	}
 
 	.fight-opponent {
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 	}
 
 	.fight-armies {
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: var(--space-xs);
 		font-size: 0.9rem;
 		opacity: 0.9;
 	}
@@ -272,17 +272,17 @@
 
 	.fight-unit-link:hover,
 	.fight-unit-link:focus-visible {
-		color: #ffffff;
+		color: var(--color-text-light);
 	}
 
 	.fight-army-name {
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 	}
 
 	.fight-status {
 		font-size: 0.85rem;
-		padding: 2px 8px;
-		border-radius: 999px;
+		padding: 2px var(--space-sm);
+		border-radius: var(--radius-pill);
 		border: 1px solid rgba(255, 255, 255, 0.22);
 	}
 
@@ -320,13 +320,13 @@
 		top: 0;
 		max-height: calc(100vh - 130px);
 		overflow: auto;
-		padding-right: 4px;
+		padding-right: var(--space-xs);
 	}
 
 	.fight-preview-empty {
-		padding: 12px;
-		border: 1px dashed rgba(255, 255, 255, 0.25);
-		border-radius: 6px;
+		padding: var(--space-md);
+		border: 1px dashed var(--color-border-dashed);
+		border-radius: var(--radius-md);
 	}
 
 	.fight-empty {

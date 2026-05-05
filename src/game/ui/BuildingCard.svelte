@@ -73,9 +73,9 @@
 <style>
 	.building-card {
 		display: flex;
-		background: #333;
-		border-radius: 4px;
-		padding: 12px;
+		background: var(--color-surface-3);
+		border-radius: var(--radius-sm);
+		padding: var(--space-md);
 		gap: 14px;
 		align-items: center;
 		justify-content: space-between;
@@ -85,7 +85,7 @@
 
 	.building-card__main {
 		display: flex;
-		gap: 12px;
+		gap: var(--space-md);
 		align-items: center;
 		min-width: 0;
 		flex: 1;
@@ -94,8 +94,8 @@
 	.icon-container {
 		width: 64px;
 		height: 64px;
-		background: #222;
-		border-radius: 4px;
+		background: var(--color-surface-1);
+		border-radius: var(--radius-sm);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -122,15 +122,15 @@
 	}
 
 	.count {
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 		font-size: 0.9rem;
-		color: #ffd700;
+		color: var(--color-accent-gold);
 		margin-left: 6px;
 	}
 
 	.stats {
 		font-size: 0.85rem;
-		color: #aaa;
+		color: var(--color-text-muted);
 		display: flex;
 		gap: 14px;
 		align-items: center;
@@ -147,8 +147,8 @@
 	}
 
 	.cost-item {
-		margin-left: 8px;
-		color: #ffd700;
+		margin-left: var(--space-sm);
+		color: var(--color-accent-gold);
 	}
 
 	.actions {

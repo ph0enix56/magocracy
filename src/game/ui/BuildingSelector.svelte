@@ -95,15 +95,15 @@
 <style>
     .modal {
         width: fit-content;
-        max-width: min(1100px, calc(100vw - 24px));
+        max-width: min(1100px, calc(100vw - var(--space-xl)));
         max-height: 80vh;
     }
 
     .content {
-        padding: 16px 18px;
+        padding: var(--space-lg) 18px;
         display: grid;
         grid-template-columns: minmax(500px, 560px) minmax(360px, 420px);
-        gap: 16px;
+        gap: var(--space-lg);
         align-items: start;
     }
 
@@ -111,14 +111,14 @@
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: var(--space-md);
         max-height: calc(80vh - 92px);
         padding-inline: 2px;
     }
 
     .empty {
-        padding: 12px;
-        margin-bottom: 8px;
+        padding: var(--space-md);
+        margin-bottom: var(--space-sm);
     }
 
     .preview-pane {
@@ -137,9 +137,9 @@
     }
 
     .preview-empty {
-        padding: 12px;
-        border: 1px dashed rgba(255, 255, 255, 0.25);
-        border-radius: 6px;
+        padding: var(--space-md);
+        border: 1px dashed var(--color-border-dashed);
+        border-radius: var(--radius-md);
     }
 
     @media (max-width: 1000px) {

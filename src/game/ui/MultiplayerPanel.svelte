@@ -139,23 +139,23 @@
 		left: 50%;
 		transform: translate(-50%, -50%);
 		width: min(560px, calc(100vw - 32px));
-		padding: 16px;
+		padding: var(--space-lg);
 		pointer-events: auto;
 	}
 	.multiplayer-title {
 		font-size: var(--ui-font-size-xl);
-		font-weight: 800;
-		margin-bottom: 4px;
+		font-weight: var(--font-weight-extrabold);
+		margin-bottom: var(--space-xs);
 	}
 	.multiplayer-subtitle {
 		font-size: var(--ui-font-size-md);
 		opacity: 0.75;
-		margin-bottom: 12px;
+		margin-bottom: var(--space-md);
 	}
 	.multiplayer-row {
 		display: flex;
 		justify-content: space-between;
-		gap: 8px;
+		gap: var(--space-sm);
 		font-size: var(--ui-font-size-sm);
 		margin-bottom: 6px;
 	}
@@ -165,17 +165,17 @@
 	.multiplayer-field-row {
 		display: grid;
 		grid-template-columns: 1fr auto;
-		gap: 8px;
+		gap: var(--space-sm);
 		margin-bottom: 10px;
 	}
 	.multiplayer-input {
 		height: 36px;
 		box-sizing: border-box;
 		padding: 0 10px;
-		border-radius: 4px;
+		border-radius: var(--radius-sm);
 		border: 1px solid rgba(255, 255, 255, 0.18);
 		background: rgba(0, 0, 0, 0.45);
-		color: #fff;
+		color: var(--color-text-light);
 		font: inherit;
 	}
 	.multiplayer-input::placeholder {
@@ -183,8 +183,8 @@
 	}
 	.multiplayer-actions {
 		display: flex;
-		gap: 8px;
-		margin-top: 8px;
+		gap: var(--space-sm);
+		margin-top: var(--space-sm);
 	}
 	.multiplayer-actions .ui-button,
 	.multiplayer-start {
@@ -196,23 +196,23 @@
 		margin-top: 10px;
 	}
 	.multiplayer-players {
-		margin-top: 8px;
+		margin-top: var(--space-sm);
 		padding: 10px;
-		border-radius: 6px;
+		border-radius: var(--radius-md);
 		background: rgba(0, 0, 0, 0.25);
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: var(--space-sm);
 	}
 	.multiplayer-player-row {
 		display: grid;
 		grid-template-columns: 1fr auto auto;
-		gap: 8px;
+		gap: var(--space-sm);
 		align-items: center;
 		font-size: var(--ui-font-size-sm);
 	}
 	.multiplayer-player-name {
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -220,8 +220,8 @@
 	}
 	.multiplayer-player-state {
 		font-size: var(--ui-font-size-xs);
-		padding: 2px 8px;
-		border-radius: 999px;
+		padding: 2px var(--space-sm);
+		border-radius: var(--radius-pill);
 		border: 1px solid rgba(255, 255, 255, 0.2);
 	}
 	.multiplayer-player-state.is-ready {
@@ -233,7 +233,7 @@
 	.multiplayer-host-badge {
 		font-size: var(--ui-font-size-xs);
 		padding: 2px 7px;
-		border-radius: 999px;
+		border-radius: var(--radius-pill);
 		background: rgba(72, 130, 201, 0.35);
 	}
 	.multiplayer-start {

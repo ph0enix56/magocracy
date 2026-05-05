@@ -17,6 +17,6 @@
 		text-align: center;
 	}
 	.value {
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 	}
 </style>

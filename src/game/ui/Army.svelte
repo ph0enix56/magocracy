@@ -104,15 +104,15 @@
 <style>
 	.modal {
 		width: fit-content;
-		max-width: min(960px, calc(100vw - 24px));
+		max-width: min(960px, calc(100vw - var(--space-xl)));
 		max-height: 80vh;
 	}
 
 	.content {
-		padding: 16px 18px;
+		padding: var(--space-lg) 18px;
 		display: grid;
 		grid-template-columns: minmax(340px, 400px) minmax(360px, 420px);
-		gap: 16px;
+		gap: var(--space-lg);
 		align-items: start;
 	}
 
@@ -120,27 +120,27 @@
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: var(--space-md);
 		max-height: calc(80vh - 92px);
 		padding-inline: 2px;
 	}
 
 	.readonly-banner {
-		padding: 10px 16px 0;
-		color: #ffd28a;
+		padding: 10px var(--space-lg) 0;
+		color: var(--color-accent-orange);
 		font-size: 0.9rem;
 	}
 
 	.empty {
-		padding: 12px;
+		padding: var(--space-md);
 	}
 
 	.unit-row {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		background: #333;
-		border-radius: 4px;
+		background: var(--color-surface-3);
+		border-radius: var(--radius-sm);
 		padding: 10px;
 		gap: 10px;
 		cursor: default;
@@ -156,7 +156,7 @@
 
 	.unit-name {
 		font-size: 1.05rem;
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 	}
 
 	.reorder {
@@ -168,8 +168,8 @@
 	.icon-container {
 		width: 52px;
 		height: 52px;
-		background: #222;
-		border-radius: 4px;
+		background: var(--color-surface-1);
+		border-radius: var(--radius-sm);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -186,14 +186,14 @@
 	}
 
 	.reorder-btn {
-		background: #444;
-		border: 1px solid rgba(255, 255, 255, 0.15);
-		color: #fff;
-		font-weight: 800;
+		background: var(--color-surface-4);
+		border: 1px solid var(--color-border-default);
+		color: var(--color-text-light);
+		font-weight: var(--font-weight-extrabold);
 	}
 
 	.reorder-btn:hover {
-		background: #555;
+		background: var(--color-surface-5);
 	}
 
 	.reorder-btn:disabled {
@@ -210,9 +210,9 @@
 	}
 
 	.preview-empty {
-		padding: 12px;
-		border: 1px dashed rgba(255, 255, 255, 0.25);
-		border-radius: 6px;
+		padding: var(--space-md);
+		border: 1px dashed var(--color-border-dashed);
+		border-radius: var(--radius-md);
 	}
 
 	@media (max-width: 980px) {

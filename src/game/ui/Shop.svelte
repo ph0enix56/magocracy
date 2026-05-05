@@ -122,27 +122,27 @@
 <style>
 	.modal {
 		width: fit-content;
-		max-width: min(1100px, calc(100vw - 24px));
+		max-width: min(1100px, calc(100vw - var(--space-xl)));
 		max-height: 80vh;
 	}
 
 	.header-actions {
 		display: flex;
-		gap: 8px;
+		gap: var(--space-sm);
 		align-items: center;
 	}
 
 	.readonly-banner {
-		padding: 10px 16px 0;
-		color: #ffd28a;
+		padding: 10px var(--space-lg) 0;
+		color: var(--color-accent-orange);
 		font-size: 0.9rem;
 	}
 
 	.content {
-		padding: 16px 18px;
+		padding: var(--space-lg) 18px;
 		display: grid;
 		grid-template-columns: minmax(500px, 560px) minmax(360px, 420px);
-		gap: 16px;
+		gap: var(--space-lg);
 		align-items: start;
 	}
 
@@ -150,16 +150,16 @@
 		overflow-y: auto;
 		display: grid;
 		grid-template-columns: 1fr;
-		gap: 12px;
+		gap: var(--space-md);
 		max-height: calc(80vh - 92px);
 		padding-inline: 2px;
 	}
 
 	.empty-slot {
-		padding: 16px;
+		padding: var(--space-lg);
 		text-align: center;
-		border: 1px dashed #444;
-		border-radius: 4px;
+		border: 1px dashed var(--color-surface-4);
+		border-radius: var(--radius-sm);
 		background: rgba(0, 0, 0, 0.15);
 	}
 
@@ -180,7 +180,7 @@
 
 	.shop-reroll {
 		background: #4a9eff;
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 	}
 
 	.shop-reroll:hover {
@@ -188,9 +188,9 @@
 	}
 
 	.preview-empty {
-		padding: 12px;
-		border: 1px dashed rgba(255, 255, 255, 0.25);
-		border-radius: 6px;
+		padding: var(--space-md);
+		border: 1px dashed var(--color-border-dashed);
+		border-radius: var(--radius-md);
 	}
 
 	@media (max-width: 1050px) {

@@ -147,18 +147,18 @@
 		position: fixed;
 		inset: 0;
 		pointer-events: none;
-		--ui-edge-right: 16px;
-		--ui-edge-bottom: 12px;
+		--ui-edge-right: var(--space-lg);
+		--ui-edge-bottom: var(--space-md);
 	}
 	.top-bar {
 		position: absolute;
-		top: 8px;
+		top: var(--space-sm);
 		left: 50%;
 		transform: translateX(-50%);
 		display: flex;
 		align-items: center;
 		flex-wrap: wrap;
-		gap: 8px;
+		gap: var(--space-sm);
 		pointer-events: auto;
 	}
 
@@ -172,11 +172,11 @@
 
 	@media (max-height: 760px) {
 		.bottom-actions-wrap {
-			bottom: 4px;
+			bottom: var(--space-xs);
 		}
 	}
 	.scout-chip {
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 		background: rgba(168, 84, 28, 0.85);
 	}
 

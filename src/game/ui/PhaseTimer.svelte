@@ -32,8 +32,8 @@
 <style>
 	.phase-timer {
 		position: absolute;
-		right: var(--ui-edge-right, 16px);
-		bottom: var(--ui-edge-bottom, 12px);
+		right: var(--ui-edge-right, var(--space-lg));
+		bottom: var(--ui-edge-bottom, var(--space-md));
 		width: 352px;
 		height: 96px;
 		pointer-events: none;
@@ -45,8 +45,8 @@
 		right: 94px;
 		top: 30px;
 		height: 34px;
-		border-radius: 4px;
-		background: #333333;
+		border-radius: var(--radius-sm);
+		background: var(--color-surface-3);
 		overflow: hidden;
 	}
 
@@ -55,7 +55,7 @@
 		right: 0;
 		top: 2px;
 		height: 30px;
-		border-radius: 4px;
+		border-radius: var(--radius-sm);
 		transition: width 0.35s linear, background-color 0.25s ease;
 	}
 
@@ -65,16 +65,16 @@
 		top: 2px;
 		width: 92px;
 		height: 92px;
-		border-radius: 999px;
+		border-radius: var(--radius-pill);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		font-size: var(--ui-font-size-display);
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 		line-height: 1;
-		background: #333333;
+		background: var(--color-surface-3);
 		border: 3px solid #5a5a5a;
-		box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.92);
+		box-shadow: inset 0 0 0 2px var(--color-outline-focus);
 	}
 
 	.phase-timer--default .phase-timer-fill {
@@ -82,7 +82,7 @@
 	}
 
 	.phase-timer--default .phase-timer-badge {
-		color: #ffffff;
+		color: var(--color-text-light);
 	}
 
 	.phase-timer--critical .phase-timer-fill {
@@ -107,8 +107,8 @@
 		.phase-timer {
 			transform: scale(0.92);
 			transform-origin: bottom right;
-			right: calc(var(--ui-edge-right, 16px) - 8px);
-			bottom: calc(var(--ui-edge-bottom, 12px) - 8px);
+			right: calc(var(--ui-edge-right, var(--space-lg)) - var(--space-sm));
+			bottom: calc(var(--ui-edge-bottom, var(--space-md)) - var(--space-sm));
 		}
 	}
 </style>

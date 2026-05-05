@@ -48,17 +48,17 @@
 	.renown-leaderboard {
 		position: absolute;
 		top: 176px;
-		right: var(--ui-edge-right, 16px);
+		right: var(--ui-edge-right, var(--space-lg));
 		width: 142px;
 		max-height: calc(100vh - 176px - 116px);
 		overflow-y: auto;
-		padding: 10px 8px;
+		padding: 10px var(--space-sm);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 12px;
+		gap: var(--space-md);
 		background: rgba(0, 0, 0, 0.5);
-		border-radius: 4px;
+		border-radius: var(--radius-sm);
 		pointer-events: auto;
 	}
 
@@ -67,9 +67,9 @@
 		height: 54px;
 		padding: 0;
 		border: 0;
-		border-radius: 4px;
+		border-radius: var(--radius-sm);
 		background: rgba(0, 0, 0, 0.7);
-		color: #fff;
+		color: var(--color-text-light);
 		text-align: center;
 		cursor: pointer;
 		display: flex;
@@ -81,7 +81,7 @@
 	.leaderboard-card--hover,
 	.leaderboard-card--active,
 	.leaderboard-card:focus-visible {
-		border: 2px solid #ffffff;
+		border: 2px solid var(--color-text-light);
 	}
 
 	.leaderboard-card--self {
@@ -99,7 +99,7 @@
 		align-items: center;
 		justify-content: center;
 		font-size: var(--ui-font-size-sm);
-		font-weight: 400;
+		font-weight: var(--font-weight-regular);
 		line-height: 1;
 		white-space: nowrap;
 		overflow: hidden;
@@ -108,7 +108,7 @@
 	}
 
 	.leaderboard-card--self .leaderboard-name {
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 	}
 
 	.leaderboard-score {
@@ -117,7 +117,7 @@
 		align-items: center;
 		justify-content: center;
 		font-size: var(--ui-font-size-lg);
-		font-weight: 400;
+		font-weight: var(--font-weight-regular);
 		line-height: 1;
 	}
 
@@ -129,7 +129,7 @@
 	@media (max-width: 1200px) {
 		.renown-leaderboard {
 			top: 168px;
-			right: var(--ui-edge-right, 16px);
+			right: var(--ui-edge-right, var(--space-lg));
 			transform: scale(0.9);
 			transform-origin: top right;
 		}
