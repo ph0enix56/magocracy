@@ -3,6 +3,7 @@
 	import { gameSessionState } from '../client/gameSessionStore';
 	import type { GameSettings } from '../../shared/multiplayer/snapshots';
 	import LobbySettingsForm from './LobbySettingsForm.svelte';
+	import { howToPlayModalState } from './store/uiState';
 
 	$: selfPlayer = $gameSessionState.lobby?.players.find((player) => player.playerId === $gameSessionState.playerId) ?? null;
 	$: inMatch = $gameSessionState.lobby?.status === 'in-game' || !!$gameSessionState.game;
@@ -45,12 +46,21 @@
 	function handleSettingsApply(event: CustomEvent<GameSettings>) {
 		multiplayerClient.configureLobby(event.detail);
 	}
+
+	function openHowToPlay() {
+		howToPlayModalState.set({ isOpen: true });
+	}
 </script>
 
 {#if !inMatch}
 	<div class="multiplayer-panel ui-panel">
-		<div class="multiplayer-title">Magocracy</div>
-		<div class="multiplayer-subtitle">Multiplayer Lobby</div>
+		<div class="multiplayer-header">
+			<div>
+				<div class="multiplayer-title">Magocracy</div>
+				<div class="multiplayer-subtitle">Multiplayer Lobby</div>
+			</div>
+			<button class="how-to-play-btn" on:click={openHowToPlay} title="How to Play">?</button>
+		</div>
 
 		<div class="multiplayer-row multiplayer-row--status">
 			<span>Status</span>
@@ -155,10 +165,34 @@
 		font-weight: var(--font-weight-extrabold);
 		margin-bottom: var(--space-xs);
 	}
+	.multiplayer-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: var(--space-sm);
+	}
+	.how-to-play-btn {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		border: 2px solid rgba(255, 255, 255, 0.4);
+		background: rgba(0, 0, 0, 0.6);
+		color: white;
+		font-weight: bold;
+		font-size: 1.2rem;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s;
+	}
+	.how-to-play-btn:hover {
+		background: rgba(255, 255, 255, 0.2);
+		border-color: white;
+	}
 	.multiplayer-subtitle {
 		font-size: var(--ui-font-size-md);
 		opacity: 0.75;
-		margin-bottom: var(--space-md);
 	}
 	.multiplayer-row {
 		display: flex;

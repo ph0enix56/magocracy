@@ -13,7 +13,7 @@
 	import PhaseTimer from './PhaseTimer.svelte';
 	import { gameSessionClient } from '../client/gameSessionStore';
 	import { gameSessionState } from '../client/gameSessionStore';
-	import { armyModalState, blueprintModalState, shopModalState } from './store/uiState';
+	import { armyModalState, blueprintModalState, shopModalState, howToPlayModalState } from './store/uiState';
 	import { appViewState, type OverlayScreenView } from './store/appViewState';
 	import {
 		OVERLAY_BACKGROUND_EVENT,
@@ -21,6 +21,7 @@
 		type OverlayBackground,
 		type OverlayTownVisibility
 	} from '../../shared/ui/overlayRender';
+	import HowToPlay from './HowToPlay.svelte';
 
 	let overlayScreenView: OverlayScreenView = 'overview';
 	let overlayTownVisibility: OverlayTownVisibility = { hideTownRender: false };
@@ -41,27 +42,31 @@
 		armyModalState.set({ isOpen: true });
 	}
 
+	function openHowToPlay() {
+		howToPlayModalState.set({ isOpen: true });
+	}
+
 	function handleMiddleAction() {
 		if (showScoutBackAction) {
 			gameSessionClient.viewOwnTown();
 			return;
 		}
-		if ($appViewState.activeOverlay) {
+		if ($appViewState.activeOverlay?.isTownToggleable) {
 			toggleOverlayScreenView();
 			return;
 		}
 		openShop();
 	}
 
-	$: showScoutBackAction = !$appViewState.activeOverlay && $appViewState.isScouting;
+	$: showScoutBackAction = !$appViewState.activeOverlay?.isTownToggleable && $appViewState.isScouting;
 
-	$: if (!$appViewState.activeOverlay) {
+	$: if (!$appViewState.activeOverlay?.isTownToggleable) {
 		overlayScreenView = 'overview';
 	}
 
 	$: overlayTownVisibility = $appViewState.activeOverlay && overlayScreenView === 'overview'
 		? {
-			hideTownRender: true
+			hideTownRender: $appViewState.activeOverlay.hideTownRender
 		}
 		: { hideTownRender: false };
 
@@ -75,14 +80,14 @@
 
 	$: middleActionLabel = showScoutBackAction
 		? 'Back'
-		: $appViewState.activeOverlay
+		: $appViewState.activeOverlay?.isTownToggleable
 		? overlayScreenView === 'overview'
 			? 'Town'
 			: 'Back'
 		: 'Shop';
 	$: middleActionIconPath = showScoutBackAction
 		? '/assets/game_icons/entry-door.svg'
-		: $appViewState.activeOverlay
+		: $appViewState.activeOverlay?.isTownToggleable
 		? overlayScreenView === 'overview'
 			? '/assets/game_icons/exit-door.svg'
 			: '/assets/game_icons/entry-door.svg'
@@ -103,6 +108,7 @@
 <div class="ui-root">
 	{#if inMatch}
 		<div class="top-bar">
+			<button class="how-to-play-btn" on:click={openHowToPlay} title="How to Play">?</button>
 			<ResourceCounter keyName="wood" icon="🪵" />
 			<ResourceCounter keyName="stone" icon="🪨" />
 			<ResourceCounter keyName="food" icon="🍞" />
@@ -138,13 +144,14 @@
 		<AdvancePhasePanel />
 	{/if}
 
-	{#if !$appViewState.activeOverlay}
+	{#if !overlayTownVisibility.hideTownRender}
 		<Sidebar />
-		<BuildingSelector />
 	{/if}
+	<BuildingSelector />
 	<Shop />
 	<Army />
 	<Combat />
+	<HowToPlay />
 </div>
 
 <style>
@@ -165,6 +172,26 @@
 		flex-wrap: wrap;
 		gap: var(--space-sm);
 		pointer-events: auto;
+	}
+
+	.how-to-play-btn {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		border: 2px solid rgba(255, 255, 255, 0.4);
+		background: rgba(0, 0, 0, 0.6);
+		color: white;
+		font-weight: bold;
+		font-size: 1.2rem;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s;
+	}
+	.how-to-play-btn:hover {
+		background: rgba(255, 255, 255, 0.2);
+		border-color: white;
 	}
 
 	.bottom-actions-wrap {

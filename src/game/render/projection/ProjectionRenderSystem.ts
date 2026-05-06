@@ -114,11 +114,19 @@ export class ProjectionRenderSystem {
 	}
 
 	private syncHexColor(tile: { isExpansionSite?: boolean }, render: ProjectionRenderState, school: string | undefined): void {
-		const baseColor = tile.isExpansionSite ? 0xb9d5df : getHexTileColorForSchool(school);
+		const baseColor = getHexTileColorForSchool(school);
 		render.hexBaseColor = baseColor;
 		const displayColor = render.hexHovered ? getHoveredHexTileColor(baseColor) : baseColor;
-		if (displayColor === render.hexDisplayColor) return;
-		render.hexDisplayColor = displayColor;
-		render.hex.setTintFill(displayColor);
+		const targetAlpha = tile.isExpansionSite ? 0.5 : 1;
+		
+		if (displayColor !== render.hexDisplayColor) {
+			render.hexDisplayColor = displayColor;
+			render.hex.setTintFill(displayColor);
+		}
+		
+		if (render.hex.alpha !== targetAlpha) {
+			render.hex.setAlpha(targetAlpha);
+			render.hexOutline.setAlpha(targetAlpha);
+		}
 	}
 }

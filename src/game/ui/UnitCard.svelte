@@ -27,7 +27,7 @@
 		<div class="unit-card__stat"><span>❤️ HP:</span><strong>{unit.health}</strong></div>
 		<div class="unit-card__stat"><span>🕓 Initiative:</span><strong>{unit.initiative}</strong></div>
 		<div class="unit-card__stat"><span>🛡️ DR:</span><strong>{unit.drPercent}% + {unit.drFlat}</strong></div>
-		<div class="unit-card__stat"><span>⚡ Action points:</span><strong>{unit.actionPoints}</strong></div>
+		<div class="unit-card__stat"><span>⚡ Action Points:</span><strong>{unit.actionPoints}</strong></div>
 	</div>
 
 	<div class="unit-card__separator" aria-hidden="true"></div>

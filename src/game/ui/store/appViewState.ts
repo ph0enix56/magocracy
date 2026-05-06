@@ -8,18 +8,31 @@ export type OverlayPhaseConfig = {
 	fightPanel: boolean;
 	advancePanel: boolean;
 	overviewBackgroundColor: number;
+	hideTownRender: boolean;
+	isTownToggleable: boolean;
 };
 
 const OVERLAY_PHASES: Partial<Record<GamePhase, OverlayPhaseConfig>> = {
-	combat: {
-		fightPanel: true,
-		advancePanel: false,
-		overviewBackgroundColor: 0xf4c7c7
-	},
 	advance: {
 		fightPanel: false,
 		advancePanel: true,
-		overviewBackgroundColor: 0xe2d5b8
+		overviewBackgroundColor: 0xE2D5B8,
+		hideTownRender: true,
+		isTownToggleable: true
+	},
+	build: {
+		fightPanel: false,
+		advancePanel: false,
+		overviewBackgroundColor: 0xB9EAF5,
+		hideTownRender: false,
+		isTownToggleable: false
+	},
+	combat: {
+		fightPanel: true,
+		advancePanel: false,
+		overviewBackgroundColor: 0xF4C7C7,
+		hideTownRender: true,
+		isTownToggleable: true
 	}
 };
 

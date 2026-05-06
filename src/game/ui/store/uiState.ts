@@ -51,3 +51,11 @@ export interface CombatModalState {
 export const combatModalState = writable<CombatModalState>({
 	isOpen: false
 });
+
+export interface HowToPlayModalState {
+	isOpen: boolean;
+}
+
+export const howToPlayModalState = writable<HowToPlayModalState>({
+	isOpen: false
+});
