@@ -1,4 +1,4 @@
-import { configuration } from '../../../game/configuration';
+import { serverConfig } from '../../config/serverConfig';
 import { CHARTER_TEMPLATES } from '../../config/charters';
 import { getAllBuildingDefs } from '../../config/buildings';
 import type { GameActionCommand } from '../../../shared/multiplayer/commands';
@@ -37,8 +37,8 @@ export class AdvancePhaseRuntime implements RuntimePhase {
 	onExit(_ctx: RuntimePhaseContext): void {}
 
 	startPhase(ctx: RuntimePhaseContext): void {
-		const level = resolveAdvanceLevel(ctx.phaseLoopIndex, configuration.advancePhase.levelByAdvanceIndex);
-		const desiredCount = Math.min(9, Math.max(1, ctx.playerIds.length + configuration.advancePhase.charterCountBonus));
+		const level = resolveAdvanceLevel(ctx.phaseLoopIndex, serverConfig.advancePhase.levelByAdvanceIndex);
+		const desiredCount = Math.min(9, Math.max(1, ctx.playerIds.length + serverConfig.advancePhase.charterCountBonus));
 		const charterTemplates = pickCharterTemplatesForDraft(CHARTER_TEMPLATES, level, desiredCount);
 		const allBuildings = getAllBuildingDefs();
 		const charters = charterTemplates.map((template, index) => materializeCharter(template, index + 1, allBuildings));
@@ -53,8 +53,8 @@ export class AdvancePhaseRuntime implements RuntimePhase {
 			level,
 			pickOrderPlayerIds,
 			charters,
-			secondsPerPick: configuration.advancePhase.secondsPerPick,
-			revealDelaySeconds: configuration.advancePhase.revealSecondsAfterDraft
+			secondsPerPick: ctx.settings.advancePhase.secondsPerPick,
+			revealDelaySeconds: ctx.settings.advancePhase.revealSecondsAfterDraft
 		});
 	}
 
@@ -118,8 +118,8 @@ export class AdvancePhaseRuntime implements RuntimePhase {
 
 	private createEmptyState(): AdvancePhaseStateData {
 		return createEmptyAdvanceState({
-			secondsPerPick: configuration.advancePhase.secondsPerPick,
-			revealDelaySeconds: configuration.advancePhase.revealSecondsAfterDraft
+			secondsPerPick: serverConfig.advancePhase.levelByAdvanceIndex.length > 0 ? 20 : 20,
+			revealDelaySeconds: 8
 		});
 	}
 

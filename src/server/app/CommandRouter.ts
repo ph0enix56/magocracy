@@ -1,4 +1,5 @@
 import type { ClientCommand } from '../../shared/multiplayer/commands';
+import type { GameSettings } from '../../shared/multiplayer/snapshots';
 
 /**
  * Shape of the command handlers that are registered for processing client commands. Each handler corresponds to a specific client command type,
@@ -11,6 +12,7 @@ type CommandHandlerMap = {
 	onSetReady(ready: boolean): void;
 	onStartLobby(): void;
 	onSolo(playerName: string): void;
+	onConfigure(settings: GameSettings): void;
 	onGameAction(command: Extract<ClientCommand, { type: 'game/action' }>): void;
 };
 
@@ -39,6 +41,9 @@ export function routeClientCommand(command: ClientCommand, handlers: CommandHand
 			return;
 		case 'lobby/solo':
 			handlers.onSolo(command.playerName);
+			return;
+		case 'lobby/configure':
+			handlers.onConfigure(command.settings);
 			return;
 		case 'game/action':
 			handlers.onGameAction(command);

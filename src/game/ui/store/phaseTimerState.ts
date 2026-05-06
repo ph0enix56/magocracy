@@ -1,6 +1,5 @@
 import { derived } from 'svelte/store';
 import { gameSessionState } from '../../client/gameSessionStore';
-import { configuration } from '../../configuration';
 
 export type PhaseTimerViewState = {
 	visible: boolean;
@@ -14,19 +13,23 @@ export const phaseTimerState = derived(gameSessionState, ($state): PhaseTimerVie
 	const phase = $state.currentPhase;
 
 	if (phase === 'build') {
+		const lobby = $state.lobby;
+		const buildTotalSeconds = lobby?.settings.buildPhase.durationSeconds ?? 180;
 		return {
 			visible: true,
 			remainingSeconds: Math.max(0, Math.floor($state.game?.buildPhaseSecondsRemaining ?? 0)),
-			totalSeconds: configuration.buildPhase.durationSeconds,
+			totalSeconds: buildTotalSeconds,
 			isInactive: false,
 			phase: 'build'
 		};
 	}
 
 	if (phase === 'combat') {
+		const lobby = $state.lobby;
+		const fightSettings = lobby?.settings.fightPhase;
 		const totalSeconds = $state.fight.currentRoundIndex >= $state.fight.totalRounds
-			? configuration.fightPhase.finalResultsSeconds
-			: Math.max(1, Math.floor($state.fight.secondsPerRound || configuration.fightPhase.secondsPerRound));
+			? (fightSettings?.finalResultsSeconds ?? 10)
+			: Math.max(1, Math.floor($state.fight.secondsPerRound || fightSettings?.secondsPerRound || 5));
 		return {
 			visible: true,
 			remainingSeconds: Math.max(0, Math.floor($state.fight.secondsToNextRound)),
@@ -37,12 +40,14 @@ export const phaseTimerState = derived(gameSessionState, ($state): PhaseTimerVie
 	}
 
 	if (phase === 'advance') {
+		const lobby = $state.lobby;
+		const advanceSettings = lobby?.settings.advancePhase;
 		const pickerId = $state.advance.currentPickerPlayerId;
 		const selfPlayerId = $state.playerId;
 		const isInactive = !pickerId || pickerId !== selfPlayerId;
 		const totalSeconds = pickerId
-			? Math.max(1, Math.floor($state.advance.secondsPerPick || configuration.advancePhase.secondsPerPick))
-			: Math.max(1, Math.floor($state.advance.revealDelaySeconds || configuration.advancePhase.revealSecondsAfterDraft));
+			? Math.max(1, Math.floor($state.advance.secondsPerPick || advanceSettings?.secondsPerPick || 20))
+			: Math.max(1, Math.floor($state.advance.revealDelaySeconds || advanceSettings?.revealSecondsAfterDraft || 8));
 		const remainingSeconds = pickerId
 			? Math.max(0, Math.floor($state.advance.secondsRemaining))
 			: Math.max(0, Math.floor($state.advance.secondsToPhaseEnd));

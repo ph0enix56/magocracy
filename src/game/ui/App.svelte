@@ -12,6 +12,7 @@
 	import RenownLeaderboard from './RenownLeaderboard.svelte';
 	import PhaseTimer from './PhaseTimer.svelte';
 	import { gameSessionClient } from '../client/gameSessionStore';
+	import { gameSessionState } from '../client/gameSessionStore';
 	import { armyModalState, blueprintModalState, shopModalState } from './store/uiState';
 	import { appViewState, type OverlayScreenView } from './store/appViewState';
 	import {
@@ -25,6 +26,8 @@
 	let overlayTownVisibility: OverlayTownVisibility = { hideTownRender: false };
 	let overlayBackground: OverlayBackground = {};
 	let showScoutBackAction = false;
+
+	$: inMatch = $gameSessionState.lobby?.status === 'in-game' || !!$gameSessionState.game;
 
 	function openBlueprints() {
 		blueprintModalState.set({ isOpen: true, mode: 'view', q: 0, r: 0 });
@@ -98,32 +101,34 @@
 </script>
 
 <div class="ui-root">
-	<div class="top-bar">
-		<ResourceCounter keyName="wood" icon="🪵" />
-		<ResourceCounter keyName="stone" icon="🪨" />
-		<ResourceCounter keyName="food" icon="🍞" />
-		<ResourceCounter keyName="mana" icon="💧" />
-		<ResourceCounter keyName="expansion" icon="➕" />
-		{#if $appViewState.isScouting && $appViewState.viewedPlayerName}
-			<div class="ui-chip scout-chip">Scouting {$appViewState.viewedPlayerName}</div>
-		{/if}
-	</div>
+	{#if inMatch}
+		<div class="top-bar">
+			<ResourceCounter keyName="wood" icon="🪵" />
+			<ResourceCounter keyName="stone" icon="🪨" />
+			<ResourceCounter keyName="food" icon="🍞" />
+			<ResourceCounter keyName="mana" icon="💧" />
+			<ResourceCounter keyName="expansion" icon="➕" />
+			{#if $appViewState.isScouting && $appViewState.viewedPlayerName}
+				<div class="ui-chip scout-chip">Scouting {$appViewState.viewedPlayerName}</div>
+			{/if}
+		</div>
 
-	<RenownLeaderboard />
+		<RenownLeaderboard />
 
-	<div class="bottom-actions-wrap">
-		<TopActionButtons
-			blueprintCount={$appViewState.blueprintCount}
-			armyCount={$appViewState.armyCount}
-			middleLabel={middleActionLabel}
-			middleIconPath={middleActionIconPath}
-			on:openBlueprints={openBlueprints}
-			on:openMiddle={handleMiddleAction}
-			on:openArmy={openArmy}
-		/>
-	</div>
+		<div class="bottom-actions-wrap">
+			<TopActionButtons
+				blueprintCount={$appViewState.blueprintCount}
+				armyCount={$appViewState.armyCount}
+				middleLabel={middleActionLabel}
+				middleIconPath={middleActionIconPath}
+				on:openBlueprints={openBlueprints}
+				on:openMiddle={handleMiddleAction}
+				on:openArmy={openArmy}
+			/>
+		</div>
 
-	<PhaseTimer />
+		<PhaseTimer />
+	{/if}
 
 	<MultiplayerPanel />
 	{#if $appViewState.activeOverlay?.fightPanel && overlayScreenView === 'overview'}

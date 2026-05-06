@@ -1,4 +1,6 @@
 import type { LobbyRecord, PlayerRecord, ServerEventGateway } from './lobbyTypes';
+import { DEFAULT_NORMAL_GAME_SETTINGS, SOLO_GAME_SETTINGS, clampSettings, mergeSettings } from './gameSettings';
+import type { GameSettings } from '../../shared/multiplayer/snapshots';
 
 const LOBBY_ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -36,7 +38,7 @@ export class LobbyLifecycleService {
 		const detached = this.detachFromCurrentOpenLobby(playerId, socketId);
 		if (!detached.ok) return detached;
 
-		const lobby = this.createOpenLobbyRecord(playerId, maxPlayers);
+		const lobby = this.createOpenLobbyRecord(playerId, maxPlayers, DEFAULT_NORMAL_GAME_SETTINGS);
 		this.upsertLobbyPlayer(lobby, playerId, socketId, playerName, false);
 		return { ok: true, lobby, retiredLobbyIds: detached.retiredLobbyIds };
 	}
@@ -61,12 +63,12 @@ export class LobbyLifecycleService {
 		return { ok: true, lobby, retiredLobbyIds: detached.retiredLobbyIds };
 	}
 
-	/** Creates a solo lobby and starts with the player ready. */
+	/** Creates a solo lobby and starts with the player ready. Uses sandbox settings. */
 	createSoloLobby(playerId: string, socketId: string, playerName: string): LifecycleMutationResult {
 		const detached = this.detachFromCurrentOpenLobby(playerId, socketId);
 		if (!detached.ok) return detached;
 
-		const lobby = this.createOpenLobbyRecord(playerId, 1);
+		const lobby = this.createOpenLobbyRecord(playerId, 1, SOLO_GAME_SETTINGS);
 		this.upsertLobbyPlayer(lobby, playerId, socketId, playerName, true);
 		return { ok: true, lobby, retiredLobbyIds: detached.retiredLobbyIds };
 	}
@@ -86,6 +88,14 @@ export class LobbyLifecycleService {
 		return lobby;
 	}
 
+	/** Updates settings for an open lobby. Only the host can call this. */
+	updateLobbySettings(playerId: string, patch: Partial<GameSettings>): LobbyRecord | undefined {
+		const lobby = this.getLobbyForPlayer(playerId);
+		if (!lobby || lobby.status !== 'open' || lobby.hostPlayerId !== playerId) return undefined;
+		lobby.settings = clampSettings(mergeSettings(lobby.settings, patch));
+		return lobby;
+	}
+
 	getLobbyById(lobbyId: string): LobbyRecord | undefined {
 		return this.lobbies.get(lobbyId);
 	}
@@ -102,7 +112,7 @@ export class LobbyLifecycleService {
 		return player.socketId;
 	}
 
-	private createOpenLobbyRecord(hostPlayerId: string, maxPlayers: number): LobbyRecord {
+	private createOpenLobbyRecord(hostPlayerId: string, maxPlayers: number, settings: GameSettings): LobbyRecord {
 		let lobbyId = this.createLobbyId();
 		while (this.lobbies.has(lobbyId)) {
 			lobbyId = this.createLobbyId();
@@ -114,7 +124,8 @@ export class LobbyLifecycleService {
 			status: 'open',
 			maxPlayers,
 			createdAt: Date.now(),
-			players: new Map()
+			players: new Map(),
+			settings
 		};
 		this.lobbies.set(lobbyId, lobby);
 		return lobby;

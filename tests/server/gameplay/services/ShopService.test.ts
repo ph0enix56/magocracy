@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { configuration } from '../../../../src/game/configuration';
+import { serverConfig } from '../../../../src/server/config/serverConfig';
 import { getPurchasableBuildings } from '../../../../src/server/config/buildings';
 import { WorldStore } from '../../../../src/server/gameplay/WorldStore';
 import { ShopService } from '../../../../src/server/gameplay/services/ShopService';
@@ -19,8 +19,8 @@ test('rerollWithThrow spends mana and fills offers from purchasable pool', () =>
 		Math.random = originalRandom;
 	}
 
-	assert.equal(world.resources.get('mana'), 100 - configuration.shop.rerollCost);
-	assert.equal(world.shopOffers.length, configuration.shop.size);
+	assert.equal(world.resources.get('mana'), 100 - serverConfig.shop.rerollCost);
+	assert.equal(world.shopOffers.length, serverConfig.shop.size);
 	for (const offer of world.shopOffers) {
 		if (!offer) {
 			throw new Error('Expected a filled offer after reroll.');
@@ -36,7 +36,7 @@ test('buyWithThrow consumes offer slot, spends tier cost, and grants blueprint',
 	const purchasable = getPurchasableBuildings()[0]!;
 	world.shopOffers[0] = [purchasable.id, purchasable.tier];
 	const beforeBlueprints = world.blueprintInventory.get(purchasable.id) ?? 0;
-	const expectedBuyCost = configuration.shop.buyCostByTier[purchasable.tier - 1]!;
+	const expectedBuyCost = serverConfig.shop.buyCostByTier[purchasable.tier - 1]!;
 
 	const purchased = service.buyWithThrow(0);
 
@@ -74,10 +74,10 @@ test('rerollFree uses last configured distribution when phase loop index exceeds
 		}, [])
 	);
 
-	const lastDistribution = configuration.shop.offerTierWeightsByPhaseLoop[
-		configuration.shop.offerTierWeightsByPhaseLoop.length - 1
+	const lastDistribution = serverConfig.shop.offerTierWeightsByPhaseLoop[
+		serverConfig.shop.offerTierWeightsByPhaseLoop.length - 1
 	] ?? [];
-	const expectedTier = lastDistribution.findIndex((weight, index) => weight > 0 && (purchasableByTier.get(index + 1)?.length ?? 0) > 0) + 1;
+	const expectedTier = lastDistribution.findIndex((weight: number, index: number) => weight > 0 && (purchasableByTier.get(index + 1)?.length ?? 0) > 0) + 1;
 	assert.ok(expectedTier > 0, 'Expected at least one configured tier with purchasable buildings.');
 
 	service.setPhaseLoopIndex(9999);

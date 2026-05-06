@@ -26,8 +26,8 @@ export class BuildPhaseRuntime implements RuntimePhase {
 	constructor() {}
 
 	onEnter(ctx: RuntimePhaseContext): void {
-		this.durationSecondsRemaining = ctx.resolveBuildPhaseDurationSeconds();
-		this.tickSecondsRemaining = ctx.resolveBuildTickIntervalSeconds();
+		this.durationSecondsRemaining = Math.max(1, Math.floor(ctx.settings.buildPhase.durationSeconds));
+		this.tickSecondsRemaining = Math.max(1, Math.floor(ctx.settings.buildPhase.secondsPerTick));
 		for (const playerId of ctx.playerIds) {
 			const runtime = ctx.getPlayerRuntime(playerId);
 			if (!runtime) continue;
@@ -52,7 +52,7 @@ export class BuildPhaseRuntime implements RuntimePhase {
 				if (!runtime) continue;
 				this.advanceTick(runtime);
 			}
-			this.tickSecondsRemaining = ctx.resolveBuildTickIntervalSeconds();
+			this.tickSecondsRemaining = Math.max(1, Math.floor(ctx.settings.buildPhase.secondsPerTick));
 		}
 
 		if (this.durationSecondsRemaining <= 0) {

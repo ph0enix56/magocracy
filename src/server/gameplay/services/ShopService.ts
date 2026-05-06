@@ -1,4 +1,4 @@
-import { configuration } from '../../../game/configuration';
+import { serverConfig } from '../../config/serverConfig';
 import { getPurchasableBuildings, type BuildingDef } from '../../config/buildings';
 import type { WorldStore } from '../WorldStore';
 
@@ -21,7 +21,7 @@ export class ShopService {
 					buyCost: this.buyCostForTierWithThrow(tier)
 				};
 			}),
-			rerollCost: configuration.shop.rerollCost
+			rerollCost: serverConfig.shop.rerollCost
 		};
 	}
 
@@ -30,7 +30,7 @@ export class ShopService {
 	}
 
 	rerollWithThrow(): void {
-		this.spendManaWithThrow(configuration.shop.rerollCost);
+		this.spendManaWithThrow(serverConfig.shop.rerollCost);
 		this.rerollInternal();
 	}
 
@@ -55,11 +55,11 @@ export class ShopService {
 	}
 
 	private buyCostForTierWithThrow(tier: number): number {
-		if (!Number.isInteger(tier) || tier < 1 || tier > configuration.shop.buyCostByTier.length) {
+		if (!Number.isInteger(tier) || tier < 1 || tier > serverConfig.shop.buyCostByTier.length) {
 			throw new Error(`Missing buy cost configuration for tier ${tier}.`);
 		}
 
-		const amount = configuration.shop.buyCostByTier[tier - 1]!;
+		const amount = serverConfig.shop.buyCostByTier[tier - 1]!;
 		if (!Number.isFinite(amount) || amount <= 0) {
 			throw new Error(`Invalid buy cost configuration for tier ${tier}.`);
 		}
@@ -90,7 +90,7 @@ export class ShopService {
 	}
 
 	private randomTierFromPhaseLoopDistribution(): number {
-		const configuredDistributions = configuration.shop.offerTierWeightsByPhaseLoop;
+		const configuredDistributions = serverConfig.shop.offerTierWeightsByPhaseLoop;
 		const distributionIndex = Math.min(this.phaseLoopIndex, configuredDistributions.length - 1);
 		const weights: readonly number[] = configuredDistributions[distributionIndex]!;
 		const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
@@ -107,6 +107,6 @@ export class ShopService {
 	}
 
 	private rerollInternal(): void {
-		this.world.shopOffers = Array.from({ length: configuration.shop.size }, () => this.randomOffer());
+		this.world.shopOffers = Array.from({ length: serverConfig.shop.size }, () => this.randomOffer());
 	}
 }

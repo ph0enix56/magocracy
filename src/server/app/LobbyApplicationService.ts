@@ -63,6 +63,7 @@ export class LobbyApplicationService {
 			onSetReady: (ready) => this.handleSetReady(playerId, socketId, ready),
 			onStartLobby: () => this.handleStartLobby(playerId, socketId),
 			onSolo: (playerName) => this.handleSoloLobby(playerId, socketId, playerName),
+			onConfigure: (settings) => this.handleConfigureLobby(playerId, socketId, settings),
 			onGameAction: (gameActionCommand) => this.handleGameAction(playerId, socketId, gameActionCommand)
 		});
 	}
@@ -131,6 +132,19 @@ export class LobbyApplicationService {
 		this.startRuntimeForLobby(solo.lobby, [playerId]);
 	}
 
+	private handleConfigureLobby(
+		playerId: string,
+		socketId: string,
+		settings: import('../../shared/multiplayer/snapshots').GameSettings
+	): void {
+		const lobby = this.lifecycle.updateLobbySettings(playerId, settings);
+		if (!lobby) {
+			this.eventPublisher.reject(socketId, 'lobby/configure', 'Only the host of an open lobby can change settings.');
+			return;
+		}
+		this.eventPublisher.broadcastLobbyState(lobby);
+	}
+
 	private handleStartLobby(playerId: string, socketId: string): void {
 		const lobby = this.lifecycle.getLobbyForPlayer(playerId);
 		if (!lobby) {
@@ -185,7 +199,7 @@ export class LobbyApplicationService {
 
 	private startRuntimeForLobby(lobby: LobbyRecord, playerIds: string[]): void {
 		lobby.status = 'in-game';
-		this.runtimeOrchestrator.startLobbyRuntime(lobby.lobbyId, playerIds);
+		this.runtimeOrchestrator.startLobbyRuntime(lobby.lobbyId, playerIds, lobby.settings);
 		this.eventPublisher.broadcastLobbyState(lobby);
 		const snapshot = this.runtimeOrchestrator.emitCurrentSnapshot(lobby.lobbyId);
 		if (snapshot) {

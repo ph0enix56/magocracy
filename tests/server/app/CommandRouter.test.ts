@@ -20,6 +20,7 @@ function makeHandlers(invocations: Invocation[]) {
 		onSetReady: (ready: boolean) => invocations.push({ name: 'set-ready', ready }),
 		onStartLobby: () => invocations.push({ name: 'start' }),
 		onSolo: (playerName: string) => invocations.push({ name: 'solo', playerName }),
+		onConfigure: () => {},
 		onGameAction: (command: Extract<ClientCommand, { type: 'game/action' }>) =>
 			invocations.push({ name: 'game/action', type: command.action.type })
 	};

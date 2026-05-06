@@ -3,6 +3,7 @@ import type { ClientCommand, GameActionCommand } from '../../shared/multiplayer/
 import type { ClientToServerEvents, ServerEvent, ServerToClientEvents } from '../../shared/multiplayer/events';
 import type {
 	BuildingCatalogSnapshot,
+	GameSettings,
 	GameSnapshot,
 	LobbyPlayerSnapshot,
 	LobbySnapshot,
@@ -159,6 +160,10 @@ export class MultiplayerClient {
 
 	startLobbyGame(): void {
 		this.send({ type: 'lobby/start' });
+	}
+
+	configureLobby(settings: GameSettings): void {
+		this.send({ type: 'lobby/configure', settings });
 	}
 
 	sendGameCommand(command: ClientCommand): void {

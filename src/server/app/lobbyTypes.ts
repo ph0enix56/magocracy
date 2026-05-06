@@ -1,4 +1,4 @@
-import type { LobbyStatus } from '../../shared/multiplayer/snapshots';
+import type { GameSettings, LobbyStatus } from '../../shared/multiplayer/snapshots';
 import type { ServerEvent } from '../../shared/multiplayer/events';
 
 export type PlayerRecord = {
@@ -16,6 +16,7 @@ export type LobbyRecord = {
 	maxPlayers: number;
 	createdAt: number;
 	players: Map<string, PlayerRecord>;
+	settings: GameSettings;
 };
 
 /**

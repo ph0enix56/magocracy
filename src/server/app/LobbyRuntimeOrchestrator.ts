@@ -1,6 +1,6 @@
 import { RoomGameRuntime } from '../RoomGameRuntime';
 import type { GameActionCommand } from '../../shared/multiplayer/commands';
-import type { GameSnapshot } from '../../shared/multiplayer/snapshots';
+import type { GameSettings, GameSnapshot } from '../../shared/multiplayer/snapshots';
 
 /**
  * Owns authoritative runtime instances per lobby and routes gameplay actions
@@ -12,8 +12,8 @@ export class LobbyRuntimeOrchestrator {
 	constructor(private readonly onSnapshot: (lobbyId: string, snapshot: GameSnapshot) => void) {}
 
 	/** Starts a new authoritative runtime for a lobby and stores it for future dispatching. */
-	startLobbyRuntime(lobbyId: string, playerIds: string[]): void {
-		const runtime = new RoomGameRuntime(playerIds, (snapshot) => {
+	startLobbyRuntime(lobbyId: string, playerIds: string[], settings: GameSettings): void {
+		const runtime = new RoomGameRuntime(playerIds, settings, (snapshot) => {
 			this.onSnapshot(lobbyId, snapshot);
 		});
 		runtime.start();

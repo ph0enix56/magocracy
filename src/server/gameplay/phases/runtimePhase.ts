@@ -1,4 +1,5 @@
 import type { GameActionCommand } from '../../../shared/multiplayer/commands';
+import type { GameSettings } from '../../../shared/multiplayer/snapshots';
 import type { ServerGameState } from '../ServerGameState';
 import type { ArmyService } from '../services/armyService';
 import type { BuildService } from '../services/BuildService';
@@ -31,9 +32,8 @@ export type RuntimePlayerState = {
 export type RuntimePhaseContext = {
 	playerIds: string[];
 	phaseLoopIndex: number;
+	settings: GameSettings;
 	getPlayerRuntime: (playerId: string) => RuntimePlayerState | undefined;
-	resolveBuildPhaseDurationSeconds: () => number;
-	resolveBuildTickIntervalSeconds: () => number;
 };
 
 export interface RuntimePhase {

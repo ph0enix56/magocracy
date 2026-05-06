@@ -17,4 +17,5 @@ export type ClientCommand =
 	| { type: 'lobby/set-ready'; ready: boolean }
 	| { type: 'lobby/start' }
 	| { type: 'lobby/solo'; playerName: string }
+	| { type: 'lobby/configure'; settings: import('./snapshots').GameSettings }
 	| { type: 'game/action'; requestId: string; action: GameActionCommand };

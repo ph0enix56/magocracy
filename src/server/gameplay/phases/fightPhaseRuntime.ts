@@ -1,8 +1,8 @@
 import type { CombatSnapshot } from '../../../shared/domain/combatTypes';
 import type { GameActionCommand } from '../../../shared/multiplayer/commands';
 import type { FightPlayerRoundSnapshot } from '../../../shared/multiplayer/snapshots';
-import { configuration } from '../../../game/configuration';
 import { getUnitDef } from '../../config/buildings';
+import { serverConfig } from '../../config/serverConfig';
 import type { ArmyUnitState } from '../model';
 import type { PhaseActionResult, PhaseTickResult, RuntimePhase, RuntimePhaseContext } from './runtimePhase';
 import {
@@ -23,7 +23,7 @@ export class FightPhaseRuntime implements RuntimePhase {
 	private context: RuntimePhaseContext | null = null;
 	private state: FightPhaseStateData;
 	private matchSeq = 1;
-	private finalResultsSeconds = Math.max(0, Math.floor(configuration.fightPhase.finalResultsSeconds));
+	private finalResultsSeconds = 0;
 	private readonly combatReplayByPlayerId = new Map<string, CombatReplaySession>();
 
 	constructor() {
@@ -34,18 +34,18 @@ export class FightPhaseRuntime implements RuntimePhase {
 	onEnter(ctx: RuntimePhaseContext): void {
 		this.context = ctx;
 		this.playerIds.splice(0, this.playerIds.length, ...ctx.playerIds);
-		this.start();
+		this.start(ctx);
 	}
 
 	onExit(ctx: RuntimePhaseContext): void {
 		this.context = ctx;
 	}
 
-	start(): void {
+	start(ctx: RuntimePhaseContext): void {
 		const phaseRounds = buildRoundRobinPhase(this.playerIds);
 		const totalRounds = phaseRounds.length;
-		const secondsPerRound = Math.max(1, Math.floor(configuration.fightPhase.secondsPerRound));
-		this.finalResultsSeconds = Math.max(0, Math.floor(configuration.fightPhase.finalResultsSeconds));
+		const secondsPerRound = Math.max(1, Math.floor(ctx.settings.fightPhase.secondsPerRound));
+		this.finalResultsSeconds = Math.max(0, Math.floor(ctx.settings.fightPhase.finalResultsSeconds));
 
 		this.combatReplayByPlayerId.clear();
 		let roundCursor = 0;
@@ -159,7 +159,7 @@ export class FightPhaseRuntime implements RuntimePhase {
 		return {
 			isActive: false,
 			totalRounds: 0,
-			secondsPerRound: Math.max(1, Math.floor(configuration.fightPhase.secondsPerRound)),
+			secondsPerRound: 5,
 			currentRoundIndex: 0,
 			secondsToNextRound: 0,
 			pairings: [],
@@ -180,6 +180,6 @@ export class FightPhaseRuntime implements RuntimePhase {
 		const runtime = ctx.getPlayerRuntime(playerId);
 		if (!runtime) return;
 		const current = runtime.run.world.resources.get('renown') ?? 0;
-		runtime.run.world.resources.set('renown', current + Math.max(0, Math.floor(configuration.fightPhase.renownPerWin)));
+		runtime.run.world.resources.set('renown', current + Math.max(0, Math.floor(serverConfig.fightPhase.renownPerWin)));
 	}
 }

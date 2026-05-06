@@ -1,18 +1,21 @@
-import { configuration } from '../../../game/configuration';
+import { serverConfig } from '../../config/serverConfig';
 import type { CharterOption } from '../../../shared/domain/charter';
-import type { GameStandingSnapshot } from '../../../shared/multiplayer/snapshots';
+import type { GameSettings, GameStandingSnapshot } from '../../../shared/multiplayer/snapshots';
 import type { WorldStore } from '../WorldStore';
 
 type PlayerWorldResolver = (playerId: string) => WorldStore | undefined;
 
 export class PlayerProgressionService {
-	constructor(private readonly getPlayerWorld: PlayerWorldResolver) {}
+	constructor(
+		private readonly getPlayerWorld: PlayerWorldResolver,
+		private readonly settings: GameSettings
+	) {}
 
 	grantRenown(playerId: string): void {
 		const world = this.getPlayerWorld(playerId);
 		if (!world) return;
 		const current = world.resources.get('renown') ?? 0;
-		world.resources.set('renown', current + Math.max(0, Math.floor(configuration.fightPhase.renownPerWin)));
+		world.resources.set('renown', current + Math.max(0, Math.floor(serverConfig.fightPhase.renownPerWin)));
 	}
 
 	getPlayerRenown(playerId: string): number {
@@ -35,7 +38,7 @@ export class PlayerProgressionService {
 	}
 
 	evaluateEndgame(playerIds: string[]): { finished: false } | { finished: true; winnerPlayerId: string; standings: GameStandingSnapshot[] } {
-		const targetRenown = Math.max(1, Math.floor(configuration.gameLifecycle.targetRenown));
+		const targetRenown = Math.max(1, Math.floor(this.settings.gameLifecycle.targetRenown));
 		const standings = this.buildStandings(playerIds);
 		const winner = standings.find((entry) => entry.renown >= targetRenown);
 		if (!winner) return { finished: false };

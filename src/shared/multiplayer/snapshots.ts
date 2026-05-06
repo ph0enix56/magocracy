@@ -5,6 +5,17 @@ import type { CombatSnapshot } from '../domain/combatTypes';
 import type { KingdomCoord } from '../kingdom/kingdomGrid';
 
 export type LobbyStatus = 'open' | 'in-game';
+
+export type GameSettings = {
+	fightPhase: { secondsPerRound: number; finalResultsSeconds: number };
+	buildPhase: { durationSeconds: number; secondsPerTick: number };
+	gameLifecycle: { targetRenown: number };
+	advancePhase: { secondsPerPick: number; revealSecondsAfterDraft: number };
+	economy: {
+		startingResources: Record<string, number>;
+		starterBlueprintInventory: Record<string, number>;
+	};
+};
 export type GamePhase = 'setup' | 'build' | 'combat' | 'advance';
 export type GameStatus = 'running' | 'finished';
 
@@ -80,6 +91,7 @@ export type LobbySnapshot = {
 	maxPlayers: number;
 	players: LobbyPlayerSnapshot[];
 	createdAt: number;
+	settings: GameSettings;
 };
 
 export type BuildingCatalogEntry = {

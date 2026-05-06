@@ -20,8 +20,16 @@ function createTile(params: {
 	};
 }
 
+function seedResources(world: WorldStore): void {
+	world.resources.set('wood', 1000);
+	world.resources.set('stone', 1000);
+	world.resources.set('food', 1000);
+	world.resources.set('mana', 1000);
+}
+
 test('startBuild consumes resources and blueprint and sets constructing state', () => {
 	const world = new WorldStore();
+	seedResources(world);
 	const service = new BuildService(world);
 	const tile = createTile({ q: 0, r: 0 });
 	world.upsertKingdomTile(tile);
@@ -39,6 +47,7 @@ test('startBuild consumes resources and blueprint and sets constructing state', 
 
 test('startBuild rejects building on expansion sites', () => {
 	const world = new WorldStore();
+	seedResources(world);
 	const service = new BuildService(world);
 	const tile = createTile({ q: 0, r: 0, isExpansionSite: true });
 	world.upsertKingdomTile(tile);
@@ -49,6 +58,7 @@ test('startBuild rejects building on expansion sites', () => {
 
 test('advanceTick completes barracks construction and spawns housed unit', () => {
 	const world = new WorldStore();
+	seedResources(world);
 	const service = new BuildService(world);
 	const tile = createTile({ q: 0, r: 0 });
 	world.upsertKingdomTile(tile);
@@ -72,6 +82,7 @@ test('advanceTick completes barracks construction and spawns housed unit', () =>
 
 test('startUpgrade and advanceTick complete upgrade target', () => {
 	const world = new WorldStore();
+	seedResources(world);
 	const service = new BuildService(world);
 	const tile = createTile({
 		q: 0,
@@ -102,6 +113,7 @@ test('startUpgrade and advanceTick complete upgrade target', () => {
 
 test('destroyBuilding removes housed unit from army', () => {
 	const world = new WorldStore();
+	seedResources(world);
 	const service = new BuildService(world);
 	const tile = createTile({ q: 0, r: 0 });
 	world.upsertKingdomTile(tile);

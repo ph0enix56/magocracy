@@ -1,73 +1,7 @@
+/**
+ * Client-side configuration constants.
+ */
 export const configuration = {
-	loop: {
-		tickIntervalMs: 1000
-	},
-
-	shop: {
-		size: 6,
-		buyCostByTier: [10, 20, 40, 100],
-		rerollCost: 10,
-		offerTierWeightsByPhaseLoop: [
-			[70, 20, 8, 2],
-			[50, 28, 16, 6],
-			[28, 32, 24, 16],
-			[0, 18, 34, 48]
-		]
-	},
-
-	economy: {
-		startingResources: {
-			stone: 100000,
-			wood: 100000,
-			food: 100000,
-			mana: 100000,
-			renown: 0,
-			expansion: 5
-		},
-		starterBlueprintInventory: {
-			// [WIP] Starter blueprints for testing
-			logging_camp: 2,
-			mana_pump: 2,
-			ghost_camp: 1,
-			prototype_marksman_camp: 1,
-			dolmen: 1,
-			granary: 1,
-			quarry: 1,
-			academy: 1,
-			deep_mine: 1,
-			berserker_camp: 1,
-			fire_elemental_grounds: 1,
-			holy_oak: 1,
-			blacksmith: 1,
-			factory: 1,
-			tinkers_guild: 1,
-			fire_mage_tower: 1,
-			the_apex_construct_portal: 1
-		}
-	},
-
-	fightPhase: {
-		secondsPerRound: 5,
-		finalResultsSeconds: 10,
-		renownPerWin: 1
-	},
-
-	buildPhase: {
-		durationSeconds: 1000,
-		secondsPerTick: 1
-	},
-
-	gameLifecycle: {
-		targetRenown: 10
-	},
-
-	advancePhase: {
-		secondsPerPick: 20,
-		revealSecondsAfterDraft: 8,
-		charterCountBonus: 2,
-		levelByAdvanceIndex: [1, 1, 2, 2, 3, 3, 4]
-	},
-
 	kingdomView: {
 		hexSize: 64,
 		hexStroke: 4,

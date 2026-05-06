@@ -1,15 +1,24 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { CharterOption } from '../../../../src/shared/domain/charter';
+import type { GameSettings } from '../../../../src/shared/multiplayer/snapshots';
 import { WorldStore } from '../../../../src/server/gameplay/WorldStore';
 import { PlayerProgressionService } from '../../../../src/server/gameplay/services/PlayerProgressionService';
+
+const TEST_SETTINGS: GameSettings = {
+	fightPhase: { secondsPerRound: 5, finalResultsSeconds: 10 },
+	buildPhase: { durationSeconds: 180, secondsPerTick: 3 },
+	gameLifecycle: { targetRenown: 10 },
+	advancePhase: { secondsPerPick: 20, revealSecondsAfterDraft: 8 },
+	economy: { startingResources: {}, starterBlueprintInventory: {} }
+};
 
 function createProgression(playerIds: string[]) {
 	const worlds = new Map<string, WorldStore>();
 	for (const playerId of playerIds) {
 		worlds.set(playerId, new WorldStore());
 	}
-	const service = new PlayerProgressionService((playerId) => worlds.get(playerId));
+	const service = new PlayerProgressionService((playerId) => worlds.get(playerId), TEST_SETTINGS);
 	return { service, worlds };
 }
 

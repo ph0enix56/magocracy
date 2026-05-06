@@ -59,7 +59,7 @@
 						<span class="cost-item">{amount} {resourceEmoji(resource)}</span>
 					{/each}
 				</div>
-				<div class="time">Build: {def.buildTime}s</div>
+				<div class="time">Build: {def.buildTime}⌛</div>
 			</div>
 		</div>
 	</div>

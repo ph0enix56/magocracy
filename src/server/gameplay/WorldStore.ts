@@ -1,22 +1,27 @@
-import { configuration } from '../../game/configuration';
+import { serverConfig } from '../config/serverConfig';
 import { getUnitDef } from '../config/buildings';
 import type { ArmyUnitState, KingdomTileState } from './model';
+
+export type WorldStoreOptions = {
+	initialResources: Record<string, number>;
+	starterBlueprintInventory: Record<string, number>;
+};
 
 export class WorldStore {
 	private readonly kingdomTiles = new Map<string, KingdomTileState>();
 	private readonly armyUnits = new Map<string, ArmyUnitState>();
 	readonly resources = new Map<string, number>();
 	readonly blueprintInventory = new Map<string, number>();
-	shopOffers: Array<[id: string, tier: number] | null> = Array.from({ length: configuration.shop.size }, () => null);
+	shopOffers: Array<[id: string, tier: number] | null> = Array.from({ length: serverConfig.shop.size }, () => null);
 	armyUnitOrder: string[] = [];
 	private nextArmyUnitSeq = 1;
 
-	constructor() {
-		for (const [key, value] of Object.entries(configuration.economy.startingResources)) {
+	constructor(options: WorldStoreOptions = { initialResources: {}, starterBlueprintInventory: {} }) {
+		for (const [key, value] of Object.entries(options.initialResources)) {
 			this.resources.set(key, value);
 		}
 
-		for (const [buildingId, count] of Object.entries(configuration.economy.starterBlueprintInventory)) {
+		for (const [buildingId, count] of Object.entries(options.starterBlueprintInventory)) {
 			this.blueprintInventory.set(buildingId, count);
 		}
 	}

@@ -1,10 +1,15 @@
 <script lang="ts">
 	import { multiplayerClient } from '../client/clientSingleton';
 	import { gameSessionState } from '../client/gameSessionStore';
+	import type { GameSettings } from '../../shared/multiplayer/snapshots';
+	import LobbySettingsForm from './LobbySettingsForm.svelte';
 
 	$: selfPlayer = $gameSessionState.lobby?.players.find((player) => player.playerId === $gameSessionState.playerId) ?? null;
 	$: inMatch = $gameSessionState.lobby?.status === 'in-game' || !!$gameSessionState.game;
-	$: statusLabel = $gameSessionState.connectionStatus === 'connected' ? 'Online' : 'Offline';
+	$: isConnected = $gameSessionState.connectionStatus === 'connected';
+	$: statusLabel = isConnected ? 'Online' : 'Offline';
+	$: isHost = selfPlayer?.isHost ?? false;
+	$: lobbySettings = $gameSessionState.lobby?.settings ?? null;
 
 	let nameDraft = '';
 	let joinLobbyIdDraft = '';
@@ -15,41 +20,30 @@
 		}
 	}
 
-	function connectMultiplayer() {
-		multiplayerClient.connect();
-	}
-
-	function disconnectMultiplayer() {
-		multiplayerClient.disconnect();
-	}
-
+	function connectMultiplayer() { multiplayerClient.connect(); }
+	function disconnectMultiplayer() { multiplayerClient.disconnect(); }
 	function renamePlayer() {
 		const next = nameDraft.trim();
 		if (!next) return;
 		multiplayerClient.setPlayerName(next);
 	}
-
-	function createLobby() {
-		multiplayerClient.createLobby();
-	}
-
+	function createLobby() { multiplayerClient.createLobby(); }
 	function joinLobby() {
 		const lobbyId = joinLobbyIdDraft.trim();
 		if (!lobbyId) return;
 		multiplayerClient.joinLobby(lobbyId);
 	}
-
-	function leaveLobby() {
-		multiplayerClient.leaveLobby();
-	}
-
+	function leaveLobby() { multiplayerClient.leaveLobby(); }
 	function toggleReady() {
 		if (!selfPlayer) return;
 		multiplayerClient.setReady(!selfPlayer.isReady);
 	}
+	function startLobbyGame() { multiplayerClient.startLobbyGame(); }
 
-	function startLobbyGame() {
-		multiplayerClient.startLobbyGame();
+	let settingsOpen = false;
+
+	function handleSettingsApply(event: CustomEvent<GameSettings>) {
+		multiplayerClient.configureLobby(event.detail);
 	}
 </script>
 
@@ -63,16 +57,18 @@
 			<span>{statusLabel}</span>
 		</div>
 
-		<div class="multiplayer-field-row">
-			<input
-				class="multiplayer-input"
-				type="text"
-				maxlength="24"
-				bind:value={nameDraft}
-				placeholder="Player name"
-			/>
-			<button class="ui-button" on:click={renamePlayer}>Rename</button>
-		</div>
+		{#if !isConnected}
+			<div class="multiplayer-field-row">
+				<input
+					class="multiplayer-input"
+					type="text"
+					maxlength="24"
+					bind:value={nameDraft}
+					placeholder="Player name"
+				/>
+				<button class="ui-button" on:click={renamePlayer}>Rename</button>
+			</div>
+		{/if}
 
 		{#if $gameSessionState.connectionStatus !== 'connected'}
 			<div class="multiplayer-actions">
@@ -114,6 +110,18 @@
 				{/each}
 			</div>
 
+			{#if lobbySettings}
+				<div class="settings-section">
+					<button class="settings-toggle" on:click={() => (settingsOpen = !settingsOpen)}>
+						<span>Game Settings</span>
+						<span class="settings-toggle-arrow" class:open={settingsOpen}>▾</span>
+					</button>
+					{#if settingsOpen}
+						<LobbySettingsForm settings={lobbySettings} {isHost} on:apply={handleSettingsApply} />
+					{/if}
+				</div>
+			{/if}
+
 			<div class="multiplayer-actions">
 				<button class="ui-button" on:click={toggleReady}>{selfPlayer?.isReady ? 'Unready' : 'Ready'}</button>
 				<button class="ui-button ui-button--ghost" on:click={leaveLobby}>Leave</button>
@@ -138,7 +146,7 @@
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-		width: min(560px, calc(100vw - 32px));
+		width: min(580px, calc(100vw - 32px));
 		padding: var(--space-lg);
 		pointer-events: auto;
 	}
@@ -178,18 +186,14 @@
 		color: var(--color-text-light);
 		font: inherit;
 	}
-	.multiplayer-input::placeholder {
-		opacity: 0.7;
-	}
+	.multiplayer-input::placeholder { opacity: 0.7; }
 	.multiplayer-actions {
 		display: flex;
 		gap: var(--space-sm);
 		margin-top: var(--space-sm);
 	}
 	.multiplayer-actions .ui-button,
-	.multiplayer-start {
-		flex: 1;
-	}
+	.multiplayer-start { flex: 1; }
 	.multiplayer-error {
 		font-size: var(--ui-font-size-xs);
 		color: #ffb3b3;
@@ -224,12 +228,8 @@
 		border-radius: var(--radius-pill);
 		border: 1px solid rgba(255, 255, 255, 0.2);
 	}
-	.multiplayer-player-state.is-ready {
-		background: rgba(37, 140, 83, 0.3);
-	}
-	.multiplayer-player-state.is-waiting {
-		background: rgba(140, 97, 37, 0.3);
-	}
+	.multiplayer-player-state.is-ready { background: rgba(37, 140, 83, 0.3); }
+	.multiplayer-player-state.is-waiting { background: rgba(140, 97, 37, 0.3); }
 	.multiplayer-host-badge {
 		font-size: var(--ui-font-size-xs);
 		padding: 2px 7px;
@@ -240,4 +240,32 @@
 		margin-top: 10px;
 		width: 100%;
 	}
+	.settings-section {
+		margin-top: var(--space-sm);
+		border-radius: var(--radius-md);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		overflow: hidden;
+	}
+	.settings-toggle {
+		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 8px 12px;
+		background: rgba(255, 255, 255, 0.06);
+		border: none;
+		color: var(--color-text-light);
+		font: inherit;
+		font-size: var(--ui-font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		cursor: pointer;
+		text-align: left;
+		pointer-events: auto;
+	}
+	.settings-toggle:hover { background: rgba(255, 255, 255, 0.1); }
+	.settings-toggle-arrow {
+		transition: transform 0.2s ease;
+		opacity: 0.6;
+	}
+	.settings-toggle-arrow.open { transform: rotate(180deg); }
 </style>

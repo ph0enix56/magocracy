@@ -1,6 +1,7 @@
-import { configuration } from '../game/configuration';
+import { serverConfig } from './config/serverConfig';
 import type { CombatSnapshot } from '../shared/domain/combatTypes';
 import type { GameActionCommand } from '../shared/multiplayer/commands';
+import type { GameSettings } from '../shared/multiplayer/snapshots';
 import type {
 	AdvanceSnapshot,
 	GameStandingSnapshot,
@@ -25,6 +26,7 @@ export class RoomGameRuntime {
 	private readonly onSnapshot: (snapshot: GameSnapshot) => void;
 	private readonly playerRuntimeFactory: PlayerRuntimeFactory;
 	private readonly progressionService: PlayerProgressionService;
+	private readonly settings: GameSettings;
 	private interval: ReturnType<typeof setInterval> | null = null;
 	private tick = 0;
 	private phase: GamePhase = 'setup';
@@ -38,16 +40,20 @@ export class RoomGameRuntime {
 	private activePhase: RuntimePhase | null = null;
 	private phaseLoopIndex = 0;
 
-	constructor(playerIds: string[], onSnapshot: (snapshot: GameSnapshot) => void) {
+	constructor(playerIds: string[], settings: GameSettings, onSnapshot: (snapshot: GameSnapshot) => void) {
 		this.playerIds = [...playerIds];
+		this.settings = settings;
 		this.onSnapshot = onSnapshot;
 		this.playerRuntimeFactory = new PlayerRuntimeFactory();
-		this.progressionService = new PlayerProgressionService((playerId) => this.players.get(playerId)?.run.world);
+		this.progressionService = new PlayerProgressionService(
+			(playerId) => this.players.get(playerId)?.run.world,
+			settings
+		);
 		this.buildPhaseRuntime = new BuildPhaseRuntime();
 		this.fightPhaseRuntime = new FightPhaseRuntime();
 		this.advancePhaseRuntime = new AdvancePhaseRuntime();
 		for (const playerId of playerIds) {
-			this.players.set(playerId, this.playerRuntimeFactory.create());
+			this.players.set(playerId, this.playerRuntimeFactory.create(settings.economy));
 		}
 		this.phaseByKey = {
 			advance: this.advancePhaseRuntime,
@@ -76,7 +82,7 @@ export class RoomGameRuntime {
 
 			this.evaluateEndgame();
 			this.emitSnapshot();
-		}, configuration.loop.tickIntervalMs);
+		}, serverConfig.loop.tickIntervalMs);
 	}
 
 	stop(): void {
@@ -125,7 +131,7 @@ export class RoomGameRuntime {
 			tick: this.tick,
 			phase: this.phase,
 			status: this.gameStatus,
-			targetRenown: Math.max(1, Math.floor(configuration.gameLifecycle.targetRenown)),
+			targetRenown: Math.max(1, Math.floor(this.settings.gameLifecycle.targetRenown)),
 			winnerPlayerId: this.winnerPlayerId,
 			finalStandings: this.finalStandings,
 			buildPhaseSecondsRemaining: this.phase === 'build' ? this.buildPhaseRuntime.getSecondsRemaining() : 0,
@@ -191,9 +197,8 @@ export class RoomGameRuntime {
 		return {
 			playerIds: this.playerIds,
 			phaseLoopIndex: this.phaseLoopIndex,
-			getPlayerRuntime: (playerId) => this.players.get(playerId),
-			resolveBuildPhaseDurationSeconds: () => this.resolveBuildPhaseDurationSeconds(),
-			resolveBuildTickIntervalSeconds: () => this.resolveBuildTickIntervalSeconds()
+			settings: this.settings,
+			getPlayerRuntime: (playerId) => this.players.get(playerId)
 		};
 	}
 
@@ -207,13 +212,5 @@ export class RoomGameRuntime {
 		}
 		runtime.run.world.reorderArmyUnitWithThrow(action.unitEntityId, action.direction);
 		return { handled: true, ok: true, emitSnapshot: true };
-	}
-
-	private resolveBuildPhaseDurationSeconds(): number {
-		return Math.max(1, Math.floor(configuration.buildPhase.durationSeconds));
-	}
-
-	private resolveBuildTickIntervalSeconds(): number {
-		return Math.max(1, Math.floor(configuration.buildPhase.secondsPerTick));
 	}
 }

@@ -17,7 +17,8 @@ export function toLobbySnapshot(lobby: LobbyRecord): LobbySnapshot {
 		hostPlayerId: lobby.hostPlayerId,
 		maxPlayers: lobby.maxPlayers,
 		players,
-		createdAt: lobby.createdAt
+		createdAt: lobby.createdAt,
+		settings: lobby.settings
 	};
 }
 
