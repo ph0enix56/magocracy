@@ -1,0 +1,17 @@
+FROM oven/bun:latest
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json bun.lock ./
+RUN bun install --production
+
+# Copy source code
+COPY . .
+
+# Expose server port (default 8081)
+EXPOSE 8081
+
+# Run the authoritative multiplayer server
+ENTRYPOINT ["bun", "run", "server:prod"]
+CMD ["--port", "8081"]

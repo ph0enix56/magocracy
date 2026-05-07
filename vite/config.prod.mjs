@@ -1,25 +1,9 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 
-const phasermsg = () => {
-    return {
-        name: 'phasermsg',
-        buildStart() {
-            process.stdout.write(`Building for production...\n`);
-        },
-        buildEnd() {
-            const line = "---------------------------------------------------------";
-            const msg = `❤️❤️❤️ Tell us about your game! - games@phaser.io ❤️❤️❤️`;
-            process.stdout.write(`${line}\n${msg}\n${line}\n`);
-            
-            process.stdout.write(`✨ Done ✨\n`);
-        }
-    }
-}   
-
 export default defineConfig({
     base: './',
-    logLevel: 'warning',
+    logLevel: 'warn',
     build: {
         rollupOptions: {
             output: {
@@ -42,8 +26,5 @@ export default defineConfig({
     server: {
         port: 8080
     },
-    plugins: [
-        svelte(),
-        phasermsg()
-    ]
+    plugins: [svelte()]
 });

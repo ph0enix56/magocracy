@@ -1,0 +1,25 @@
+# IMPORTANT - Next steps for production:
+# 1. After deploying the 'server' service, obtain its public-facing URL.
+# 2. Build the client: SERVER_URL=http://your-server-url:8081 bun run client:build
+# 3. Serve the created 'dist' folder using a regular web server.
+
+services:
+  # Full development environment (Client + Server)
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080" # Client Dev Server
+      - "8081:8081" # Multiplayer Server
+    volumes:
+      - .:/app
+      - /app/node_modules # Prevents local node_modules from overwriting container's
+
+  # Authoritative Server for production/remote testing
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - "8081:8081"

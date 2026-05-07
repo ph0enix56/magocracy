@@ -13,7 +13,8 @@ export default defineConfig({
         },
     },
     server: {
-        port: 8080
+        port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 8080,
+        host: true
     },
     plugins: [svelte()]
 });

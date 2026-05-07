@@ -5,12 +5,12 @@
 	"license": "MIT",
 	"licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
 	"scripts": {
-		"dev": "bunx --bun vite --config vite/config.dev.mjs",
-		"dev:solo": "bunx --bun vite --config vite/config.dev.mjs --open /?solo",
-		"build": "bunx --bun vite build --config vite/config.prod.mjs",
-		"test:server": "bun test tests/server",
-		"server:dev": "bun --watch src/server/index.ts",
-		"server:start": "bun src/server/index.ts"
+		"server:dev": "bun --watch src/server/index.ts --port 8081",
+		"server:prod": "bun src/server/index.ts",
+		"client:dev": "VITE_MULTIPLAYER_SERVER_URL=http://localhost:8081 bunx --bun vite --config vite/config.dev.mjs --port 8080",
+		"client:smoke": "VITE_MULTIPLAYER_SERVER_URL=http://localhost:8081 bunx --bun vite --config vite/config.dev.mjs --port 8080 --open /?solo",
+		"client:build": "bash -c 'if [ -z \"$SERVER_URL\" ]; then echo \"Error: SERVER_URL env var must be set.\"; exit 1; fi; VITE_MULTIPLAYER_SERVER_URL=$SERVER_URL bunx --bun vite build --config vite/config.prod.mjs'",
+		"test": "bun test tests/"
 	},
 	"devDependencies": {
 		"@types/node": "^24.6.0",

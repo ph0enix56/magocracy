@@ -57,13 +57,12 @@
 		<div class="multiplayer-header">
 			<div>
 				<div class="multiplayer-title">Magocracy</div>
-				<div class="multiplayer-subtitle">Multiplayer Lobby</div>
 			</div>
 			<button class="how-to-play-btn" on:click={openHowToPlay} title="How to Play">?</button>
 		</div>
 
 		<div class="multiplayer-row multiplayer-row--status">
-			<span>Status</span>
+			<span>Connection Status</span>
 			<span>{statusLabel}</span>
 		</div>
 
@@ -82,7 +81,7 @@
 
 		{#if $gameSessionState.connectionStatus !== 'connected'}
 			<div class="multiplayer-actions">
-				<button class="ui-button" on:click={connectMultiplayer}>Connect</button>
+				<button class="ui-button" on:click={() => {renamePlayer(); connectMultiplayer();}}>Connect</button>
 			</div>
 		{:else if !$gameSessionState.lobby}
 			<div class="multiplayer-actions">

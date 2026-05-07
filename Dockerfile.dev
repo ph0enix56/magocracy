@@ -1,0 +1,16 @@
+FROM oven/bun:latest
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json bun.lock ./
+RUN bun install
+
+# Copy source code
+COPY . .
+
+# Expose ports: 8080 (Client development server), 8081 (Multiplayer server)
+EXPOSE 8080 8081
+
+# Run both server and client in development mode
+CMD ["bash", "-c", "bun run server:dev & bun run client:dev & wait"]

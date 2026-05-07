@@ -28,10 +28,10 @@ type Listener = (state: MultiplayerClientState) => void;
 type ServerEventListener = (event: ServerEvent) => void;
 
 const PLAYER_NAME_STORAGE_KEY = 'magocracy:player-name';
-const DEFAULT_MULTIPLAYER_SERVER_URL = 'http://localhost:8081';
-
 function getServerEndpoint(): string {
-	return import.meta.env['VITE_MULTIPLAYER_SERVER_URL']?.trim() || DEFAULT_MULTIPLAYER_SERVER_URL;
+	const url = import.meta.env['VITE_MULTIPLAYER_SERVER_URL'];
+	if (!url) throw new Error('Multiplayer server URL not set: contact the administrator to set it and build the client again.');
+	return url;
 }
 
 function generateDefaultPlayerName(): string {
