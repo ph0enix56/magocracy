@@ -113,7 +113,6 @@
 			<ResourceCounter keyName="stone" code="1faa8" />
 			<ResourceCounter keyName="food" code="1f35e" />
 			<ResourceCounter keyName="mana" code="1f4a7" />
-			<ResourceCounter keyName="expansion" code="2795" />
 			{#if $appViewState.isScouting && $appViewState.viewedPlayerName}
 				<div class="ui-chip scout-chip">Scouting {$appViewState.viewedPlayerName}</div>
 			{/if}

@@ -1,9 +1,28 @@
 /* ==========================================================================
+   0. FONTS
+   ========================================================================== */
+@font-face {
+    font-family: InterVariable;
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("assets/fonts/InterVariable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: InterVariable;
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("assets/fonts/InterVariable-Italic.woff2") format("woff2");
+}
+
+/* ==========================================================================
    1. DESIGN TOKENS (Variables)
    ========================================================================== */
 :root {
     /* Typography */
-    --ui-font-family: "Inter", system-ui, -apple-system, sans-serif;
+    --ui-font-family: "InterVariable", system-ui, sans-serif;
     --font-sans: var(--ui-font-family);
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
 
@@ -13,7 +32,7 @@
     --font-weight-bold: 700;
     --font-weight-extrabold: 800;
     --font-weight-black: 900;
-    
+
     --ui-font-size-xs: 0.78rem;
     --ui-font-size-sm: 0.9rem;
     --ui-font-size-md: 1rem;
@@ -34,7 +53,7 @@
     --color-surface-3: #333;
     --color-surface-4: #444;
     --color-surface-5: #555;
-    
+
     /* Colors - Surface Transparency */
     --color-surface-trans-18: rgba(0, 0, 0, 0.18);
     --color-surface-trans-22: rgba(0, 0, 0, 0.22);

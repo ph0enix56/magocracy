@@ -12,6 +12,7 @@
 	} from '../client/gameSessionStore';
 	import { getHexTileColorForSchool, toCssHexColor } from '../../shared/ui/buildingSchoolColors';
 	import { orderedResourceEntries, resourceCode } from './cardFormatters';
+	import { createResourceAmountState } from './store/resourceViewState';
 	import Twemoji from './Twemoji.svelte';
 	import UnitCard from './UnitCard.svelte';
 
@@ -70,6 +71,7 @@
 
 	$: canInteract = $sidebarViewState.canTownInteract && !$sidebarViewState.isScouting;
 	$: selectedHousedUnit = selected?.housedArmyUnit ?? selected?.housedUnit ?? null;
+	const expansionCount = createResourceAmountState('expansion');
 	$: pendingUpgradeBuildingId = getPendingUpgradeBuildingId(pendingTileAction);
 	$: pendingUpgradeDef = pendingUpgradeBuildingId
 		? ($gameSessionState.catalog.find((entry) => entry.id === pendingUpgradeBuildingId) ?? null)
@@ -216,12 +218,12 @@
 						{/if}
 					</div>
 					<div class="tile-card__titles">
-						<h2>{selected.isExpansionSite ? 'Expansion site' : selected.built ? (selected.buildingName ?? selected.buildingId ?? 'Building') : 'Empty space'}</h2>
+						<h2>{selected.isExpansionSite ? 'Expansion site' : selected.built ? (selected.buildingName ?? selected.buildingId ?? 'Building') : 'Empty tile'}</h2>
 						{#if selected.built}
 							<p>Tier {selected.buildingTier ?? '?'} {schoolDistrictLabel(selected.buildingSchool)}</p>
 							<p>{kindLabel(selected.buildingKind)}</p>
 						{:else if selected.isExpansionSite}
-							<p>Spend 1 expansion token to unlock this tile.</p>
+							<p>Spend 1 expansion token to unlock this tile (you have {$expansionCount}).</p>
 						{/if}
 					</div>
 				</div>

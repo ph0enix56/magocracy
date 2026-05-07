@@ -113,7 +113,7 @@
 		display: grid;
 		grid-template-columns: minmax(340px, 400px) minmax(360px, 420px);
 		gap: var(--space-lg);
-		align-items: start;
+		align-items: stretch;
 	}
 
 	.list {
@@ -202,7 +202,7 @@
 	}
 
 	.preview-pane {
-		min-height: 200px;
+		min-height: 350px;
 		max-height: calc(80vh - 92px);
 		overflow-y: auto;
 		overflow-x: hidden;

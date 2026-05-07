@@ -143,7 +143,7 @@
 		display: grid;
 		grid-template-columns: minmax(500px, 560px) minmax(360px, 420px);
 		gap: var(--space-lg);
-		align-items: start;
+		align-items: stretch;
 	}
 
 	.grid {
@@ -164,7 +164,7 @@
 	}
 
 	.preview-pane {
-		min-height: 200px;
+		min-height: 480px;
 		max-height: calc(80vh - 92px);
 		overflow-y: auto;
 		overflow-x: hidden;

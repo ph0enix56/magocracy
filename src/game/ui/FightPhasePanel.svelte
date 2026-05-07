@@ -198,7 +198,7 @@
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
 		gap: var(--space-md);
-		align-items: start;
+		align-items: stretch;
 	}
 
 	.fight-body {
@@ -318,6 +318,7 @@
 	.fight-preview-pane {
 		position: sticky;
 		top: 0;
+		min-height: 400px;
 		max-height: calc(100vh - 130px);
 		overflow: auto;
 		padding-right: var(--space-xs);

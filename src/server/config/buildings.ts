@@ -204,7 +204,7 @@ export function getAllUnitDefs(): UnitDef[] {
 	return Object.values(UNITS);
 }
 
-/** Returns all root buildings available for purchase. */
+/** Returns all root buildings available for purchase. Excludes starting structures (tier 0). */
 export function getPurchasableBuildings(): BuildingDef[] {
-	return Object.values(BUILDINGS).filter(b => !b.parentId);
+	return Object.values(BUILDINGS).filter((b) => !b.parentId && b.tier > 0);
 }
