@@ -75,7 +75,6 @@
 					bind:value={nameDraft}
 					placeholder="Player name"
 				/>
-				<button class="ui-button" on:click={renamePlayer}>Rename</button>
 			</div>
 		{/if}
 

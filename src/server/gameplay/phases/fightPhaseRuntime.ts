@@ -117,7 +117,7 @@ export class FightPhaseRuntime implements RuntimePhase {
 	getCombatSnapshotForPlayer(playerId: string): CombatSnapshot {
 		const replay = this.combatReplayByPlayerId.get(playerId);
 		if (!replay) {
-			return { status: 'idle', round: 0, activeSide: 'armyA', armyA: [], armyB: [], log: [] };
+			return { status: 'idle', round: 0, armyA: [], armyB: [], log: [] };
 		}
 		return replay.getSnapshot();
 	}

@@ -21,7 +21,6 @@ export type CombatSnapshot = {
 	status: CombatStatus;
 	winner?: CombatWinner;
 	round: number;
-	activeSide: CombatActiveSide;
 	armyA: CombatUnit[];
 	armyB: CombatUnit[];
 	log: CombatLogEntry[];

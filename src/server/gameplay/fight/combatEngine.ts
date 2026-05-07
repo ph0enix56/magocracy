@@ -17,6 +17,7 @@ export type CombatUnit = {
 	drFlat: number;
 	drPercent: number;
 	actionPoints: number;
+	initiative: number;
 	actions: AttackAction[];
 };
 
@@ -37,9 +38,14 @@ type CombatUnitState = CombatUnit & {
 	actionCursor: number;
 };
 
-type CombatPhase = {
+type TurnUnit = {
 	side: CombatActiveSide;
-	unitIndex: number;
+	originalIndex: number;
+	unit: CombatUnitState;
+};
+
+type CombatPhase = {
+	turnIndex: number;
 	remainingAp: number;
 };
 
@@ -166,6 +172,35 @@ function fmtSide(side: CombatActiveSide): string {
 	return side === 'armyA' ? 'A' : 'B';
 }
 
+function getTurnOrder(a: CombatUnitState[], b: CombatUnitState[]): TurnUnit[] {
+	const order: TurnUnit[] = [];
+	for (let i = 0; i < a.length; i++) {
+		order.push({ side: 'armyA', originalIndex: i, unit: a[i]! });
+	}
+	for (let i = 0; i < b.length; i++) {
+		order.push({ side: 'armyB', originalIndex: i, unit: b[i]! });
+	}
+
+	order.sort((x, y) => {
+		// 1. Initiative (Highest first)
+		if (x.unit.initiative !== y.unit.initiative) {
+			return y.unit.initiative - x.unit.initiative;
+		}
+		// 2. Position (Closest to front first)
+		if (x.originalIndex !== y.originalIndex) {
+			return x.originalIndex - y.originalIndex;
+		}
+		// 3. Dumb resolution (Unit ID alphabetical)
+		if (x.unit.unitDefId !== y.unit.unitDefId) {
+			return x.unit.unitDefId.localeCompare(y.unit.unitDefId);
+		}
+		// 4. Final tiebreaker: side (Army A first)
+		return x.side === 'armyA' ? -1 : 1;
+	});
+
+	return order;
+}
+
 function toState(unit: CombatUnit): CombatUnitState {
 	return {
 		...unit,
@@ -174,6 +209,7 @@ function toState(unit: CombatUnit): CombatUnitState {
 		drFlat: clampInt(unit.drFlat),
 		drPercent: clampInt(unit.drPercent),
 		actionPoints: clampInt(unit.actionPoints),
+		initiative: clampInt(unit.initiative),
 		actionCursor: 0
 	};
 }
@@ -192,7 +228,8 @@ export class CombatSession {
 	private a: CombatUnitState[];
 	private b: CombatUnitState[];
 	private round = 1;
-	private phase: CombatPhase = { side: 'armyA', unitIndex: 0, remainingAp: 0 };
+	private turnOrder: TurnUnit[] = [];
+	private phase: CombatPhase = { turnIndex: 0, remainingAp: 0 };
 	private finishedWinner: CombatWinner | undefined;
 	private logSeq = 1;
 	private log: CombatLogEntry[] = [];
@@ -200,6 +237,8 @@ export class CombatSession {
 	constructor(armyA: CombatUnit[], armyB: CombatUnit[]) {
 		this.a = armyA.map(toState);
 		this.b = armyB.map(toState);
+		this.turnOrder = getTurnOrder(this.a, this.b);
+
 		if (this.a.length === 0 || this.b.length === 0) {
 			this.finishedWinner = this.a.length > 0 ? 'armyA' : this.b.length > 0 ? 'armyB' : 'draw';
 		}
@@ -211,7 +250,6 @@ export class CombatSession {
 			status,
 			winner: this.finishedWinner,
 			round: this.finishedWinner ? this.round - 1 : this.round,
-			activeSide: this.phase.side,
 			armyA: this.a.map(toResultUnit),
 			armyB: this.b.map(toResultUnit),
 			log: [...this.log]
@@ -225,18 +263,27 @@ export class CombatSession {
 			return null;
 		}
 
-		const myArmy = this.phase.side === 'armyA' ? this.a : this.b;
-		const enemyArmy = this.phase.side === 'armyA' ? this.b : this.a;
-
-		while (this.phase.unitIndex >= myArmy.length) {
-			this.advanceSideOrRound();
+		while (this.phase.turnIndex >= this.turnOrder.length) {
+			this.advanceRound();
 			if (this.finishedWinner) return null;
 			return this.step();
 		}
 
-		const attacker = myArmy[this.phase.unitIndex];
-		if (!attacker) {
-			this.phase.unitIndex += 1;
+		const currentTurn = this.turnOrder[this.phase.turnIndex]!;
+		const attacker = currentTurn.unit;
+		const myArmy = currentTurn.side === 'armyA' ? this.a : this.b;
+		const enemyArmy = currentTurn.side === 'armyA' ? this.b : this.a;
+
+		if (!attacker || attacker.health <= 0) {
+			this.phase.turnIndex += 1;
+			this.phase.remainingAp = 0;
+			return this.step();
+		}
+
+		const currentIndex = myArmy.indexOf(attacker);
+		if (currentIndex === -1) {
+			// Unit was removed but health might be > 0? Should not happen if removeDefeated is consistent.
+			this.phase.turnIndex += 1;
 			this.phase.remainingAp = 0;
 			return this.step();
 		}
@@ -245,21 +292,21 @@ export class CombatSession {
 			this.phase.remainingAp = clampNonNegInt(attacker.actionPoints);
 		}
 		if (this.phase.remainingAp <= 0 || attacker.actions.length === 0) {
-			this.phase.unitIndex += 1;
+			this.phase.turnIndex += 1;
 			this.phase.remainingAp = 0;
 			return this.step();
 		}
 
 		const action = attacker.actions[attacker.actionCursor];
 		if (!action) {
-			this.phase.unitIndex += 1;
+			this.phase.turnIndex += 1;
 			this.phase.remainingAp = 0;
 			return this.step();
 		}
 
 		const cost = Math.max(1, clampInt(action.actionPointCost));
 		if (cost > this.phase.remainingAp) {
-			this.phase.unitIndex += 1;
+			this.phase.turnIndex += 1;
 			this.phase.remainingAp = 0;
 			return this.step();
 		}
@@ -267,7 +314,7 @@ export class CombatSession {
 		this.phase.remainingAp -= cost;
 		attacker.actionCursor = (attacker.actionCursor + 1) % attacker.actions.length;
 
-		const maxEnemiesInRange = clampInt(action.range) - this.phase.unitIndex;
+		const maxEnemiesInRange = clampInt(action.range) - currentIndex;
 		const targetIndexes = pickTargetIndicesInRange(enemyArmy, maxEnemiesInRange, action.targeting);
 		const raw = effectiveDamage(action);
 		let totalTaken = 0;
@@ -280,57 +327,51 @@ export class CombatSession {
 			target.health -= taken;
 			totalTaken += taken;
 			if (target.health <= 0) {
-				defeated.push(`${target.name} (${fmtSide(this.otherSide())}[${index + 1}])`);
+				defeated.push(`${target.name} (${fmtSide(this.otherSide(currentTurn.side))}[${index + 1}])`);
 			}
 		}
 
 		removeDefeated(enemyArmy);
 		if (this.a.length === 0 || this.b.length === 0) this.finish();
 
-		const position = this.phase.unitIndex + 1;
-		const actionText = `${attacker.name} (${fmtSide(this.phase.side)}[${position}]) used ${action.targeting} (range ${clampInt(action.range)})`;
+		const position = currentIndex + 1;
 		let targetText = '';
 		if (targetIndexes.length === 0) {
 			targetText = ' but could not reach any enemy.';
 		} else if (targetIndexes.length === 1) {
-			targetText = ` dealing ${totalTaken} damage.`;
+			targetText = `, dealing ${totalTaken} damage.`;
 		} else {
-			targetText = ` dealing ${totalTaken} total damage.`;
+			targetText = `, dealing ${totalTaken} total damage.`;
 		}
 		const defeatedText = defeated.length > 0 ? ` Defeated: ${defeated.join(', ')}.` : '';
 
 		const entry: CombatLogEntry = {
 			seq: this.logSeq++,
-			text: `R${this.round} ${fmtSide(this.phase.side)}: ${actionText}${targetText}${defeatedText}`
+			text: `R${this.round}: ${attacker.name} [${position}] used ${action.name} (range ${clampInt(action.range)})${targetText}${defeatedText}`
 		};
 		this.log.push(entry);
 
 		if (!this.finishedWinner && this.phase.remainingAp <= 0) {
-			this.phase.unitIndex += 1;
+			this.phase.turnIndex += 1;
 			this.phase.remainingAp = 0;
 		}
 
 		return entry;
 	}
 
-	private otherSide(): 'armyA' | 'armyB' {
-		return this.phase.side === 'armyA' ? 'armyB' : 'armyA';
+	private otherSide(side: CombatActiveSide): CombatActiveSide {
+		return side === 'armyA' ? 'armyB' : 'armyA';
 	}
 
-	private advanceSideOrRound(): void {
-		if (this.phase.side === 'armyA') {
-			this.phase = { side: 'armyB', unitIndex: 0, remainingAp: 0 };
-			return;
-		}
+	private advanceRound(): void {
 		this.round += 1;
-		this.phase = { side: 'armyA', unitIndex: 0, remainingAp: 0 };
+		this.phase = { turnIndex: 0, remainingAp: 0 };
 	}
 
 	private finish(): void {
 		if (this.a.length > 0 && this.b.length === 0) this.finishedWinner = 'armyA';
 		else if (this.b.length > 0 && this.a.length === 0) this.finishedWinner = 'armyB';
 		else this.finishedWinner = 'draw';
-		this.advanceSideOrRound();
 	}
 }
 
@@ -338,23 +379,23 @@ export function resolveCombat(armyA: CombatUnit[], armyB: CombatUnit[], options?
 	const maxRounds = options?.maxRounds ?? 10_000;
 	const a = armyA.map(toState);
 	const b = armyB.map(toState);
+	const turnOrder = getTurnOrder(a, b);
 
 	let rounds = 0;
 	while (a.length > 0 && b.length > 0 && rounds < maxRounds) {
 		rounds += 1;
 
-		for (let i = 0; i < a.length && b.length > 0; i++) {
-			const attacker = a[i];
-			if (!attacker || attacker.health <= 0) continue;
-			takeTurn(attacker, i, b);
-		}
+		for (const turn of turnOrder) {
+			const attacker = turn.unit;
+			const myArmy = turn.side === 'armyA' ? a : b;
+			const enemyArmy = turn.side === 'armyA' ? b : a;
 
-		if (b.length === 0) break;
+			if (!attacker || attacker.health <= 0 || enemyArmy.length === 0) continue;
 
-		for (let i = 0; i < b.length && a.length > 0; i++) {
-			const attacker = b[i];
-			if (!attacker || attacker.health <= 0) continue;
-			takeTurn(attacker, i, a);
+			const currentIndex = myArmy.indexOf(attacker);
+			if (currentIndex === -1) continue;
+
+			takeTurn(attacker, currentIndex, enemyArmy);
 		}
 	}
 

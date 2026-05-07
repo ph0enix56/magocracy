@@ -10,7 +10,6 @@
 	let state = {
 		status: 'idle',
 		round: 0,
-		activeSide: 'armyA',
 		armyA: [],
 		armyB: [],
 		log: []
@@ -77,7 +76,6 @@
 			<div class="meta">
 				<div>Status: <strong>{state.status}</strong></div>
 				<div>Round: <strong>{state.round}</strong></div>
-				<div>Active: <strong>{state.activeSide}</strong></div>
 				{#if state.status === 'finished'}
 					<div>Winner: <strong>{state.winner}</strong></div>
 				{/if}
@@ -86,7 +84,7 @@
 			<div class="content">
 				<div class="armies">
 					<div class="army">
-						<h3>Army A</h3>
+						<h3>Your army</h3>
 						{#if state.armyA.length === 0}
 							<div class="empty">(empty)</div>
 						{/if}
@@ -106,7 +104,7 @@
 					</div>
 
 					<div class="army">
-						<h3>Army B</h3>
+						<h3>Opponent's army</h3>
 						{#if state.armyB.length === 0}
 							<div class="empty">(empty)</div>
 						{/if}
@@ -132,7 +130,7 @@
 						{#if state.log.length === 0}
 							<div class="log-empty">No actions yet.</div>
 						{/if}
-						{#each state.log as e (e.seq)}
+						{#each state.log.slice(-10) as e (e.seq)}
 							<div class="log-line">{e.text}</div>
 						{/each}
 					</div>

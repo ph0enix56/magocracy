@@ -62,14 +62,6 @@
 		}
 	}
 
-	function resultWinnerLabel(matchId: string): string {
-		const result = $fightPanelState.fight.results.find((entry) => entry.matchId === matchId);
-		if (!result || result.status !== 'finished') return 'Pending';
-		if (!result.playerBId) return 'Bye';
-		if (!result.winnerPlayerId) return 'Draw';
-		return `${playerName(result.winnerPlayerId)} won`;
-	}
-
 	async function openReplay(matchId: string) {
 		if (isOpeningReplay) return;
 		isOpeningReplay = true;
@@ -109,7 +101,6 @@
 									<div class="fight-round">R{round.roundIndex + 1}</div>
 									<div class="fight-opponent">{playerName($fightPanelState.selfPlayerId)} vs {playerName(round.opponentPlayerId)}</div>
 									<div class={`fight-status fight-status--${round.status}`}>{statusLabel(round.status)}</div>
-									<div class="fight-result">{resultWinnerLabel(round.matchId)}</div>
 								</div>
 								<div class="fight-armies">
 									<div class="fight-army-line">

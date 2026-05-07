@@ -18,6 +18,7 @@ function toCombatUnit(unit: ArmyUnitState): CombatUnit {
 		drFlat: unit.drFlat,
 		drPercent: unit.drPercent,
 		actionPoints: unit.actionPoints,
+		initiative: unit.initiative,
 		actions: unitDef?.actions.map((action) => ({
 			...action,
 			damage: Math.max(0, Math.floor((action.damage + (unit.bonusDamage ?? 0)) * (1 + (unit.damageMultiplier ?? 0))))

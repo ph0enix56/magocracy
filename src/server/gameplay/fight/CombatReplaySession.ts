@@ -14,6 +14,7 @@ function toCombatUnit(unit: ArmyUnitState): CombatUnit {
 		drFlat: unit.drFlat,
 		drPercent: unit.drPercent,
 		actionPoints: unit.actionPoints,
+		initiative: unit.initiative,
 		actions: unitDef?.actions.map((action) => ({ ...action })) ?? []
 	};
 }
@@ -41,7 +42,7 @@ export class CombatReplaySession {
 
 	getSnapshot(): CombatSnapshot {
 		if (!this.session) {
-			return { status: 'idle', round: 0, activeSide: 'armyA', armyA: [], armyB: [], log: [] };
+			return { status: 'idle', round: 0, armyA: [], armyB: [], log: [] };
 		}
 		return this.session.getSnapshot();
 	}
