@@ -282,15 +282,15 @@ body {
 
 .ui-progress-fill {
     height: 100%;
-    background: #0f0;
+    background: var(--color-accent-green);
     transition: width 0.3s ease;
 }
 
 /* Floating / Card Utilities */
 .ui-floating {
     background: var(--color-surface-trans-60);
-    color: #e0e1dd;
-    border-radius: 10px;
+    color: var(--color-text-dim);
+    border-radius: var(--radius-lg);
     padding: var(--space-sm) var(--space-md);
 }
 

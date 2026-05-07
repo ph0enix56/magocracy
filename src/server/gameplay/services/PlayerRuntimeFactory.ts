@@ -16,8 +16,7 @@ export type PlayerRuntimeBundle = {
 
 export class PlayerRuntimeFactory {
 	create(economy: GameSettings['economy']): PlayerRuntimeBundle {
-		const seed = Date.now() ^ Math.floor(Math.random() * 0xffffffff);
-		const run = new ServerGameState(seed, {
+		const run = new ServerGameState({
 			initialResources: economy.startingResources,
 			starterBlueprintInventory: economy.starterBlueprintInventory
 		});

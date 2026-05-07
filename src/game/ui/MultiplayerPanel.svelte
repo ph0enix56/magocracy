@@ -188,10 +188,7 @@
 		background: rgba(255, 255, 255, 0.2);
 		border-color: white;
 	}
-	.multiplayer-subtitle {
-		font-size: var(--ui-font-size-md);
-		opacity: 0.75;
-	}
+
 	.multiplayer-row {
 		display: flex;
 		justify-content: space-between;
@@ -209,6 +206,7 @@
 		margin-bottom: 10px;
 	}
 	.multiplayer-input {
+		width: 101%;
 		height: 36px;
 		box-sizing: border-box;
 		padding: 0 10px;

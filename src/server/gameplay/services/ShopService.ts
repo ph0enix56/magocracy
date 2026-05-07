@@ -2,14 +2,17 @@ import { serverConfig } from '../../config/serverConfig';
 import { getPurchasableBuildings, type BuildingDef } from '../../config/buildings';
 import type { WorldStore } from '../WorldStore';
 
+/**
+ * Manages the player's shop: offer generation, purchasing blueprints, and rerolling.
+ * Offer tier probabilities are weighted by the current phase loop index, shifting toward
+ * higher tiers as the game progresses.
+ */
 export class ShopService {
 	private phaseLoopIndex = 0;
 
 	constructor(private readonly world: WorldStore) {}
 
-	update(_delta: number, _time: number): void {}
-	advanceTick(): void {}
-
+	/** Returns the current shop state: all offer slots and the reroll cost. */
 	getState() {
 		return {
 			offers: this.world.shopOffers.map((offer) => {
@@ -25,19 +28,28 @@ export class ShopService {
 		};
 	}
 
+	/** Rerolls all shop offers for free (used at phase start). */
 	rerollFree(): void {
 		this.rerollInternal();
 	}
 
+	/** Rerolls all shop offers, spending the configured mana cost. Throws if not enough mana. */
 	rerollWithThrow(): void {
 		this.spendManaWithThrow(serverConfig.shop.rerollCost);
 		this.rerollInternal();
 	}
 
+	/** Sets the current phase loop index, which controls the shop's tier weight distribution. */
 	setPhaseLoopIndex(phaseLoopIndex: number): void {
 		this.phaseLoopIndex = Math.max(0, Math.floor(phaseLoopIndex));
 	}
 
+	/**
+	 * Purchases the blueprint in a given offer slot, spending the tier's mana cost and
+	 * adding one blueprint to the player's inventory. Clears the slot on success.
+	 * Throws if the slot index is invalid, the slot is empty, or mana is insufficient.
+	 * @returns The building ID that was purchased.
+	 */
 	buyWithThrow(slotIndex: number): string {
 		if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= this.world.shopOffers.length) {
 			throw new Error('Invalid slot.');

@@ -6,9 +6,7 @@ import { ArmyService } from '../services/armyService';
 import { BuildService } from '../services/BuildService';
 import { ProductionService } from '../services/ProductionService';
 import { ShopService } from '../services/ShopService';
-import type { PhaseActionResult, PhaseTickResult, RuntimePhase, RuntimePhaseContext } from './runtimePhase';
-
-type ActionResult = { ok: true } | { ok: false; reason: string };
+import type { ActionResult, PhaseActionResult, PhaseTickResult, RuntimePhase, RuntimePhaseContext } from './runtimePhase';
 
 type BuildPhasePlayerRuntime = {
 	run: ServerGameState;
@@ -111,7 +109,6 @@ export class BuildPhaseRuntime implements RuntimePhase {
 	private advanceTick(runtime: BuildPhasePlayerRuntime): void {
 		runtime.buildService.advanceTick();
 		runtime.productionService.advanceTick();
-		runtime.shopService.advanceTick();
 		runtime.armyService.advanceTick();
 	}
 
@@ -173,14 +170,6 @@ export class BuildPhaseRuntime implements RuntimePhase {
 
 	handleShopReroll(runtime: BuildPhasePlayerRuntime): ActionResult {
 		runtime.shopService.rerollWithThrow();
-		return { ok: true };
-	}
-
-	handleArmyReorder(
-		runtime: BuildPhasePlayerRuntime,
-		action: Extract<GameActionCommand, { type: 'army/reorder' }>
-	): ActionResult {
-		runtime.run.world.reorderArmyUnitWithThrow(action.unitEntityId, action.direction);
 		return { ok: true };
 	}
 }

@@ -381,13 +381,13 @@
 
 	.tile-card__titles p {
 		margin: var(--space-xs) 0 0;
-		font-size: var(--space-lg);
+		font-size: var(--ui-font-size-sm);
 		line-height: 1.1;
 	}
 
 	.tile-card__status {
 		margin: 10px 0 0;
-		font-size: var(--space-lg);
+		font-size: var(--ui-font-size-sm);
 		line-height: 1.2;
 	}
 
@@ -400,7 +400,7 @@
 
 	.tile-card__description p {
 		margin: 0;
-		font-size: var(--space-lg);
+		font-size: var(--ui-font-size-sm);
 		line-height: 1.2;
 	}
 
@@ -413,16 +413,16 @@
 	}
 
 	.tile-card__action {
-		background: #2270ff;
+		background: var(--color-accent-blue);
 		border-color: var(--color-border-subtle);
 		font-weight: var(--font-weight-bold);
 		line-height: 1;
-		font-size: var(--space-xl);
+		font-size: var(--ui-font-size-lg);
 		padding: var(--space-sm) 14px;
 	}
 
 	.tile-card__action:hover {
-		background: #3a86ff;
+		background: var(--color-accent-blue-hover);
 	}
 
 	.tile-action-dialog {

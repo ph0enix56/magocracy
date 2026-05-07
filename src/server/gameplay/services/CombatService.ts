@@ -7,7 +7,12 @@ import {
 import { getUnitDef } from '../../config/buildings';
 import type { ArmyUnitState } from '../model';
 
-function toCombatUnit(unit: ArmyUnitState): CombatUnit {
+/**
+ * Maps an {@link ArmyUnitState} (with runtime stat overrides and damage bonuses) to a
+ * {@link CombatUnit} suitable for use in the combat engine. Applies `bonusDamage` and
+ * `damageMultiplier` to each action's base damage.
+ */
+export function toCombatUnit(unit: ArmyUnitState): CombatUnit {
 	const unitDef = getUnitDef(unit.unitDefId);
 	return {
 		unitDefId: unit.unitDefId,
@@ -26,6 +31,7 @@ function toCombatUnit(unit: ArmyUnitState): CombatUnit {
 	};
 }
 
+/** Wraps the combat engine to resolve a full combat between two armies and return the outcome. */
 export class CombatService {
 	static resolveCombat(armyA: ArmyUnitState[], armyB: ArmyUnitState[], options?: CombatOptions): CombatResult {
 		return resolveCombat(armyA.map(toCombatUnit), armyB.map(toCombatUnit), options);

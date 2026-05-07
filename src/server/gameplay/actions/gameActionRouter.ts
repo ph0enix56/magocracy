@@ -1,9 +1,8 @@
 import type { GameActionCommand } from '../../../shared/multiplayer/commands';
+import type { ActionResult } from '../phases/runtimePhase';
 
-type ActionResult = { ok: true } | { ok: false; reason: string };
 
 export type RoutedActionResult = ActionResult & { emitSnapshot: boolean };
-
 type HandlerMap = {
 	onBuildRequest: (action: Extract<GameActionCommand, { type: 'build/request' }>) => ActionResult;
 	onKingdomExpand: (action: Extract<GameActionCommand, { type: 'kingdom/expand' }>) => ActionResult;

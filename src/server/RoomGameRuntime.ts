@@ -18,10 +18,13 @@ import { PlayerProgressionService } from './gameplay/services/PlayerProgressionS
 import { PlayerRuntimeFactory, type PlayerRuntimeBundle } from './gameplay/services/PlayerRuntimeFactory';
 import { serializeArmy, serializeInventory, serializeKingdom, serializeResources } from './gameplay/snapshots/playerSnapshot';
 
-type PlayerRuntime = PlayerRuntimeBundle;
-
+/**
+ * Authoritative game runtime for a single match. Owns all player states, drives the
+ * phase loop (advance → build → combat), evaluates win conditions, and emits snapshots.
+ * The caller starts and stops the game loop via {@link start} and {@link stop}.
+ */
 export class RoomGameRuntime {
-	private readonly players = new Map<string, PlayerRuntime>();
+	private readonly players = new Map<string, PlayerRuntimeBundle>();
 	private readonly playerIds: string[];
 	private readonly onSnapshot: (snapshot: GameSnapshot) => void;
 	private readonly playerRuntimeFactory: PlayerRuntimeFactory;
@@ -62,6 +65,7 @@ export class RoomGameRuntime {
 		};
 	}
 
+	/** Starts the game loop. Immediately transitions to the first Advance Phase. No-op if already running. */
 	start(): void {
 		if (this.interval) return;
 		this.transitionTo('advance');
@@ -85,18 +89,25 @@ export class RoomGameRuntime {
 		}, serverConfig.loop.tickIntervalMs);
 	}
 
+	/** Stops the game loop. No-op if already stopped. */
 	stop(): void {
 		if (!this.interval) return;
 		clearInterval(this.interval);
 		this.interval = null;
 	}
 
+	/** Builds and emits the current snapshot to the `onSnapshot` callback. Returns the emitted snapshot. */
 	emitSnapshot(): GameSnapshot {
 		const snapshot = this.buildSnapshot();
 		this.onSnapshot(snapshot);
 		return snapshot;
 	}
 
+	/**
+	 * Validates and dispatches a game action from a player to the active phase runtime.
+	 * Actions not handled by the active phase are checked against the global action handlers.
+	 * @returns `{ ok: true }` on success, or `{ ok: false, reason }` on any validation or logic failure.
+	 */
 	handleAction(playerId: string, action: GameActionCommand): { ok: true } | { ok: false; reason: string } {
 		if (this.gameStatus === 'finished') {
 			return { ok: false, reason: 'The match has already finished.' };
@@ -143,7 +154,7 @@ export class RoomGameRuntime {
 		return this.fightPhaseRuntime.getCombatSnapshotForPlayer(playerId);
 	}
 
-	private buildPlayerView(playerId: string, runtime: PlayerRuntime): PlayerGameView {
+	private buildPlayerView(playerId: string, runtime: PlayerRuntimeBundle): PlayerGameView {
 		const tiles = runtime.run.world.getKingdomTiles();
 		return {
 			playerId,

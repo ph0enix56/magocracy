@@ -10,6 +10,10 @@ export type FightReplayRecord = {
 	armyB: ArmyUnitState[];
 };
 
+/**
+ * Persistent state for the fight phase, tracking all pairings, results, and replay data
+ * for the current set of combat rounds.
+ */
 export type FightPhaseStateData = {
 	isActive: boolean;
 	totalRounds: number;
@@ -22,6 +26,10 @@ export type FightPhaseStateData = {
 	replaysByMatchId: Map<string, FightReplayRecord>;
 };
 
+/**
+ * Initializes the state for a new fight phase. Generates all pairings for all rounds
+ * upfront using the provided `nextRoundPairs` generator.
+ */
 export function createFightPhaseState(params: {
 	playerIds: string[];
 	totalRounds: number;
@@ -88,6 +96,11 @@ export function createFightPhaseState(params: {
 	};
 }
 
+/**
+ * Resolves all pending combat matches for a specific round.
+ * Results are stored in the phase state, and winners are granted renown.
+ * Replay data is captured for each match.
+ */
 export function resolveFightRound(params: {
 	roundIndex: number;
 	state: FightPhaseStateData;
@@ -143,6 +156,10 @@ export function resolveFightRound(params: {
 	}
 }
 
+/**
+ * Prepares and starts a combat replay session for a specific match.
+ * Throws if the replay is not found or if the requesting player was not part of the match.
+ */
 export function openFightReplayForPlayer(params: {
 	playerId: string;
 	matchId: string;

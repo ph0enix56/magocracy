@@ -7,6 +7,11 @@ export type WorldStoreOptions = {
 	starterBlueprintInventory: Record<string, number>;
 };
 
+/**
+ * Canonical mutable state container for a single player's game world.
+ * Owns kingdom tiles, the army (with stable ordering), resource totals, blueprint inventory,
+ * and shop offers. All mutations go through the provided methods to keep ordering consistent.
+ */
 export class WorldStore {
 	private readonly kingdomTiles = new Map<string, KingdomTileState>();
 	private readonly armyUnits = new Map<string, ArmyUnitState>();
@@ -42,6 +47,10 @@ export class WorldStore {
 		return this.getKingdomTiles().filter((tile) => !!tile.building);
 	}
 
+	/**
+	 * Creates and registers a new army unit from the given unit definition, appending it
+	 * to the end of the army order. Throws if `unitDefId` is unknown.
+	 */
 	spawnArmyUnit(unitDefId: string): ArmyUnitState {
 		const unitDef = getUnitDef(unitDefId);
 		if (!unitDef) throw new Error(`Unknown unitDefId '${unitDefId}'`);
@@ -61,6 +70,10 @@ export class WorldStore {
 		return unit;
 	}
 
+	/**
+	 * Removes the unit with `previousArmyUnitId` and spawns a new unit from `nextUnitDefId`
+	 * in the same position in the army order. Throws if the previous unit does not exist.
+	 */
 	replaceArmyUnitWithThrow(previousArmyUnitId: string, nextUnitDefId: string): ArmyUnitState {
 		const previous = this.getArmyUnit(previousArmyUnitId);
 		if (!previous) throw new Error('Invalid unit.');
@@ -95,6 +108,10 @@ export class WorldStore {
 		this.ensureArmyUnitOrderSynced();
 	}
 
+	/**
+	 * Moves a unit one position up or down in the army order. No-op if already at the boundary.
+	 * Throws if the unit is not found.
+	 */
 	reorderArmyUnitWithThrow(unitEntityId: string, direction: 'up' | 'down'): void {
 		this.ensureArmyUnitOrderSynced();
 		const idx = this.armyUnitOrder.indexOf(unitEntityId);
@@ -107,6 +124,7 @@ export class WorldStore {
 		this.armyUnitOrder[idx] = tmp!;
 	}
 
+	/** Returns all army units in the player-defined order. */
 	getOrderedArmyUnits(): ArmyUnitState[] {
 		this.ensureArmyUnitOrderSynced();
 		const out: ArmyUnitState[] = [];

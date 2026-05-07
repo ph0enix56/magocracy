@@ -4,11 +4,19 @@ import type { KingdomTileState } from '../model';
 import type { WorldStore } from '../WorldStore';
 import type { ResourceMap } from '../../../shared/domain/types';
 
+/**
+ * Handles all district (building) lifecycle operations: construction, upgrading, and destruction.
+ * Each tick, advances in-progress constructions and upgrades by one step, applying completion
+ * grants and spawning or replacing housed army units when buildings finish.
+ */
 export class BuildService {
 	constructor(private readonly world: WorldStore) {}
 
-	update(_delta: number, _time: number): void {}
-
+	/**
+	 * Advances all in-progress constructions and upgrades by one tick.
+	 * Completes buildings that have reached their build time, applying any `onCompleteGrants`
+	 * and spawning or replacing housed army units as appropriate.
+	 */
 	advanceTick(): void {
 		for (const tile of this.world.getKingdomTilesWithBuildings()) {
 			const building = tile.building;
@@ -70,6 +78,12 @@ export class BuildService {
 		}
 	}
 
+	/**
+	 * Starts construction of a new building on an empty tile.
+	 * Validates the tile state, deducts resource costs, and consumes one blueprint.
+	 * Throws if the tile is occupied, is an expansion site, the building is invalid,
+	 * is an upgrade-only variant, or resources/blueprints are insufficient.
+	 */
 	startBuild(tileId: string, buildingId: string): void {
 		const tile = this.getTileWithThrow(tileId);
 		if (tile.building) throw new Error('Tile already has a building');
@@ -89,6 +103,11 @@ export class BuildService {
 		};
 	}
 
+	/**
+	 * Begins an upgrade on an active building. Validates upgrade availability and deducts costs.
+	 * Throws if the tile has no active building, if no upgrade is available, or if `targetBuildingId`
+	 * does not match the next upgrade for the building.
+	 */
 	startUpgrade(tileId: string, targetBuildingId: string): void {
 		const tile = this.getTileWithThrow(tileId);
 		if (!tile.building) throw new Error('Tile has no building to upgrade');
@@ -103,6 +122,10 @@ export class BuildService {
 		tile.building.upgradeNextId = targetBuildingId;
 	}
 
+	/**
+	 * Destroys the building on a tile, removing any housed army unit from the player's army.
+	 * Throws if the tile has no building.
+	 */
 	destroyBuilding(tileId: string): void {
 		const tile = this.getTileWithThrow(tileId);
 		if (!tile.building) throw new Error('Tile has no building to destroy');

@@ -57,3 +57,26 @@ test('CombatService applies damage bonuses during mapping', () => {
 	// it should deal 51 damage to unitB.
 	assert.equal(result.armyB[0]?.health, 100 - 51);
 });
+
+test('CombatService handles empty army inputs', () => {
+	const result = CombatService.resolveCombat([], []);
+	assert.equal(result.winner, 'draw');
+	assert.equal(result.armyA.length, 0);
+	assert.equal(result.armyB.length, 0);
+});
+
+test('CombatService is resilient to undefined optional fields', () => {
+	const unit: ArmyUnitState = {
+		armyUnitId: 'test-u1',
+		unitDefId: 'swordsman',
+		health: 100,
+		drFlat: 0,
+		drPercent: 0,
+		actionPoints: 1,
+		initiative: 1,
+		// bonusDamage and damageMultiplier are omitted
+	};
+
+	const result = CombatService.resolveCombat([unit], [unit], { maxRounds: 1 });
+	assert.ok(result);
+});

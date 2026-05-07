@@ -6,6 +6,12 @@ import type { WorldStore } from '../WorldStore';
 
 type UnitEffectStat = 'unit:hp' | 'unit:drflat' | 'unit:drpercent' | 'unit:ap' | 'unit:initiative' | 'unit:damage';
 
+/**
+ * Recomputes all runtime stats for the housed army unit in a given building tile,
+ * applying additive and multiplicative neighbor effects from the DSL.
+ * Called after construction completion and on each production tick.
+ * @param housingEntityId The `tileId` of the tile containing the army building.
+ */
 export function recomputeHousedArmyUnit(world: WorldStore, housingEntityId: string): void {
 	const housingTile = world.getKingdomTile(housingEntityId);
 	if (!housingTile?.building) return;
@@ -51,6 +57,7 @@ export function getHousingBuildingForUnit(world: WorldStore, unitEntityId: strin
 	return undefined;
 }
 
+/** Recomputes stats for all housed units in all active army buildings. Called each production tick. */
 export function recomputeAllHousedArmyUnits(world: WorldStore): void {
 	for (const tile of world.getKingdomTilesWithBuildings()) {
 		if (tile.building?.status !== 'active') continue;

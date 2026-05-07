@@ -1,12 +1,11 @@
 import type { WorldStoreOptions } from './WorldStore';
 import { WorldStore } from './WorldStore';
 
+/** Thin wrapper that associates a {@link WorldStore} with a single player's game session. */
 export class ServerGameState {
-	readonly seed: number;
 	readonly world: WorldStore;
 
-	constructor(seed: number, options?: WorldStoreOptions) {
-		this.seed = seed;
+	constructor(options?: WorldStoreOptions) {
 		this.world = new WorldStore(options);
 	}
 }

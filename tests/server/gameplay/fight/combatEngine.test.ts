@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { resolveCombat, type CombatUnit } from '../../../../src/server/gameplay/fight/combatEngine';
+import { resolveCombat, CombatSession, type CombatUnit } from '../../../../src/server/gameplay/fight/combatEngine';
+
 
 const basicUnit = (id: string, initiative: number): CombatUnit => ({
 	unitDefId: id,
@@ -107,4 +108,34 @@ test('high initiative units can sweep before enemies act', () => {
 	// slow1 acts -> fast1 HP 90
 	const result = resolveCombat(armyA, armyB, { maxRounds: 1 });
 	assert.equal(result.armyB[0]?.health, 80);
+});
+
+test('CombatSession step and getSnapshot reflecting incremental state', () => {
+	const armyA = [basicUnit('a1', 100)];
+	const armyB = [basicUnit('b1', 50)];
+	const session = new CombatSession(armyA, armyB);
+
+	let snapshot = session.getSnapshot();
+	assert.equal(snapshot.status, 'running');
+	assert.equal(snapshot.log.length, 0);
+
+	// Step 1: a1 attacks b1
+	const step1 = session.step();
+	assert.ok(step1);
+	snapshot = session.getSnapshot();
+	assert.equal(snapshot.log.length, 1);
+	assert.equal(snapshot.armyB[0]?.health, 90);
+
+	// Step 2: b1 attacks a1
+	const step2 = session.step();
+	assert.ok(step2);
+	snapshot = session.getSnapshot();
+	assert.equal(snapshot.log.length, 2);
+	assert.equal(snapshot.armyA[0]?.health, 90);
+
+	// No more units this round, should advance round
+	const step3 = session.step();
+	assert.ok(step3);
+	snapshot = session.getSnapshot();
+	assert.equal(snapshot.round, 2);
 });

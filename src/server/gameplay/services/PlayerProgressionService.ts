@@ -5,6 +5,10 @@ import type { WorldStore } from '../WorldStore';
 
 type PlayerWorldResolver = (playerId: string) => WorldStore | undefined;
 
+/**
+ * Tracks player renown progression, determines win conditions, and applies charter rewards.
+ * Operates on player worlds through a resolver to avoid direct coupling to the player map.
+ */
 export class PlayerProgressionService {
 	constructor(
 		private readonly getPlayerWorld: PlayerWorldResolver,
@@ -22,6 +26,10 @@ export class PlayerProgressionService {
 		return this.getPlayerWorld(playerId)?.resources.get('renown') ?? 0;
 	}
 
+	/**
+	 * Applies all resource and blueprint grants from a selected charter to a player's world.
+	 * Amounts are floored and negative grants are ignored.
+	 */
 	applyCharterRewards(playerId: string, charter: CharterOption): void {
 		const world = this.getPlayerWorld(playerId);
 		if (!world) return;
@@ -37,6 +45,10 @@ export class PlayerProgressionService {
 		}
 	}
 
+	/**
+	 * Checks whether any player has reached the target renown threshold.
+	 * Returns the winner and final standings if the game is over, otherwise `{ finished: false }`.
+	 */
 	evaluateEndgame(playerIds: string[]): { finished: false } | { finished: true; winnerPlayerId: string; standings: GameStandingSnapshot[] } {
 		const targetRenown = Math.max(1, Math.floor(this.settings.gameLifecycle.targetRenown));
 		const standings = this.buildStandings(playerIds);
@@ -45,6 +57,10 @@ export class PlayerProgressionService {
 		return { finished: true, winnerPlayerId: winner.playerId, standings };
 	}
 
+	/**
+	 * Returns a sorted array of player standings, ordered by renown descending.
+	 * Ties are broken by original player insertion order.
+	 */
 	buildStandings(playerIds: string[]): GameStandingSnapshot[] {
 		return playerIds
 			.map((playerId) => ({

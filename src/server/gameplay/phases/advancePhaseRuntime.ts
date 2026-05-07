@@ -118,7 +118,7 @@ export class AdvancePhaseRuntime implements RuntimePhase {
 
 	private createEmptyState(): AdvancePhaseStateData {
 		return createEmptyAdvanceState({
-			secondsPerPick: serverConfig.advancePhase.levelByAdvanceIndex.length > 0 ? 20 : 20,
+			secondsPerPick: 20,
 			revealDelaySeconds: 8
 		});
 	}
