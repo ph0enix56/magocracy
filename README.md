@@ -31,7 +31,7 @@ This approach is best for active development due easy access to all scripts and 
     *   `client:build`: Build and bundle the client files for deployment on a web server. Before running, the `SERVER_URL` environment variable must be set to the public-facing URL of the multiplayer server. The output files are placed in the `dist` directory and can be copied to any static hosting solution.
     *   `test`: Run all unit test suites.
 
-### 3. Best for Distributed Deployment (Production)
+### 3. Best for distributed deployment (Production)
 Catered for deployment to a remote server (cloud) for running the game publicly.
 
 *  **Server**:
