@@ -2,6 +2,7 @@
 	import type { ArmyUnit } from '../../shared/domain/gameViews';
 	import type { UnitCatalogEntry } from '../../shared/multiplayer/snapshots';
 	import { inferUnitRangeLabel } from './cardFormatters';
+	import Twemoji from './Twemoji.svelte';
 
 	export let unit: ArmyUnit | UnitCatalogEntry;
 	export let tier: number | null = null;
@@ -24,10 +25,10 @@
 	</div>
 
 	<div class="unit-card__stats">
-		<div class="unit-card__stat"><span>❤️ HP:</span><strong>{unit.health}</strong></div>
-		<div class="unit-card__stat"><span>🕓 Initiative:</span><strong>{unit.initiative}</strong></div>
-		<div class="unit-card__stat"><span>🛡️ DR:</span><strong>{unit.drPercent}% + {unit.drFlat}</strong></div>
-		<div class="unit-card__stat"><span>⚡ Action Points:</span><strong>{unit.actionPoints}</strong></div>
+		<div class="unit-card__stat"><span><Twemoji code="2764" /> HP:</span><strong>{unit.health}</strong></div>
+		<div class="unit-card__stat"><span><Twemoji code="1f553" /> Initiative:</span><strong>{unit.initiative}</strong></div>
+		<div class="unit-card__stat"><span><Twemoji code="1f6e1" /> DR:</span><strong>{unit.drPercent}% + {unit.drFlat}</strong></div>
+		<div class="unit-card__stat"><span><Twemoji code="26a1" /> Action Points:</span><strong>{unit.actionPoints}</strong></div>
 	</div>
 
 	<div class="unit-card__separator" aria-hidden="true"></div>
@@ -36,7 +37,7 @@
 		{#each unit.actions as action, index (`${action.name}-${index}`)}
 			<p>
 				<span class="unit-card__action-name">{action.name}</span>
-				{action.actionPointCost} ⚡: {action.targeting} in range {action.range}, {action.damage} DMG
+				{action.actionPointCost} <Twemoji code="26a1" />: {action.targeting} in range {action.range}, {action.damage} DMG
 			</p>
 		{/each}
 	</div>

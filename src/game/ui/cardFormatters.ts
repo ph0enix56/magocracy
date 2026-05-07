@@ -2,21 +2,21 @@ import type { ArmyUnit } from '../../shared/domain/gameViews';
 import type { ResourceMap } from '../../shared/domain/types';
 import { RESOURCE_KEYS } from '../../shared/domain/resources';
 
-const RESOURCE_EMOJIS: Record<string, string> = {
-	wood: '🪵',
-	stone: '🪨',
-	food: '🍞',
-	mana: '💧',
-	expansion: '🧭',
-	renown: '🏆'
+const RESOURCE_CODES: Record<string, string> = {
+	wood: '1fab5',
+	stone: '1faa8',
+	food: '1f35e',
+	mana: '1f4a7',
+	expansion: '2795',
+	renown: '1f3c6'
 };
 
 const RESOURCE_ORDER = new Map<string, number>(RESOURCE_KEYS.map((resource, index) => [resource, index]));
 
 type UnitStatsForRange = Pick<ArmyUnit, 'actions'>;
 
-export function resourceEmoji(resource: string): string {
-	return RESOURCE_EMOJIS[resource] ?? resource;
+export function resourceCode(resource: string): string {
+	return RESOURCE_CODES[resource] ?? resource;
 }
 
 export function orderedResourceEntries(resources: ResourceMap | undefined): Array<[string, number]> {

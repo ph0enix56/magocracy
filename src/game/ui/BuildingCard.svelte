@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { BuildingCatalogEntry } from '../../shared/multiplayer/snapshots';
 	import { createEventDispatcher } from 'svelte';
-	import { orderedResourceEntries, resourceEmoji } from './cardFormatters';
+	import { orderedResourceEntries, resourceCode } from './cardFormatters';
+	import Twemoji from './Twemoji.svelte';
 
 	export let def: BuildingCatalogEntry;
 	export let count: number | null = null;
@@ -56,10 +57,10 @@
 				<div class="cost">
 					Cost:
 					{#each orderedResourceEntries(def.cost) as [resource, amount] (`${resource}-${amount}`)}
-						<span class="cost-item">{amount} {resourceEmoji(resource)}</span>
+						<span class="cost-item">{amount} <Twemoji code={resourceCode(resource)} /></span>
 					{/each}
 				</div>
-				<div class="time">Build: {def.buildTime}⌛</div>
+				<div class="time">Build: {def.buildTime}<Twemoji code="231b" /></div>
 			</div>
 		</div>
 	</div>

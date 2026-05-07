@@ -75,4 +75,7 @@ The simplified structure of the codebase is as follows:
 
 ## Attribution
 
+The icons for game elements (districts, units, navigation) used in this project are sourced from [Game-icons.net](https://game-icons.net), which were created by [Lorc](https://lorcblog.blogspot.com/), [Delapouite](https://delapouite.com/) and other contributors.
+These icons are provided under the [CC BY 3.0](http://creativecommons.org/licenses/by/3.0/) license.
 
+The favicon, resource and other UI icons are sourced from the [twemoji](https://github.com/twitter/twemoji) project, created by Twitter Inc, and other contributors, available at https://github.com/twitter/twemoji/blob/a6f943b958d94b2b82f886aa540b915d9a694a75/assets/svg/1f52e.svg. Twemoji is available under the [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/) license.

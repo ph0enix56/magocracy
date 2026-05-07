@@ -109,11 +109,11 @@
 	{#if inMatch}
 		<div class="top-bar">
 			<button class="how-to-play-btn" on:click={openHowToPlay} title="How to Play">?</button>
-			<ResourceCounter keyName="wood" icon="🪵" />
-			<ResourceCounter keyName="stone" icon="🪨" />
-			<ResourceCounter keyName="food" icon="🍞" />
-			<ResourceCounter keyName="mana" icon="💧" />
-			<ResourceCounter keyName="expansion" icon="➕" />
+			<ResourceCounter keyName="wood" code="1fab5" />
+			<ResourceCounter keyName="stone" code="1faa8" />
+			<ResourceCounter keyName="food" code="1f35e" />
+			<ResourceCounter keyName="mana" code="1f4a7" />
+			<ResourceCounter keyName="expansion" code="2795" />
 			{#if $appViewState.isScouting && $appViewState.viewedPlayerName}
 				<div class="ui-chip scout-chip">Scouting {$appViewState.viewedPlayerName}</div>
 			{/if}

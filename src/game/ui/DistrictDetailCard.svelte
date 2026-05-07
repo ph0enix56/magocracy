@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { BuildingCatalogEntry } from '../../shared/multiplayer/snapshots';
 	import { getHexTileColorForSchool, toCssHexColor } from '../../shared/ui/buildingSchoolColors';
-	import { orderedResourceEntries, resourceEmoji } from './cardFormatters';
+	import { orderedResourceEntries, resourceCode } from './cardFormatters';
+	import Twemoji from './Twemoji.svelte';
 
 	export let def: BuildingCatalogEntry;
 	export let showNotch = true;
@@ -31,7 +32,7 @@
 
 	<div class="district-card__description">
 		{#each orderedResourceEntries(def.productions) as [resource, amount] (`${resource}-${amount}`)}
-			<p>Produces {amount} {resourceEmoji(resource)} / ⌛.</p>
+			<p>Produces {amount} <Twemoji code={resourceCode(resource)} /> / <Twemoji code="231b" />.</p>
 		{/each}
 		{#if def.housedUnit}
 			<p>Houses {def.housedUnit.name}.</p>

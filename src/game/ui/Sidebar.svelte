@@ -11,7 +11,8 @@
 		type SelectedTileView
 	} from '../client/gameSessionStore';
 	import { getHexTileColorForSchool, toCssHexColor } from '../../shared/ui/buildingSchoolColors';
-	import { orderedResourceEntries, resourceEmoji } from './cardFormatters';
+	import { orderedResourceEntries, resourceCode } from './cardFormatters';
+	import Twemoji from './Twemoji.svelte';
 	import UnitCard from './UnitCard.svelte';
 
 	let visible = false;
@@ -228,7 +229,7 @@
 				{#if selected.built}
 					<div class="tile-card__description">
 						{#each orderedResourceEntries(selected.buildingProductions) as [resource, amount] (`${resource}-${amount}`)}
-							<p>Produces {amount} {resourceEmoji(resource)} / ⌛.</p>
+							<p>Produces {amount} <Twemoji code={resourceCode(resource)} /> / <Twemoji code="231b" />.</p>
 						{/each}
 
 						{#if selectedHousedUnit}
