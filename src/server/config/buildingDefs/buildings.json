@@ -1,5 +1,23 @@
 [
   {
+    "id": "town_hall",
+    "name": "Town Hall",
+    "assetPath": "game_icons/medieval-village-01.svg",
+    "school": "founding",
+    "tier": 0,
+    "cost": {
+      "mana": 0
+    },
+    "buildTime": 0,
+    "description": "The heart of your city.",
+    "productions": {
+      "wood": 2,
+      "stone": 2,
+      "mana": 1
+    },
+    "effects": []  
+  },
+  {
     "id": "logging_camp",
     "name": "Logging Camp",
     "assetPath": "game_icons/axe-in-stump.svg",

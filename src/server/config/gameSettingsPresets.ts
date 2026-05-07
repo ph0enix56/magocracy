@@ -11,23 +11,16 @@ export const SOLO_GAME_SETTINGS: GameSettings = {
 	economy: {
 		startingResources: { stone: 100000, wood: 100000, food: 100000, mana: 100000, renown: 0, expansion: 100 },
 		starterBlueprintInventory: {
-			logging_camp: 2,
-			mana_pump: 2,
+			town_hall: 1,
+			forest_school: 2,
 			ghost_camp: 1,
-			prototype_marksman_camp: 1,
+			deep_mine: 1,
 			dolmen: 1,
 			granary: 1,
-			quarry: 1,
-			academy: 1,
-			deep_mine: 1,
-			berserker_camp: 1,
-			fire_elemental_grounds: 1,
 			holy_oak: 1,
 			blacksmith: 1,
 			factory: 1,
-			tinkers_guild: 1,
-			fire_mage_tower: 1,
-			the_apex_construct_portal: 1
+			berserker_camp: 1
 		}
 	}
 };
@@ -43,6 +36,6 @@ export const DEFAULT_NORMAL_GAME_SETTINGS: GameSettings = {
 	gameLifecycle: { targetRenown: 5 },
 	economy: {
 		startingResources: { stone: 100, wood: 100, food: 100, mana: 50, renown: 0, expansion: 0 },
-		starterBlueprintInventory: {}
+		starterBlueprintInventory: { town_hall: 1 }
 	}
 };
