@@ -25,13 +25,13 @@
 		},
 		{
 			title: 'City & Economy',
-			content: `<p>Your city is formed by <strong>districts</strong> placed on a hexagonal grid. To build a district, you need its <strong>blueprint</strong> and enough resources, which include <img src="/assets/twemoji/1fab5.svg" style="width: 1em; vertical-align: middle;" /> wood, <img src="/assets/twemoji/1faa8.svg" style="width: 1em; vertical-align: middle;" /> stone and <img src="/assets/twemoji/1f35e.svg" style="width: 1em; vertical-align: middle;" /> food. Blueprints can be purchased in the <strong>Shop</strong> using <img src="/assets/twemoji/1f4a7.svg" style="width: 1em; vertical-align: middle;" /> mana, or drafted for free during the <strong>Advance Phase</strong>.</p>
+			content: `<p>Your city is formed by <strong>districts</strong> placed on a hexagonal grid. To build a district, you need its <strong>blueprint</strong> and enough resources, which include <img src="assets/twemoji/1fab5.svg" style="width: 1em; vertical-align: middle;" /> wood, <img src="assets/twemoji/1faa8.svg" style="width: 1em; vertical-align: middle;" /> stone and <img src="assets/twemoji/1f35e.svg" style="width: 1em; vertical-align: middle;" /> food. Blueprints can be purchased in the <strong>Shop</strong> using <img src="assets/twemoji/1f4a7.svg" style="width: 1em; vertical-align: middle;" /> mana, or drafted for free during the <strong>Advance Phase</strong>.</p>
 			<p>Districts serve two purposes, as is indicated on their cards:<p>
 			<ul>
 				<li><strong>Production</strong> periodically provide resources during the <strong>Build Phase</strong>.</li>
 				<li><strong>Army</strong> house army units that battle during the <strong>Fight Phase</strong>.</li>
 			</ul>
-			<p>In regular intervals during the Build Phase, a <img src="/assets/twemoji/231b.svg" style="width: 1em; vertical-align: middle;" /> time unit elapses, which triggers resource production and advances district construction and upgrade progress.</p>
+			<p>In regular intervals during the Build Phase, a <img src="assets/twemoji/231b.svg" style="width: 1em; vertical-align: middle;" /> time unit elapses, which triggers resource production and advances district construction and upgrade progress.</p>
 			<p>Districts are sorted into tiers indicating their cost and power, as well as thematic <strong>Schools of Magic</strong>. District <strong>positioning</strong> matters! Pay attention to their effects, which often change power when adjacent to specific districts, or directly affect neighbors when placed.</p>
 			<p>After the duration of the Build Phase elapses, as indicated on the timer, cities are frozen in time while other phases take place.`
 		},
@@ -39,8 +39,8 @@
 			title: 'Army & Combat',
 			content: `<p>In the <strong>Fight Phase</strong>, the army provided by your Army districts will clash with the armies of other leaders.</p>
 			<p>Armies <strong>battle automatically</strong>, but you influence the outcome by changing the <strong>order of units</strong> before each round. The top of the list represents the front of your army, while units further down are further back. Each unit has different stats determining its role and optimal position.</p>
-			<p>Units alternate attacking based on <img src="/assets/twemoji/1f553.svg" style="width: 1em; vertical-align: middle;" /> Initiative. When it's the unit's turn, it uses its <img src="/assets/twemoji/26a1.svg" style="width: 1em; vertical-align: middle;" /> Action Points to perform as many <strong>attacks</strong> from its attack list, top to bottom. The units picks an enemy to attack based on its targeting preference and range. <strong>Range</strong> is calculated as the number of units the attack has to go over. This means units with range 1 have to stand at the front to attack!</p>
-			<p>Each attack deals certain damage, reduced by the target's <img src="/assets/twemoji/1f6e1.svg" style="width: 1em; vertical-align: middle;" /> Damage Reduction and then subtracted from its <img src="/assets/twemoji/2764.svg" style="width: 1em; vertical-align: middle;" /> Health Points. A unit with 0 HP is removed from battle.</p>
+			<p>Units alternate attacking based on <img src="assets/twemoji/1f553.svg" style="width: 1em; vertical-align: middle;" /> Initiative. When it's the unit's turn, it uses its <img src="assets/twemoji/26a1.svg" style="width: 1em; vertical-align: middle;" /> Action Points to perform as many <strong>attacks</strong> from its attack list, top to bottom. The units picks an enemy to attack based on its targeting preference and range. <strong>Range</strong> is calculated as the number of units the attack has to go over. This means units with range 1 have to stand at the front to attack!</p>
+			<p>Each attack deals certain damage, reduced by the target's <img src="assets/twemoji/1f6e1.svg" style="width: 1em; vertical-align: middle;" /> Damage Reduction and then subtracted from its <img src="assets/twemoji/2764.svg" style="width: 1em; vertical-align: middle;" /> Health Points. A unit with 0 HP is removed from battle.</p>
 			<p>After each combat, your army is renewed to <strong>full strength</strong>, and you face a different opponent in the next round. Make sure to adapt your positioning! You gain <strong>Renown</strong> for each round where your army defeats all opposing units.</p>`
 		}
 	];

@@ -4,7 +4,7 @@
 	export let blueprintCount = 0;
 	export let armyCount = 0;
 	export let middleLabel = 'Shop';
-	export let middleIconPath: string | null = '/assets/game_icons/cash.svg';
+	export let middleIconPath: string | null = 'assets/game_icons/cash.svg';
 
 	const dispatch = createEventDispatcher<{
 		openBlueprints: void;
@@ -31,7 +31,7 @@
 		class="top-action-card top-action-card--wide"
 		on:click={handleOpenBlueprints}
 	>
-		<img class="top-action-icon" src="/assets/game_icons/tied-scroll.svg" alt="" aria-hidden="true" />
+		<img class="top-action-icon" src="assets/game_icons/tied-scroll.svg" alt="" aria-hidden="true" />
 		<div class="top-action-count">{blueprintCount}</div>
 		<div class="top-action-label">Blueprints</div>
 	</button>
@@ -52,7 +52,7 @@
 		class="top-action-card top-action-card--wide"
 		on:click={handleOpenArmy}
 	>
-		<img class="top-action-icon" src="/assets/game_icons/swords-emblem.svg" alt="" aria-hidden="true" />
+		<img class="top-action-icon" src="assets/game_icons/swords-emblem.svg" alt="" aria-hidden="true" />
 		<div class="top-action-count">{armyCount}</div>
 		<div class="top-action-label">Army</div>
 	</button>

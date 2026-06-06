@@ -86,12 +86,12 @@
 			: 'Back'
 		: 'Shop';
 	$: middleActionIconPath = showScoutBackAction
-		? '/assets/game_icons/entry-door.svg'
+		? 'assets/game_icons/entry-door.svg'
 		: $appViewState.activeOverlay?.isTownToggleable
 		? overlayScreenView === 'overview'
-			? '/assets/game_icons/exit-door.svg'
-			: '/assets/game_icons/entry-door.svg'
-		: '/assets/game_icons/cash.svg';
+			? 'assets/game_icons/exit-door.svg'
+			: 'assets/game_icons/entry-door.svg'
+		: 'assets/game_icons/cash.svg';
 
 	$: {
 		if (typeof window !== 'undefined') {

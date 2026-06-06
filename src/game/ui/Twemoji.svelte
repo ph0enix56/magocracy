@@ -8,7 +8,7 @@
 
 <img
 	class="twemoji"
-	src="/assets/twemoji/{code}.svg"
+	src="assets/twemoji/{code}.svg"
 	alt=""
 	aria-hidden="true"
 	style="width: {size}; height: {size}; vertical-align: -0.125em; display: inline-block;"
